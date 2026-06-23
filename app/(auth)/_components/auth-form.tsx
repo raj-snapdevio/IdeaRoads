@@ -74,7 +74,7 @@ function AuthFormInner() {
             <CardDescription>
               {sent
                 ? "Your one-time sign-in link is on its way."
-                : "Enter your email and KROVA will send a magic link."}
+                : "Enter your email and IDEAROADS will send a magic link."}
             </CardDescription>
           </CardHeader>
           <CardContent>

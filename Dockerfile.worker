@@ -18,8 +18,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 
 RUN corepack enable \
-  && groupadd --system --gid 1001 krova \
-  && useradd --system --uid 1001 --gid krova krova
+  && groupadd --system --gid 1001 idearoads \
+  && useradd --system --uid 1001 --gid idearoads idearoads
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
@@ -28,6 +28,6 @@ COPY db ./db
 COPY lib ./lib
 COPY scripts ./scripts
 
-USER krova
+USER idearoads
 
 CMD ["pnpm", "worker:start"]

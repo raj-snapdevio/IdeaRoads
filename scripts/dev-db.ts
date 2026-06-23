@@ -17,7 +17,7 @@ const user = decodeURIComponent(url.username) || "postgres";
 const password = decodeURIComponent(url.password) || "password";
 const port = Number(url.port) || 54_329;
 const database = url.pathname.replace(/^\//, "") || "postgres";
-const dataDir = path.resolve(process.cwd(), ".krova-postgres");
+const dataDir = path.resolve(process.cwd(), ".idearoads-postgres");
 
 const postgres = new EmbeddedPostgres({
   databaseDir: dataDir,

@@ -92,7 +92,7 @@ export async function GET() {
     })),
   };
 
-  const filename = `krova-account-export-${current.user.email.replace(/[^a-z0-9]/gi, "_")}-${new Date().toISOString().slice(0, 10)}.json`;
+  const filename = `idearoads-account-export-${current.user.email.replace(/[^a-z0-9]/gi, "_")}-${new Date().toISOString().slice(0, 10)}.json`;
 
   return new NextResponse(JSON.stringify(payload, null, 2), {
     headers: {
