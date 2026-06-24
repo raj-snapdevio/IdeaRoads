@@ -22,6 +22,13 @@
       "when": 1782302225216,
       "tag": "0002_true_exodus",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782304143600,
+      "tag": "0003_powerful_expediter",
+      "breakpoints": true
     }
   ]
 }

@@ -3,7 +3,7 @@ import { ArrowRight, LayoutGrid, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { boards, workspaceMembers } from "@/db/schema";
+import { boards, posts, workspaceMembers } from "@/db/schema";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
 import {
@@ -31,19 +31,33 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
   const member = await getWorkspaceMember(workspace.id, session.user.id);
   if (!member) notFound();
 
-  const [workspaceBoards, [{ memberCount }]] = await Promise.all([
-    db
-      .select()
-      .from(boards)
-      .where(
-        and(eq(boards.workspaceId, workspace.id), eq(boards.isArchived, false))
-      )
-      .orderBy(asc(boards.displayOrder)),
-    db
-      .select({ memberCount: count() })
-      .from(workspaceMembers)
-      .where(eq(workspaceMembers.workspaceId, workspace.id)),
-  ]);
+  const [workspaceBoards, [{ memberCount }], boardPostCounts] =
+    await Promise.all([
+      db
+        .select()
+        .from(boards)
+        .where(
+          and(
+            eq(boards.workspaceId, workspace.id),
+            eq(boards.isArchived, false)
+          )
+        )
+        .orderBy(asc(boards.displayOrder)),
+      db
+        .select({ memberCount: count() })
+        .from(workspaceMembers)
+        .where(eq(workspaceMembers.workspaceId, workspace.id)),
+      db
+        .select({ boardId: posts.boardId, postCount: count() })
+        .from(posts)
+        .where(eq(posts.workspaceId, workspace.id))
+        .groupBy(posts.boardId),
+    ]);
+
+  const postCountMap = Object.fromEntries(
+    boardPostCounts.map((r) => [r.boardId, r.postCount])
+  );
+  const totalPosts = boardPostCounts.reduce((sum, r) => sum + r.postCount, 0);
 
   return (
     <div className="flex flex-col">
@@ -83,7 +97,7 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
               Feedback posts
             </p>
             <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
-              0
+              {totalPosts}
             </p>
           </div>
         </div>
@@ -114,7 +128,10 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
                   )}
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-xs text-muted-foreground">0 posts</span>
+                  <span className="text-xs text-muted-foreground">
+                    {postCountMap[board.id] ?? 0}{" "}
+                    {(postCountMap[board.id] ?? 0) === 1 ? "post" : "posts"}
+                  </span>
                   <ArrowRight className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
                 </div>
               </Link>
