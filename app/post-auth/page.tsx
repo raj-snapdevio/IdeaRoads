@@ -13,5 +13,5 @@ export default async function PostAuthPage() {
     .where(eq(user.id, session.user.id))
     .limit(1);
 
-  redirect(freshUser?.role === ADMIN_ROLE ? "/orbit" : "/dashboard");
+  redirect(freshUser?.role === ADMIN_ROLE ? "/orbit" : "/onboarding");
 }

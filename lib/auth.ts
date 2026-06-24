@@ -22,6 +22,20 @@ export const auth = betterAuth({
   }),
   secret: env.APP_SECRET,
   baseURL: env.NEXT_PUBLIC_APP_URL,
+  socialProviders: {
+    ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+      ? {
+          google: {
+            clientId: env.GOOGLE_CLIENT_ID,
+            clientSecret: env.GOOGLE_CLIENT_SECRET,
+          },
+        }
+      : {}),
+  },
+  accountLinking: {
+    enabled: true,
+    trustedProviders: ["google", "magic-link"],
+  },
   plugins: [
     admin({
       impersonationSessionDuration: 3600,
