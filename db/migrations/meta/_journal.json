@@ -15,6 +15,13 @@
       "when": 1782298829134,
       "tag": "0001_curved_amazoness",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782302225216,
+      "tag": "0002_true_exodus",
+      "breakpoints": true
     }
   ]
 }

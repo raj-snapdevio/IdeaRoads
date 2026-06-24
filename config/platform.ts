@@ -17,6 +17,11 @@ export const WORKSPACE_MEMBER = "member" as const;
 // Workspace limits
 export const MAX_WORKSPACES_PER_USER = 10;
 export const MAX_BOARDS_PER_WORKSPACE = 10;
+export const MAX_MEMBERS_PER_WORKSPACE: number | null = null;
+
+// Invitation settings
+export const INVITE_EXPIRY_DAYS = 7;
+export const INVITE_LINK_LABEL_MAX = 100;
 
 // Default board created with every new workspace
 export const DEFAULT_BOARD_NAME = "Feature Requests";
@@ -36,6 +41,7 @@ export const RESERVED_SLUGS: readonly string[] = [
   "dashboard",
   "settings",
   "invite",
+  "join",
   "demo",
   "features",
   "privacy",

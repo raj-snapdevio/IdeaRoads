@@ -1,4 +1,4 @@
-import { LayoutGrid, LogOut, MessageSquare } from "lucide-react";
+import { LayoutGrid, LogOut, MessageSquare, Settings } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
@@ -96,6 +96,17 @@ export default async function WorkspaceLayout({
             </span>
           </div>
         </nav>
+
+        {/* Settings */}
+        <div className="border-t border-sidebar-border p-2">
+          <Link
+            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={`/${workspace.slug}/settings/members`}
+          >
+            <Settings className="size-4 shrink-0" />
+            <span className="truncate">Settings</span>
+          </Link>
+        </div>
 
         {/* User bar */}
         <div className="border-t border-sidebar-border p-3">
