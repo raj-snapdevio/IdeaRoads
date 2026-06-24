@@ -19,3 +19,13 @@ export function formatDateTime(value: Date | string | null | undefined) {
     timeStyle: "short",
   }).format(date)
 }
+
+export function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .normalize("NFC")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48)
+    .replace(/-+$/, "");
+}

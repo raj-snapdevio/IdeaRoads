@@ -1,17 +1,25 @@
+import { redirect } from "next/navigation";
+import { OnboardingForm } from "@/app/onboarding/_components/onboarding-form";
 import { requireSession } from "@/lib/authz";
+import { getFirstUserWorkspace } from "@/lib/workspaces/queries";
 
 export const metadata = {
-  title: "Set up your workspace",
+  title: "Create your workspace",
 };
 
 export default async function OnboardingPage() {
-  await requireSession();
+  const session = await requireSession();
 
-  return (
-    <main className="grid min-h-screen place-items-center bg-background px-4">
-      <p className="text-sm text-muted-foreground">
-        Workspace setup — coming in Feature 2.
-      </p>
-    </main>
+  // Redirect if the user already has a workspace
+  const existing = await getFirstUserWorkspace(session.user.id);
+  if (existing) {
+    redirect(`/${existing.slug}`);
+  }
+
+  const appUrl = new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
   );
+  const appHost = appUrl.hostname + (appUrl.port ? `:${appUrl.port}` : "");
+
+  return <OnboardingForm appHost={appHost} />;
 }

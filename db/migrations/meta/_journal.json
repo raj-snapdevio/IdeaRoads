@@ -8,6 +8,13 @@
       "when": 1781493631236,
       "tag": "0000_lethal_ser_duncan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782298829134,
+      "tag": "0001_curved_amazoness",
+      "breakpoints": true
     }
   ]
 }

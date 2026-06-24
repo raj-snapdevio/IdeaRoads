@@ -4,6 +4,7 @@ import { ADMIN_ROLE } from "@/config/platform";
 import { user } from "@/db/schema";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
+import { getFirstUserWorkspace } from "@/lib/workspaces/queries";
 
 export default async function PostAuthPage() {
   const session = await requireSession();
@@ -13,5 +14,11 @@ export default async function PostAuthPage() {
     .where(eq(user.id, session.user.id))
     .limit(1);
 
-  redirect(freshUser?.role === ADMIN_ROLE ? "/orbit" : "/onboarding");
+  if (freshUser?.role === ADMIN_ROLE) {
+    redirect("/orbit");
+  }
+
+  const workspace = await getFirstUserWorkspace(session.user.id);
+
+  redirect(workspace ? `/${workspace.slug}` : "/onboarding");
 }
