@@ -55,12 +55,16 @@ export async function startWorker() {
   const { handleScaffoldHealthcheck } = await import(
     "@/lib/worker/handlers/scaffold-healthcheck"
   );
+  const { handleSendChangelogEmail } = await import(
+    "@/lib/worker/handlers/send-changelog-email"
+  );
 
   await Promise.all([
     work(JOB_NAMES.EMAIL_SEND, handleEmailSend),
     work(JOB_NAMES.EMAIL_OUTBOX_REAP, handleEmailOutboxReap),
     work(JOB_NAMES.EMAIL_EVENTS_PRUNE, handleEmailEventsPrune),
     work(JOB_NAMES.SCAFFOLD_HEALTHCHECK, handleScaffoldHealthcheck),
+    work(JOB_NAMES.SEND_CHANGELOG_EMAIL, handleSendChangelogEmail),
   ]);
 
   await boss.schedule(JOB_NAMES.EMAIL_OUTBOX_REAP, "*/15 * * * *", {});

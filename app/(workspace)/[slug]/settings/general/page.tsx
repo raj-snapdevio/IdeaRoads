@@ -34,6 +34,7 @@ export default async function GeneralSettingsPage({ params }: Props) {
       workspaceId={workspace.id}
       workspaceSlug={workspace.slug}
       roadmapPublic={workspace.roadmapPublic}
+      changelogPublic={workspace.changelogPublic}
       canManage={canManage}
     />
   );

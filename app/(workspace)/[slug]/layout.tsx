@@ -3,6 +3,7 @@ import {
   LayoutGrid,
   LogOut,
   Map,
+  Megaphone,
   Settings,
   Sliders,
   Tag,
@@ -101,6 +102,13 @@ export default async function WorkspaceLayout({
             >
               <Map className="size-4 shrink-0" />
               <span className="truncate">Roadmap</span>
+            </Link>
+            <Link
+              className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/${workspace.slug}/changelog`}
+            >
+              <Megaphone className="size-4 shrink-0" />
+              <span className="truncate">Changelog</span>
             </Link>
           </div>
         </nav>

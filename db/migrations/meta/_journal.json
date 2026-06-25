@@ -64,6 +64,13 @@
       "when": 1750910000000,
       "tag": "0008_categories_statuses",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1750920000000,
+      "tag": "0009_changelog",
+      "breakpoints": true
     }
   ]
 }

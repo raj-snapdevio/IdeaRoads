@@ -9,6 +9,7 @@ interface GeneralSettingsFormProps {
   workspaceId: string;
   workspaceSlug: string;
   roadmapPublic: boolean;
+  changelogPublic: boolean;
   canManage: boolean;
 }
 
@@ -55,10 +56,16 @@ export function GeneralSettingsForm({
   workspaceId,
   workspaceSlug,
   roadmapPublic,
+  changelogPublic,
   canManage,
 }: GeneralSettingsFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  const appUrl =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : (process.env.NEXT_PUBLIC_APP_URL ?? "");
 
   function handleRoadmapToggle(value: boolean) {
     startTransition(async () => {
@@ -77,10 +84,22 @@ export function GeneralSettingsForm({
     });
   }
 
-  const appUrl =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : (process.env.NEXT_PUBLIC_APP_URL ?? "");
+  function handleChangelogToggle(value: boolean) {
+    startTransition(async () => {
+      const result = await updateWorkspaceSettingsAction({
+        workspaceId,
+        changelogPublic: value,
+      });
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success(
+        value ? "Public changelog enabled" : "Public changelog disabled"
+      );
+      router.refresh();
+    });
+  }
 
   return (
     <div className="px-8 py-6 max-w-2xl">
@@ -90,6 +109,13 @@ export function GeneralSettingsForm({
           description={`Show your roadmap at ${appUrl}/${workspaceSlug}/roadmap. Anyone with the link can view your planned and completed work.`}
           checked={roadmapPublic}
           onChange={handleRoadmapToggle}
+          disabled={isPending || !canManage}
+        />
+        <ToggleRow
+          label="Public Changelog"
+          description={`Show your changelog at ${appUrl}/${workspaceSlug}/changelog. Anyone with the link can read your published updates.`}
+          checked={changelogPublic}
+          onChange={handleChangelogToggle}
           disabled={isPending || !canManage}
         />
       </div>
