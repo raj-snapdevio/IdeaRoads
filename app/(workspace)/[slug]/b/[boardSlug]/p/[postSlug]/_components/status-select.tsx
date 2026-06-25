@@ -4,7 +4,11 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { updatePostStatusAction } from "@/app/actions/posts";
-import type { PostStatus } from "@/lib/posts/queries";
+import { POST_STATUSES, type PostStatus } from "@/lib/posts/constants";
+import {
+  STATUS_CLASSES,
+  STATUS_LABEL,
+} from "../../../_components/post-status-badge";
 
 interface StatusSelectProps {
   postId: string;
@@ -12,35 +16,6 @@ interface StatusSelectProps {
   currentStatus: PostStatus;
   canEdit: boolean;
 }
-
-const STATUS_LABEL: Record<PostStatus, string> = {
-  open: "Open",
-  under_review: "Under Review",
-  planned: "Planned",
-  in_progress: "In Progress",
-  done: "Done",
-  declined: "Declined",
-};
-
-const STATUS_CLASSES: Record<PostStatus, string> = {
-  open: "bg-muted text-muted-foreground",
-  under_review: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
-  planned:
-    "bg-violet-50 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
-  in_progress:
-    "bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300",
-  done: "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300",
-  declined: "bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300",
-};
-
-const ALL_STATUSES: PostStatus[] = [
-  "open",
-  "under_review",
-  "planned",
-  "in_progress",
-  "done",
-  "declined",
-];
 
 export default function StatusSelect({
   postId,
@@ -79,7 +54,7 @@ export default function StatusSelect({
         disabled={isPending}
         className={`appearance-none pl-2.5 pr-7 py-1 text-xs font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 ${STATUS_CLASSES[currentStatus]}`}
       >
-        {ALL_STATUSES.map((s) => (
+        {POST_STATUSES.map((s) => (
           <option key={s} value={s}>
             {STATUS_LABEL[s]}
           </option>

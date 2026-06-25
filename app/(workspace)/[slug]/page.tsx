@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { boards, posts, workspaceMembers } from "@/db/schema";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
+import { countWorkspacePostsByStatus } from "@/lib/posts/queries";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -31,7 +32,7 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
   const member = await getWorkspaceMember(workspace.id, session.user.id);
   if (!member) notFound();
 
-  const [workspaceBoards, [{ memberCount }], boardPostCounts] =
+  const [workspaceBoards, [{ memberCount }], boardPostCounts, statusCounts] =
     await Promise.all([
       db
         .select()
@@ -52,12 +53,16 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
         .from(posts)
         .where(eq(posts.workspaceId, workspace.id))
         .groupBy(posts.boardId),
+      countWorkspacePostsByStatus(workspace.id),
     ]);
 
   const postCountMap = Object.fromEntries(
     boardPostCounts.map((r) => [r.boardId, r.postCount])
   );
   const totalPosts = boardPostCounts.reduce((sum, r) => sum + r.postCount, 0);
+  const openPosts = statusCounts["open"] ?? 0;
+  const plannedPosts = statusCounts["planned"] ?? 0;
+  const completedPosts = statusCounts["completed"] ?? 0;
 
   return (
     <div className="flex flex-col">
@@ -75,8 +80,8 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
 
       <div className="px-8 py-8 space-y-8">
         {/* Stats row */}
-        <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3">
-          <div className="bg-background px-6 py-5">
+        <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3 lg:grid-cols-6">
+          <div className="bg-background px-5 py-5">
             <p className="text-xs font-semibold uppercase tracking-eyebrow text-muted-foreground">
               Boards
             </p>
@@ -84,7 +89,7 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
               {workspaceBoards.length}
             </p>
           </div>
-          <div className="bg-background px-6 py-5">
+          <div className="bg-background px-5 py-5">
             <p className="text-xs font-semibold uppercase tracking-eyebrow text-muted-foreground">
               Members
             </p>
@@ -92,12 +97,36 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
               {memberCount}
             </p>
           </div>
-          <div className="bg-background px-6 py-5">
+          <div className="bg-background px-5 py-5">
             <p className="text-xs font-semibold uppercase tracking-eyebrow text-muted-foreground">
-              Feedback posts
+              Total posts
             </p>
             <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
               {totalPosts}
+            </p>
+          </div>
+          <div className="bg-background px-5 py-5">
+            <p className="text-xs font-semibold uppercase tracking-eyebrow text-muted-foreground">
+              Open
+            </p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
+              {openPosts}
+            </p>
+          </div>
+          <div className="bg-background px-5 py-5">
+            <p className="text-xs font-semibold uppercase tracking-eyebrow text-muted-foreground">
+              Planned
+            </p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-violet-600 dark:text-violet-400">
+              {plannedPosts}
+            </p>
+          </div>
+          <div className="bg-background px-5 py-5">
+            <p className="text-xs font-semibold uppercase tracking-eyebrow text-muted-foreground">
+              Completed
+            </p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-green-600 dark:text-green-400">
+              {completedPosts}
             </p>
           </div>
         </div>

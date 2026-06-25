@@ -7,7 +7,9 @@ import { requireSession } from "@/lib/authz";
 import {
   createPost,
   deletePost,
+  generatePostSlug,
   getPost,
+  setPinned,
   updatePostStatus,
 } from "@/lib/posts/queries";
 import { getWorkspaceMember } from "@/lib/workspaces/queries";
@@ -23,11 +25,11 @@ const createPostSchema = z.object({
   workspaceId: z.string().min(1),
   title: z
     .string()
-    .min(1, "Title is required.")
-    .max(200, "Title must be 200 characters or fewer."),
+    .min(3, "Title must be at least 3 characters.")
+    .max(150, "Title must be 150 characters or fewer."),
   body: z
     .string()
-    .max(5000, "Description must be 5000 characters or fewer.")
+    .max(10000, "Description must be 10,000 characters or fewer.")
     .optional(),
 });
 
@@ -36,7 +38,7 @@ export async function createPostAction(input: {
   workspaceId: string;
   title: string;
   body?: string;
-}): Promise<ActionResult<{ postId: string }>> {
+}): Promise<ActionResult<{ postSlug: string }>> {
   const session = await requireSession();
 
   const parsed = createPostSchema.safeParse(input);
@@ -57,9 +59,12 @@ export async function createPostAction(input: {
     return { success: false, error: "You are not a member of this workspace." };
   }
 
+  const slug = await generatePostSlug(parsed.data.boardId, parsed.data.title);
+
   const post = await createPost({
     boardId: parsed.data.boardId,
     workspaceId: parsed.data.workspaceId,
+    slug,
     title: parsed.data.title,
     body: parsed.data.body,
     authorId: session.user.id,
@@ -78,10 +83,11 @@ export async function createPostAction(input: {
       boardId: parsed.data.boardId,
       workspaceId: parsed.data.workspaceId,
       title: parsed.data.title,
+      slug,
     },
   });
 
-  return { success: true, data: { postId: post.id } };
+  return { success: true, data: { postSlug: post.slug } };
 }
 
 // ─── Update Post Status ───────────────────────────────────────────────────────
@@ -89,26 +95,13 @@ export async function createPostAction(input: {
 const updateStatusSchema = z.object({
   postId: z.string().min(1),
   workspaceId: z.string().min(1),
-  status: z.enum([
-    "open",
-    "under_review",
-    "planned",
-    "in_progress",
-    "done",
-    "declined",
-  ]),
+  status: z.enum(["open", "planned", "in_progress", "completed", "closed"]),
 });
 
 export async function updatePostStatusAction(input: {
   postId: string;
   workspaceId: string;
-  status:
-    | "open"
-    | "under_review"
-    | "planned"
-    | "in_progress"
-    | "done"
-    | "declined";
+  status: "open" | "planned" | "in_progress" | "completed" | "closed";
 }): Promise<ActionResult<undefined>> {
   const session = await requireSession();
 
@@ -150,6 +143,49 @@ export async function updatePostStatusAction(input: {
       fromStatus: post.status,
       toStatus: parsed.data.status,
     },
+  });
+
+  return { success: true, data: undefined };
+}
+
+// ─── Pin / Unpin Post ─────────────────────────────────────────────────────────
+
+export async function pinPostAction(input: {
+  postId: string;
+  workspaceId: string;
+  pin: boolean;
+}): Promise<ActionResult<undefined>> {
+  const session = await requireSession();
+
+  const actorMember = await getWorkspaceMember(
+    input.workspaceId,
+    session.user.id
+  );
+  if (!actorMember || actorMember.role === WORKSPACE_MEMBER) {
+    return {
+      success: false,
+      error: "Only admins and owners can pin posts.",
+    };
+  }
+
+  const post = await getPost(input.postId);
+  if (!post || post.workspaceId !== input.workspaceId) {
+    return { success: false, error: "Post not found." };
+  }
+  if (post.isPinned === input.pin) {
+    return { success: true, data: undefined };
+  }
+
+  await setPinned(input.postId, input.pin);
+
+  audit({
+    action: input.pin ? "post.pinned" : "post.unpinned",
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    entityType: "post",
+    entityId: input.postId,
+    description: `Post ${input.pin ? "pinned" : "unpinned"}: ${post.title}`,
+    metadata: { workspaceId: input.workspaceId },
   });
 
   return { success: true, data: undefined };
