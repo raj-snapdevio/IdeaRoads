@@ -4,9 +4,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import VoteButton from "@/components/voting/vote-button";
+import { CategoryChip } from "@/components/categories/category-chip";
 import { requireSession } from "@/lib/authz";
 import { getBoardBySlug } from "@/lib/boards/queries";
+import { getActiveCategoriesForWorkspace } from "@/lib/categories/queries";
 import { listBoardPosts } from "@/lib/posts/queries";
+import { getActiveWorkspaceStatuses } from "@/lib/workspace-statuses/queries";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -19,6 +22,7 @@ interface Props {
   searchParams: Promise<{
     sort?: string;
     status?: string;
+    category?: string;
     q?: string;
     myVotes?: string;
   }>;
@@ -34,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BoardPage({ params, searchParams }: Props) {
   const { slug, boardSlug } = await params;
-  const { sort, status, q, myVotes } = await searchParams;
+  const { sort, status, category, q, myVotes } = await searchParams;
 
   const session = await requireSession();
 
@@ -49,16 +53,25 @@ export default async function BoardPage({ params, searchParams }: Props) {
 
   const validSort = sort === "top" ? "top" : "newest";
   const validStatus = status ?? "";
+  const validCategoryId = category ?? "";
   const searchQuery = q ?? "";
   const myVotesActive = myVotes === "true";
 
-  const boardPosts = await listBoardPosts(board.id, {
-    sort: validSort,
-    status: validStatus || undefined,
-    search: searchQuery || undefined,
-    userId: session.user.id,
-    myVotes: myVotesActive,
-  });
+  const [boardPosts, workspaceStatuses, categories] = await Promise.all([
+    listBoardPosts(board.id, {
+      sort: validSort,
+      status: validStatus || undefined,
+      categoryId: validCategoryId || undefined,
+      search: searchQuery || undefined,
+      userId: session.user.id,
+      myVotes: myVotesActive,
+    }),
+    getActiveWorkspaceStatuses(workspace.id),
+    getActiveCategoriesForWorkspace(workspace.id),
+  ]);
+
+  // Build a category map for quick lookup
+  const categoryMap = new Map(categories.map((c) => [c.id, c]));
 
   return (
     <div className="flex flex-col">
@@ -89,22 +102,25 @@ export default async function BoardPage({ params, searchParams }: Props) {
       <BoardFilters
         activeSort={validSort}
         activeStatus={validStatus}
+        activeCategoryId={validCategoryId}
         activeSearch={searchQuery}
         myVotesActive={myVotesActive}
         showMyVotes={true}
+        workspaceStatuses={workspaceStatuses}
+        categories={categories}
       />
 
       {/* Post list */}
       <div className="flex-1">
         {boardPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center px-8">
-            {searchQuery || validStatus || myVotesActive ? (
+            {searchQuery || validStatus || validCategoryId || myVotesActive ? (
               <>
                 <p className="text-sm font-medium text-foreground">
                   No posts match your filters
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Try a different search term or status.
+                  Try a different search term, status, or category.
                 </p>
               </>
             ) : (
@@ -120,59 +136,77 @@ export default async function BoardPage({ params, searchParams }: Props) {
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {boardPosts.map((post) => (
-              <div
-                key={post.id}
-                className="group flex items-start gap-4 px-8 py-5 hover:bg-muted/40 transition-colors duration-150"
-              >
-                {/* Vote button (non-interactive on list — links navigate) */}
-                <div className="shrink-0">
-                  <VoteButton
-                    postId={post.id}
-                    initialCount={post.upvotes}
-                    initialHasVoted={post.hasVoted}
-                    isSignedIn={true}
-                    isLocked={false}
-                    isArchived={board.isArchived}
-                  />
-                </div>
+            {boardPosts.map((post) => {
+              const postCategory = post.categoryId
+                ? categoryMap.get(post.categoryId)
+                : undefined;
 
-                {/* Post content — navigates to post detail */}
-                <Link
-                  href={`/${slug}/b/${boardSlug}/p/${post.slug}`}
-                  className="flex-1 min-w-0 pt-1"
+              return (
+                <div
+                  key={post.id}
+                  className="group flex items-start gap-4 px-8 py-5 hover:bg-muted/40 transition-colors duration-150"
                 >
-                  <div className="flex flex-wrap items-center gap-2">
-                    {post.isPinned && (
-                      <Pin className="size-3 text-muted-foreground shrink-0" />
-                    )}
-                    <p className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
-                      {post.title}
-                    </p>
-                    {post.status !== "open" && (
-                      <PostStatusBadge status={post.status} />
-                    )}
+                  {/* Vote button */}
+                  <div className="shrink-0">
+                    <VoteButton
+                      postId={post.id}
+                      initialCount={post.upvotes}
+                      initialHasVoted={post.hasVoted}
+                      isSignedIn={true}
+                      isLocked={false}
+                      isArchived={board.isArchived}
+                    />
                   </div>
-                  {post.body && (
-                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                      {post.body}
-                    </p>
-                  )}
-                  <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>
-                      {post.authorName ?? post.authorEmail} ·{" "}
-                      {formatDistanceToNow(post.createdAt, { addSuffix: true })}
-                    </span>
-                    {post.commentCount > 0 && (
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="size-3" />
-                        {post.commentCount}
+
+                  {/* Post content */}
+                  <Link
+                    href={`/${slug}/b/${boardSlug}/p/${post.slug}`}
+                    className="flex-1 min-w-0 pt-1"
+                  >
+                    <div className="flex flex-wrap items-center gap-2">
+                      {post.isPinned && (
+                        <Pin className="size-3 text-muted-foreground shrink-0" />
+                      )}
+                      <p className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
+                        {post.title}
+                      </p>
+                      {post.status !== "open" && (
+                        <PostStatusBadge
+                          status={post.status}
+                          workspaceStatuses={workspaceStatuses}
+                        />
+                      )}
+                      {postCategory && (
+                        <CategoryChip
+                          name={postCategory.name}
+                          color={postCategory.color}
+                          size="xs"
+                        />
+                      )}
+                    </div>
+                    {post.body && (
+                      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                        {post.body}
+                      </p>
+                    )}
+                    <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>
+                        {post.authorName ?? post.authorEmail} ·{" "}
+                        {formatDistanceToNow(post.createdAt, {
+                          addSuffix: true,
+                        })}
                       </span>
-                    )}
-                  </div>
-                </Link>
-              </div>
-            ))}
+                      {post.commentCount > 0 && (
+                        <span className="flex items-center gap-1">
+                          <MessageSquare className="size-3" />
+                          {post.commentCount}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

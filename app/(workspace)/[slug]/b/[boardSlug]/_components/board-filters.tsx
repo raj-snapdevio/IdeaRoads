@@ -3,15 +3,29 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useRef, useTransition } from "react";
 import { Search, X } from "lucide-react";
-import { POST_STATUSES, type PostStatus } from "@/lib/posts/constants";
-import { STATUS_LABEL } from "./post-status-badge";
+
+interface WorkspaceStatus {
+  slug: string;
+  name: string;
+  color: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+  isArchived: boolean;
+}
 
 interface BoardFiltersProps {
   activeSort: "newest" | "top";
   activeStatus: string;
+  activeCategoryId: string;
   activeSearch: string;
   myVotesActive: boolean;
   showMyVotes: boolean;
+  workspaceStatuses: WorkspaceStatus[];
+  categories: Category[];
 }
 
 const SORT_TABS = [
@@ -22,9 +36,12 @@ const SORT_TABS = [
 export default function BoardFilters({
   activeSort,
   activeStatus,
+  activeCategoryId,
   activeSearch,
   myVotesActive,
   showMyVotes,
+  workspaceStatuses,
+  categories,
 }: BoardFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -62,9 +79,11 @@ export default function BoardFilters({
     updateParam({ myVotes: myVotesActive ? null : "true" });
   }
 
+  const activeCategories = categories.filter((c) => !c.isArchived);
+
   return (
     <div className="flex flex-col gap-0">
-      {/* Sort + Status + My Votes row */}
+      {/* Sort + Status + Category + My Votes row */}
       <div className="flex items-center justify-between border-b border-border px-4">
         {/* Sort tabs */}
         <div className="flex">
@@ -83,7 +102,7 @@ export default function BoardFilters({
           ))}
         </div>
 
-        {/* Right controls: My Votes + Status */}
+        {/* Right controls */}
         <div className="flex items-center gap-3">
           {showMyVotes && (
             <button
@@ -99,15 +118,34 @@ export default function BoardFilters({
             </button>
           )}
 
+          {/* Category filter */}
+          {activeCategories.length > 0 && (
+            <select
+              value={activeCategoryId}
+              onChange={(e) =>
+                updateParam({ category: e.target.value || null })
+              }
+              className="text-xs border-0 bg-transparent text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer py-1 pr-6 pl-1"
+            >
+              <option value="">All categories</option>
+              {activeCategories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          )}
+
+          {/* Status filter */}
           <select
             value={activeStatus}
             onChange={(e) => updateParam({ status: e.target.value || null })}
             className="text-xs border-0 bg-transparent text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer py-1 pr-6 pl-1"
           >
             <option value="">All statuses</option>
-            {POST_STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {STATUS_LABEL[s]}
+            {workspaceStatuses.map((s) => (
+              <option key={s.slug} value={s.slug}>
+                {s.name}
               </option>
             ))}
           </select>

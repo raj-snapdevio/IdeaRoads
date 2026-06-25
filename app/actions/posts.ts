@@ -10,6 +10,7 @@ import {
   generatePostSlug,
   getPost,
   setPinned,
+  updatePostCategory,
   updatePostStatus,
 } from "@/lib/posts/queries";
 import { getWorkspaceMember } from "@/lib/workspaces/queries";
@@ -95,13 +96,13 @@ export async function createPostAction(input: {
 const updateStatusSchema = z.object({
   postId: z.string().min(1),
   workspaceId: z.string().min(1),
-  status: z.enum(["open", "planned", "in_progress", "completed", "closed"]),
+  status: z.string().min(1),
 });
 
 export async function updatePostStatusAction(input: {
   postId: string;
   workspaceId: string;
-  status: "open" | "planned" | "in_progress" | "completed" | "closed";
+  status: string;
 }): Promise<ActionResult<undefined>> {
   const session = await requireSession();
 
@@ -238,5 +239,34 @@ export async function deletePostAction(input: {
     },
   });
 
+  return { success: true, data: undefined };
+}
+
+// ─── Update Post Category ─────────────────────────────────────────────────────
+
+export async function updatePostCategoryAction(input: {
+  postId: string;
+  workspaceId: string;
+  categoryId: string | null;
+}): Promise<ActionResult<undefined>> {
+  const session = await requireSession();
+
+  const actorMember = await getWorkspaceMember(
+    input.workspaceId,
+    session.user.id
+  );
+  if (!actorMember || actorMember.role === WORKSPACE_MEMBER) {
+    return {
+      success: false,
+      error: "Only admins and owners can set post categories.",
+    };
+  }
+
+  const post = await getPost(input.postId);
+  if (!post || post.workspaceId !== input.workspaceId) {
+    return { success: false, error: "Post not found." };
+  }
+
+  await updatePostCategory(input.postId, input.categoryId);
   return { success: true, data: undefined };
 }

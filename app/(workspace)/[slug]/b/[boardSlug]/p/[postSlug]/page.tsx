@@ -5,11 +5,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CommentSection from "@/components/comments/comment-section";
 import VoteButton from "@/components/voting/vote-button";
+import { CategoryChip } from "@/components/categories/category-chip";
 import VoterListButton from "./_components/voter-list-button";
 import { WORKSPACE_MEMBER } from "@/config/platform";
 import { requireSession } from "@/lib/authz";
 import { getBoardBySlug } from "@/lib/boards/queries";
+import { getCategoryById } from "@/lib/categories/queries";
 import { getPostBySlug } from "@/lib/posts/queries";
+import { getActiveWorkspaceStatuses } from "@/lib/workspace-statuses/queries";
 import { hasUserVoted } from "@/lib/voting";
 import {
   getWorkspaceBySlug,
@@ -53,7 +56,11 @@ export default async function PostDetailPage({ params }: Props) {
   const isAdminOrOwner = member.role !== WORKSPACE_MEMBER;
   const isAuthor = post.authorId === session.user.id;
 
-  const votedByUser = await hasUserVoted(post.id, { userId: session.user.id });
+  const [votedByUser, workspaceStatuses, postCategory] = await Promise.all([
+    hasUserVoted(post.id, { userId: session.user.id }),
+    getActiveWorkspaceStatuses(workspace.id),
+    post.categoryId ? getCategoryById(post.categoryId) : null,
+  ]);
 
   const boardHref = `/${slug}/b/${boardSlug}`;
 
@@ -83,7 +90,15 @@ export default async function PostDetailPage({ params }: Props) {
                 workspaceId={workspace.id}
                 currentStatus={post.status}
                 canEdit={isAdminOrOwner}
+                workspaceStatuses={workspaceStatuses}
               />
+              {postCategory && (
+                <CategoryChip
+                  name={postCategory.name}
+                  color={postCategory.color}
+                  size="xs"
+                />
+              )}
               <span className="text-xs text-muted-foreground">
                 by {post.authorName ?? post.authorEmail}
               </span>

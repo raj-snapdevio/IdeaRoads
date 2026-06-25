@@ -1,5 +1,6 @@
 export type PostStatus =
   | "open"
+  | "under_review"
   | "planned"
   | "in_progress"
   | "completed"
@@ -7,6 +8,7 @@ export type PostStatus =
 
 export const POST_STATUSES: PostStatus[] = [
   "open",
+  "under_review",
   "planned",
   "in_progress",
   "completed",

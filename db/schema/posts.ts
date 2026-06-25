@@ -3,7 +3,6 @@ import {
   boolean,
   index,
   integer,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -11,15 +10,8 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "@/db/schema/auth";
 import { boards } from "@/db/schema/boards";
+import { categories } from "@/db/schema/categories";
 import { workspaces } from "@/db/schema/workspaces";
-
-export const postStatus = pgEnum("post_status", [
-  "open",
-  "planned",
-  "in_progress",
-  "completed",
-  "closed",
-]);
 
 export const posts = pgTable(
   "posts",
@@ -36,7 +28,10 @@ export const posts = pgTable(
     slug: text("slug").notNull(),
     title: text("title").notNull(),
     body: text("body"),
-    status: postStatus("status").notNull().default("open"),
+    status: text("status").notNull().default("open"),
+    categoryId: text("category_id").references(() => categories.id, {
+      onDelete: "set null",
+    }),
     authorId: text("author_id").references(() => user.id, {
       onDelete: "set null",
     }),
@@ -60,5 +55,6 @@ export const posts = pgTable(
     index("posts_board_id_status_idx").on(t.boardId, t.status),
     index("posts_author_id_idx").on(t.authorId),
     index("posts_workspace_id_created_at_idx").on(t.workspaceId, t.createdAt),
+    index("posts_category_id_idx").on(t.categoryId),
   ]
 );

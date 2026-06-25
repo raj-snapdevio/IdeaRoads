@@ -8,6 +8,7 @@ import {
 import { boards, workspaceMembers, workspaces } from "@/db/schema";
 import { audit } from "@/lib/audit";
 import { db } from "@/lib/db";
+import { seedDefaultStatuses } from "@/lib/workspace-statuses/create";
 
 export interface CreateWorkspaceInput {
   name: string;
@@ -44,6 +45,8 @@ export async function createWorkspace(
       description: DEFAULT_BOARD_DESCRIPTION,
       createdBy: input.ownerId,
     });
+
+    await seedDefaultStatuses(workspaceId, tx);
   });
 
   audit({

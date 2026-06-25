@@ -1,4 +1,11 @@
-import { LayoutGrid, LogOut, MessageSquare, Settings } from "lucide-react";
+import {
+  LayoutGrid,
+  LogOut,
+  MessageSquare,
+  Settings,
+  Tag,
+  CircleDot,
+} from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
@@ -98,13 +105,30 @@ export default async function WorkspaceLayout({
         </nav>
 
         {/* Settings */}
-        <div className="border-t border-sidebar-border p-2">
+        <div className="border-t border-sidebar-border p-2 space-y-0.5">
+          <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
+            Settings
+          </p>
           <Link
             className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             href={`/${workspace.slug}/settings/members`}
           >
             <Settings className="size-4 shrink-0" />
-            <span className="truncate">Settings</span>
+            <span className="truncate">Members</span>
+          </Link>
+          <Link
+            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={`/${workspace.slug}/settings/categories`}
+          >
+            <Tag className="size-4 shrink-0" />
+            <span className="truncate">Categories</span>
+          </Link>
+          <Link
+            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={`/${workspace.slug}/settings/statuses`}
+          >
+            <CircleDot className="size-4 shrink-0" />
+            <span className="truncate">Statuses</span>
           </Link>
         </div>
 

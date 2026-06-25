@@ -48,17 +48,22 @@ export async function listBoardPosts(
   opts: {
     sort?: "newest" | "top";
     status?: string;
+    categoryId?: string;
     search?: string;
     userId?: string;
     myVotes?: boolean;
   } = {}
 ) {
-  const { sort = "newest", status, search, userId, myVotes } = opts;
+  const { sort = "newest", status, categoryId, search, userId, myVotes } = opts;
 
   const conditions = [eq(posts.boardId, boardId)];
 
-  if (status && (POST_STATUSES as string[]).includes(status)) {
-    conditions.push(eq(posts.status, status as PostStatus));
+  if (status) {
+    conditions.push(eq(posts.status, status));
+  }
+
+  if (categoryId) {
+    conditions.push(eq(posts.categoryId, categoryId));
   }
 
   if (search?.trim()) {
@@ -89,6 +94,7 @@ export async function listBoardPosts(
         title: posts.title,
         body: posts.body,
         status: posts.status,
+        categoryId: posts.categoryId,
         upvotes: posts.upvotes,
         commentCount: posts.commentCount,
         isPinned: posts.isPinned,
@@ -113,6 +119,7 @@ export async function listBoardPosts(
       title: posts.title,
       body: posts.body,
       status: posts.status,
+      categoryId: posts.categoryId,
       upvotes: posts.upvotes,
       commentCount: posts.commentCount,
       isPinned: posts.isPinned,
@@ -205,10 +212,20 @@ export async function createPost(input: {
   return post!;
 }
 
-export async function updatePostStatus(postId: string, status: PostStatus) {
+export async function updatePostStatus(postId: string, status: string) {
   await db
     .update(posts)
     .set({ status, updatedAt: new Date() })
+    .where(eq(posts.id, postId));
+}
+
+export async function updatePostCategory(
+  postId: string,
+  categoryId: string | null
+) {
+  await db
+    .update(posts)
+    .set({ categoryId, updatedAt: new Date() })
     .where(eq(posts.id, postId));
 }
 
