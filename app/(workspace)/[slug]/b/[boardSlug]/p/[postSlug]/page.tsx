@@ -3,12 +3,14 @@ import { ArrowLeft, MessageSquare } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import VoteButton from "@/components/voting/vote-button";
+import VoterListButton from "./_components/voter-list-button";
 import { WORKSPACE_MEMBER } from "@/config/platform";
 import { requireSession } from "@/lib/authz";
 import { getBoardBySlug } from "@/lib/boards/queries";
 import { listPostComments } from "@/lib/posts/comments";
 import { getPostBySlug } from "@/lib/posts/queries";
-import { getUserVote } from "@/lib/posts/votes";
+import { hasUserVoted } from "@/lib/voting";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -18,7 +20,6 @@ import CommentList from "./_components/comment-list";
 import DeletePostButton from "./_components/delete-post-button";
 import PinButton from "./_components/pin-button";
 import StatusSelect from "./_components/status-select";
-import VoteButton from "./_components/vote-button";
 
 interface Props {
   params: Promise<{ slug: string; boardSlug: string; postSlug: string }>;
@@ -54,8 +55,8 @@ export default async function PostDetailPage({ params }: Props) {
   const isAdminOrOwner = member.role !== WORKSPACE_MEMBER;
   const isAuthor = post.authorId === session.user.id;
 
-  const [hasVoted, comments] = await Promise.all([
-    getUserVote(post.id, session.user.id),
+  const [votedByUser, comments] = await Promise.all([
+    hasUserVoted(post.id, { userId: session.user.id }),
     listPostComments(post.id),
   ]);
 
@@ -102,14 +103,19 @@ export default async function PostDetailPage({ params }: Props) {
             </div>
           </div>
 
-          {/* Vote button */}
-          <div className="shrink-0">
+          {/* Vote button + voter list */}
+          <div className="shrink-0 flex flex-col items-center gap-2">
             <VoteButton
               postId={post.id}
-              workspaceId={workspace.id}
-              initialUpvotes={post.upvotes}
-              initialVoted={hasVoted}
+              initialCount={post.upvotes}
+              initialHasVoted={votedByUser}
+              isSignedIn={true}
+              isLocked={post.isLocked}
+              isArchived={board.isArchived}
             />
+            {isAdminOrOwner && (
+              <VoterListButton postId={post.id} voteCount={post.upvotes} />
+            )}
           </div>
         </div>
 

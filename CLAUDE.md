@@ -1,5 +1,18 @@
 # CLAUDE.md
 
+# Project Rules
+
+Before implementing any feature:
+
+1. Read docs/MASTER.md
+2. Read the corresponding file in docs/features/
+3. Follow DESIGN.md
+4. Follow DESIGN-SYSTEM.md
+5. Reuse existing patterns and architecture
+6. Never redesign completed features
+7. Keep consistency with existing codebase
+8. Run typecheck before finishing
+
 ## Design Philosophy
 
 This product must never feel AI-generated.
@@ -14,11 +27,11 @@ Design decisions should prioritize usability, clarity, consistency, and business
 
 Before generating any UI:
 
-* Think like a Senior Product Designer.
-* Think about user goals first.
-* Think about information hierarchy.
-* Think about accessibility.
-* Think about consistency with existing screens.
+- Think like a Senior Product Designer.
+- Think about user goals first.
+- Think about information hierarchy.
+- Think about accessibility.
+- Think about consistency with existing screens.
 
 Never generate layouts that look like generic AI dashboard templates.
 
@@ -28,22 +41,22 @@ Never generate layouts that look like generic AI dashboard templates.
 
 The design language should be:
 
-* Clean
-* Professional
-* Premium
-* Modern
-* Minimal
-* Product-focused
+- Clean
+- Professional
+- Premium
+- Modern
+- Minimal
+- Product-focused
 
 Avoid:
 
-* Excessive gradients
-* Random colors
-* Glassmorphism unless explicitly requested
-* Overly rounded corners
-* Oversized shadows
-* Fancy animations without purpose
-* Generic hero sections
+- Excessive gradients
+- Random colors
+- Glassmorphism unless explicitly requested
+- Overly rounded corners
+- Oversized shadows
+- Fancy animations without purpose
+- Generic hero sections
 
 The UI should resemble high-quality SaaS products rather than AI-generated mockups.
 
@@ -53,11 +66,11 @@ The UI should resemble high-quality SaaS products rather than AI-generated mocku
 
 Every new page must inherit:
 
-* Existing spacing system
-* Existing typography scale
-* Existing color palette
-* Existing component styles
-* Existing interaction patterns
+- Existing spacing system
+- Existing typography scale
+- Existing color palette
+- Existing component styles
+- Existing interaction patterns
 
 Never introduce a new design pattern if an existing one already solves the problem.
 
@@ -77,10 +90,10 @@ Always establish:
 
 Avoid:
 
-* Empty whitespace without purpose
-* Overcrowded layouts
-* Misaligned sections
-* Random card placements
+- Empty whitespace without purpose
+- Overcrowded layouts
+- Misaligned sections
+- Random card placements
 
 ---
 
@@ -90,10 +103,10 @@ Typography should create hierarchy naturally.
 
 Rules:
 
-* Use consistent font sizes
-* Use consistent font weights
-* Avoid excessive text styles
-* Prioritize readability
+- Use consistent font sizes
+- Use consistent font weights
+- Avoid excessive text styles
+- Prioritize readability
 
 Headings should clearly communicate page structure.
 
@@ -105,12 +118,12 @@ Components must feel production-ready.
 
 Every component should include:
 
-* Hover states
-* Focus states
-* Disabled states
-* Loading states
-* Empty states
-* Error states
+- Hover states
+- Focus states
+- Disabled states
+- Loading states
+- Empty states
+- Error states
 
 Never generate incomplete components.
 
@@ -120,11 +133,11 @@ Never generate incomplete components.
 
 Forms should:
 
-* Be easy to scan
-* Have logical grouping
-* Use clear labels
-* Include validation feedback
-* Have helpful descriptions when necessary
+- Be easy to scan
+- Have logical grouping
+- Use clear labels
+- Include validation feedback
+- Have helpful descriptions when necessary
 
 Avoid long walls of inputs.
 
@@ -134,11 +147,11 @@ Avoid long walls of inputs.
 
 Tables should:
 
-* Support sorting where appropriate
-* Support searching where appropriate
-* Handle empty states
-* Handle loading states
-* Be responsive
+- Support sorting where appropriate
+- Support searching where appropriate
+- Handle empty states
+- Handle loading states
+- Be responsive
 
 Never generate basic placeholder tables.
 
@@ -148,10 +161,10 @@ Never generate basic placeholder tables.
 
 Dashboards should focus on:
 
-* Key metrics first
-* Actionable insights
-* Logical content grouping
-* Clear user workflows
+- Key metrics first
+- Actionable insights
+- Logical content grouping
+- Clear user workflows
 
 Avoid dashboard designs that consist only of random statistic cards.
 
@@ -165,10 +178,10 @@ Every generated page must be mobile-first.
 
 Verify:
 
-* Touch targets
-* Readability
-* Responsive layouts
-* Navigation usability
+- Touch targets
+- Readability
+- Responsive layouts
+- Navigation usability
 
 No horizontal scrolling unless intentionally required.
 
@@ -197,12 +210,12 @@ Avoid endless redesign cycles.
 
 Generated code must:
 
-* Be production-ready
-* Be maintainable
-* Follow project conventions
-* Reuse existing components
-* Avoid duplication
-* Avoid unnecessary complexity
+- Be production-ready
+- Be maintainable
+- Follow project conventions
+- Reuse existing components
+- Avoid duplication
+- Avoid unnecessary complexity
 
 Always prefer scalable architecture over quick implementation.
 

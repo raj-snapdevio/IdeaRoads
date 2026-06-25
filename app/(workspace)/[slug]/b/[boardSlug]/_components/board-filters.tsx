@@ -10,6 +10,8 @@ interface BoardFiltersProps {
   activeSort: "newest" | "top";
   activeStatus: string;
   activeSearch: string;
+  myVotesActive: boolean;
+  showMyVotes: boolean;
 }
 
 const SORT_TABS = [
@@ -21,6 +23,8 @@ export default function BoardFilters({
   activeSort,
   activeStatus,
   activeSearch,
+  myVotesActive,
+  showMyVotes,
 }: BoardFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -54,9 +58,13 @@ export default function BoardFilters({
     }, 300);
   }
 
+  function toggleMyVotes() {
+    updateParam({ myVotes: myVotesActive ? null : "true" });
+  }
+
   return (
     <div className="flex flex-col gap-0">
-      {/* Sort + Status row */}
+      {/* Sort + Status + My Votes row */}
       <div className="flex items-center justify-between border-b border-border px-4">
         {/* Sort tabs */}
         <div className="flex">
@@ -75,8 +83,22 @@ export default function BoardFilters({
           ))}
         </div>
 
-        {/* Status filter */}
-        <div className="flex items-center gap-2">
+        {/* Right controls: My Votes + Status */}
+        <div className="flex items-center gap-3">
+          {showMyVotes && (
+            <button
+              onClick={toggleMyVotes}
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium border transition-colors duration-150 focus-visible:outline-none ${
+                myVotesActive
+                  ? "border-primary/40 bg-primary/5 text-primary"
+                  : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+              }`}
+            >
+              My Votes
+              {myVotesActive && <X className="size-2.5" />}
+            </button>
+          )}
+
           <select
             value={activeStatus}
             onChange={(e) => updateParam({ status: e.target.value || null })}

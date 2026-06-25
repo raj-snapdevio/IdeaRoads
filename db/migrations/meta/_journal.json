@@ -36,6 +36,13 @@
       "when": 1782305996075,
       "tag": "0004_new_ronan",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1750880000000,
+      "tag": "0005_votes",
+      "breakpoints": true
     }
   ]
 }

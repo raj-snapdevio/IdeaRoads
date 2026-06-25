@@ -1,5 +1,5 @@
-import { and, count, desc, eq, ilike, sql } from "drizzle-orm";
-import { posts } from "@/db/schema";
+import { and, count, desc, eq, ilike, inArray, sql } from "drizzle-orm";
+import { posts, votes } from "@/db/schema";
 import { db } from "@/lib/db";
 import { POST_STATUSES, type PostStatus } from "@/lib/posts/constants";
 
@@ -49,9 +49,11 @@ export async function listBoardPosts(
     sort?: "newest" | "top";
     status?: string;
     search?: string;
+    userId?: string;
+    myVotes?: boolean;
   } = {}
 ) {
-  const { sort = "newest", status, search } = opts;
+  const { sort = "newest", status, search, userId, myVotes } = opts;
 
   const conditions = [eq(posts.boardId, boardId)];
 
@@ -61,6 +63,46 @@ export async function listBoardPosts(
 
   if (search?.trim()) {
     conditions.push(ilike(posts.title, `%${search.trim()}%`));
+  }
+
+  if (myVotes && userId) {
+    const votedPostIds = db
+      .select({ id: votes.postId })
+      .from(votes)
+      .where(eq(votes.userId, userId));
+
+    conditions.push(inArray(posts.id, votedPostIds));
+  }
+
+  if (userId) {
+    // LEFT JOIN to get hasVoted per post
+    const userVoteAlias = db
+      .select({ postId: votes.postId, id: votes.id })
+      .from(votes)
+      .where(eq(votes.userId, userId))
+      .as("user_vote");
+
+    return db
+      .select({
+        id: posts.id,
+        slug: posts.slug,
+        title: posts.title,
+        body: posts.body,
+        status: posts.status,
+        upvotes: posts.upvotes,
+        isPinned: posts.isPinned,
+        authorName: posts.authorName,
+        authorEmail: posts.authorEmail,
+        createdAt: posts.createdAt,
+        hasVoted: sql<boolean>`${userVoteAlias.id} IS NOT NULL`,
+      })
+      .from(posts)
+      .leftJoin(userVoteAlias, eq(posts.id, userVoteAlias.postId))
+      .where(and(...conditions))
+      .orderBy(
+        desc(posts.isPinned),
+        sort === "top" ? desc(posts.upvotes) : desc(posts.createdAt)
+      );
   }
 
   return db
@@ -75,6 +117,7 @@ export async function listBoardPosts(
       authorName: posts.authorName,
       authorEmail: posts.authorEmail,
       createdAt: posts.createdAt,
+      hasVoted: sql<boolean>`false`,
     })
     .from(posts)
     .where(and(...conditions))
