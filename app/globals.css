@@ -186,3 +186,174 @@ body {
     font: inherit;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   MARKETING DESIGN SYSTEM
+   A standalone visual identity scoped to the public marketing pages
+   (landing, features, demo). These tokens are ADDITIVE — the product
+   application never references them, so the app UI is unaffected.
+   ════════════════════════════════════════════════════════════════════ */
+
+@theme {
+  /* ── Brand — indigo → violet ───────────────────────────────── */
+  --color-brand-50: oklch(0.972 0.014 285);
+  --color-brand-100: oklch(0.94 0.03 285);
+  --color-brand-200: oklch(0.89 0.06 285);
+  --color-brand-300: oklch(0.81 0.11 285);
+  --color-brand-400: oklch(0.70 0.17 285);
+  --color-brand-500: oklch(0.605 0.21 283);
+  --color-brand-600: oklch(0.535 0.23 283);
+  --color-brand-700: oklch(0.47 0.21 284);
+  --color-brand-800: oklch(0.40 0.17 285);
+  --color-brand-900: oklch(0.32 0.12 286);
+
+  /* ── Companion accents (gradient partners) ─────────────────── */
+  --color-grape-400: oklch(0.66 0.22 312);
+  --color-grape-500: oklch(0.585 0.24 315);
+  --color-sun-300: oklch(0.86 0.13 80);
+  --color-sun-400: oklch(0.80 0.16 70);
+  --color-mint-400: oklch(0.74 0.14 165);
+
+  /* ── Marketing neutrals (cool slate) ───────────────────────── */
+  --color-ink: oklch(0.215 0.024 283);
+  --color-ink-soft: oklch(0.34 0.02 283);
+  --color-slate-1: oklch(0.50 0.018 283);
+  --color-slate-2: oklch(0.62 0.014 283);
+  --color-canvas: oklch(0.986 0.004 285);
+  --color-canvas-2: oklch(0.966 0.006 285);
+  --color-surface: oklch(1 0 0);
+  --color-hairline: oklch(0.922 0.006 285);
+  --color-hairline-strong: oklch(0.87 0.008 285);
+
+  /* ── Radius ─────────────────────────────────────────────────── */
+  --radius-mk-sm: 0.5rem;
+  --radius-mk: 0.75rem;
+  --radius-mk-lg: 1rem;
+  --radius-mk-xl: 1.5rem;
+  --radius-mk-2xl: 2rem;
+
+  /* ── Soft, premium elevation ───────────────────────────────── */
+  --shadow-mk-xs: 0 1px 2px 0 oklch(0.21 0.02 283 / 0.06);
+  --shadow-mk-sm: 0 1px 3px 0 oklch(0.21 0.02 283 / 0.08),
+    0 1px 2px -1px oklch(0.21 0.02 283 / 0.08);
+  --shadow-mk: 0 6px 20px -6px oklch(0.21 0.02 283 / 0.12),
+    0 2px 6px -2px oklch(0.21 0.02 283 / 0.08);
+  --shadow-mk-lg: 0 20px 44px -14px oklch(0.30 0.06 283 / 0.24),
+    0 8px 16px -8px oklch(0.21 0.02 283 / 0.12);
+  --shadow-mk-xl: 0 36px 70px -18px oklch(0.30 0.08 284 / 0.30),
+    0 14px 26px -14px oklch(0.21 0.02 283 / 0.14);
+  --shadow-mk-brand: 0 18px 44px -12px oklch(0.535 0.20 283 / 0.42);
+}
+
+@layer components {
+  /* Display typeface — only resolved inside the .marketing scope,
+     where --font-display is provided by next/font. */
+  .mk-display {
+    font-family: var(--font-display), var(--font-sans);
+    letter-spacing: -0.02em;
+  }
+
+  .mk-gradient-text {
+    background-image: linear-gradient(
+      100deg,
+      var(--color-brand-600),
+      var(--color-grape-500) 52%,
+      var(--color-brand-500)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Ambient hero glow */
+  .mk-aura {
+    background:
+      radial-gradient(
+        58% 46% at 50% -4%,
+        oklch(0.605 0.21 283 / 0.18),
+        transparent 70%
+      ),
+      radial-gradient(
+        40% 40% at 88% 8%,
+        oklch(0.585 0.24 315 / 0.13),
+        transparent 70%
+      ),
+      radial-gradient(
+        42% 42% at 6% 22%,
+        oklch(0.80 0.16 70 / 0.10),
+        transparent 72%
+      );
+  }
+
+  /* Faint grid texture */
+  .mk-grid {
+    background-image:
+      linear-gradient(
+        to right,
+        oklch(0.45 0.10 283 / 0.05) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        oklch(0.45 0.10 283 / 0.05) 1px,
+        transparent 1px
+      );
+    background-size: 56px 56px;
+  }
+
+  .mk-dotgrid {
+    background-image: radial-gradient(
+      oklch(0.45 0.10 283 / 0.12) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+
+  /* Deep brand panel for closing CTA */
+  .mk-cta-panel {
+    background:
+      radial-gradient(
+        80% 130% at 0% 0%,
+        oklch(0.585 0.24 315 / 0.55),
+        transparent 58%
+      ),
+      radial-gradient(
+        85% 120% at 100% 100%,
+        oklch(0.70 0.16 70 / 0.30),
+        transparent 55%
+      ),
+      linear-gradient(
+        120deg,
+        var(--color-brand-700),
+        var(--color-brand-600) 52%,
+        var(--color-brand-500)
+      );
+  }
+
+  /* Primary CTA fill */
+  .mk-btn-fill {
+    background-image: linear-gradient(
+      180deg,
+      var(--color-brand-500),
+      var(--color-brand-600)
+    );
+  }
+  .mk-btn-fill:hover {
+    background-image: linear-gradient(
+      180deg,
+      var(--color-brand-400),
+      var(--color-brand-500)
+    );
+  }
+
+  /* Soft tinted card surface */
+  .mk-card-glow {
+    background:
+      radial-gradient(
+        120% 80% at 50% 0%,
+        oklch(0.605 0.21 283 / 0.05),
+        transparent 60%
+      ),
+      var(--color-surface);
+  }
+}

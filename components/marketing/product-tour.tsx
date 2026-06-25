@@ -1,4 +1,65 @@
-import { ChevronUp, MessageSquare } from "lucide-react";
+import {
+  Bell,
+  ChevronUp,
+  Inbox,
+  Map as MapIcon,
+  Megaphone,
+  MessageSquare,
+  Rocket,
+  ThumbsUp,
+} from "lucide-react";
+
+/* ─── Closed-loop strip ────────────────────────────────────────────── */
+
+const LOOP_STEPS = [
+  { label: "Collect", Icon: Inbox },
+  { label: "Vote", Icon: ThumbsUp },
+  { label: "Plan", Icon: MapIcon },
+  { label: "Ship", Icon: Rocket },
+  { label: "Announce", Icon: Megaphone },
+  { label: "Notify", Icon: Bell },
+] as const;
+
+function LoopStrip() {
+  return (
+    <div className="mt-12 flex flex-wrap items-center justify-center gap-2.5">
+      {LOOP_STEPS.map(({ label, Icon }, i) => (
+        <div className="flex items-center gap-2.5" key={label}>
+          <div className="flex items-center gap-2 rounded-full border border-hairline bg-surface px-3.5 py-2 shadow-mk-xs">
+            <Icon aria-hidden="true" className="size-4 text-brand-500" />
+            <span className="text-sm font-semibold text-ink">{label}</span>
+          </div>
+          {i < LOOP_STEPS.length - 1 && (
+            <span aria-hidden="true" className="text-slate-2">
+              →
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Frame chrome ─────────────────────────────────────────────────── */
+
+function Frame({ url, children }: { url: string; children: React.ReactNode }) {
+  return (
+    <div className="overflow-hidden rounded-mk-xl border border-hairline bg-surface shadow-mk-lg">
+      <div className="flex items-center gap-3 border-b border-hairline bg-canvas-2/70 px-4 py-3">
+        <div className="flex gap-1.5">
+          <span className="size-2.5 rounded-full bg-hairline-strong" />
+          <span className="size-2.5 rounded-full bg-hairline-strong" />
+          <span className="size-2.5 rounded-full bg-hairline-strong" />
+        </div>
+        <div className="mx-auto flex items-center gap-1.5 rounded-mk-sm border border-hairline bg-surface px-3 py-1">
+          <span className="size-1.5 rounded-full bg-mint-400" />
+          <span className="text-xs text-slate-1">{url}</span>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
 
 /* ─── Board mockup ─────────────────────────────────────────────────── */
 
@@ -28,66 +89,47 @@ const BOARD_POSTS = [
 
 function BoardMockup() {
   return (
-    <div className="border border-border bg-card overflow-hidden">
-      {/* Browser chrome */}
-      <div className="flex items-center gap-3 border-b border-border bg-muted px-4 py-2.5">
-        <div className="flex shrink-0 gap-1.5">
-          <span className="block size-2 bg-border" />
-          <span className="block size-2 bg-border" />
-          <span className="block size-2 bg-border" />
-        </div>
-        <div className="min-w-0 flex-1 border border-border bg-card px-3 py-0.5 text-center">
-          <span className="font-mono text-2xs text-muted-foreground">
-            acme.idearoads.com/boards/feature-requests
-          </span>
-        </div>
-      </div>
-      {/* Board header */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <span className="text-sm font-semibold text-foreground">
+    <Frame url="acme.idearoads.com/feature-requests">
+      <div className="flex items-center justify-between px-5 pt-4 pb-3">
+        <span className="mk-display text-sm font-bold text-ink">
           Feature Requests
         </span>
-        <span className="text-2xs font-semibold uppercase tracking-ui text-muted-foreground">
-          48 posts
-        </span>
+        <span className="text-xs font-medium text-slate-1">48 posts</span>
       </div>
-      {/* Posts */}
-      <div className="divide-y divide-border">
+      <div className="space-y-2 px-3 pb-4">
         {BOARD_POSTS.map((post) => (
-          <div className="flex items-stretch" key={post.title}>
-            <div className="flex w-12 shrink-0 flex-col items-center justify-center gap-0.5 border-r border-border px-2 py-3">
+          <div
+            className="flex items-center gap-3 rounded-mk-lg border border-hairline bg-surface p-3"
+            key={post.title}
+          >
+            <div className="flex w-10 shrink-0 flex-col items-center gap-0.5 rounded-mk border border-hairline bg-canvas-2 py-1.5">
               <ChevronUp
                 aria-hidden="true"
-                className="size-3.5 text-muted-foreground"
+                className="size-3.5 text-brand-500"
               />
-              <span className="font-mono text-sm font-semibold text-foreground">
+              <span className="text-sm font-bold text-ink tabular-nums">
                 {post.votes}
               </span>
             </div>
-            <div className="min-w-0 flex-1 px-4 py-3">
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-sm font-medium text-foreground">
-                  {post.title}
-                </span>
-                <span className="shrink-0 text-2xs font-semibold uppercase tracking-ui text-success">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-ink">
+                {post.title}
+              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[0.65rem] font-semibold text-brand-700">
                   {post.status}
                 </span>
-              </div>
-              <div className="mt-1 flex items-center gap-2 text-muted-foreground">
-                <span className="text-2xs font-semibold uppercase tracking-ui">
-                  {post.category}
-                </span>
-                <span className="text-2xs">·</span>
-                <div className="flex items-center gap-1">
+                <span className="text-xs text-slate-2">{post.category}</span>
+                <span className="flex items-center gap-1 text-xs text-slate-2">
                   <MessageSquare aria-hidden="true" className="size-3" />
-                  <span className="text-2xs">{post.comments}</span>
-                </div>
+                  {post.comments}
+                </span>
               </div>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </Frame>
   );
 }
 
@@ -96,7 +138,7 @@ function BoardMockup() {
 const ROADMAP_COLUMNS = [
   {
     label: "Planned",
-    count: 3,
+    tone: "text-slate-1",
     cards: [
       "Add dark mode support",
       "Export feedback to CSV",
@@ -105,44 +147,33 @@ const ROADMAP_COLUMNS = [
   },
   {
     label: "In Progress",
-    count: 2,
+    tone: "text-brand-700",
     cards: ["Custom webhook integrations", "Zapier integration"],
   },
   {
     label: "Completed",
-    count: 6,
+    tone: "text-[oklch(0.5_0.13_165)]",
     cards: ["Board sorting options", "Guest voting via email"],
   },
 ] as const;
 
 function RoadmapMockup() {
   return (
-    <div className="border border-border bg-card overflow-hidden">
-      {/* Header */}
-      <div className="border-b border-border px-4 py-3">
-        <span className="text-sm font-semibold text-foreground">
-          Public Roadmap
-        </span>
-      </div>
-      {/* Columns */}
-      <div className="grid grid-cols-3 divide-x divide-border">
-        {ROADMAP_COLUMNS.map(({ label, count, cards }) => (
+    <Frame url="acme.idearoads.com/roadmap">
+      <div className="grid grid-cols-3 gap-3 p-4">
+        {ROADMAP_COLUMNS.map(({ label, tone, cards }) => (
           <div key={label}>
-            <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
-              <span className="text-2xs font-semibold uppercase tracking-ui text-foreground">
-                {label}
-              </span>
-              <span className="font-mono text-2xs text-muted-foreground">
-                {count}
-              </span>
+            <div className="mb-2 flex items-center justify-between">
+              <span className={`text-xs font-bold ${tone}`}>{label}</span>
+              <span className="text-xs text-slate-2">{cards.length}</span>
             </div>
-            <div className="space-y-2 p-2">
+            <div className="space-y-2">
               {cards.map((title) => (
                 <div
-                  className="border border-border bg-background p-2.5"
+                  className="rounded-mk border border-hairline bg-canvas-2/60 p-2.5"
                   key={title}
                 >
-                  <p className="text-xs font-medium leading-4 text-foreground">
+                  <p className="text-xs font-medium leading-4 text-ink">
                     {title}
                   </p>
                 </div>
@@ -151,7 +182,7 @@ function RoadmapMockup() {
           </div>
         ))}
       </div>
-    </div>
+    </Frame>
   );
 }
 
@@ -159,48 +190,35 @@ function RoadmapMockup() {
 
 function ChangelogMockup() {
   return (
-    <div className="border border-border bg-card overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <span className="text-sm font-semibold text-foreground">Changelog</span>
-        <span className="text-2xs font-semibold uppercase tracking-ui text-success">
-          Latest
-        </span>
-      </div>
-      {/* Entry */}
+    <Frame url="acme.idearoads.com/changelog">
       <div className="p-5">
-        <div className="flex items-center gap-3">
-          <span className="text-2xs font-semibold uppercase tracking-ui text-muted-foreground">
-            Jun 24, 2026
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-[0.65rem] font-semibold text-brand-700">
+            New feature
           </span>
+          <span className="text-xs text-slate-1">Jun 24, 2026</span>
         </div>
-        <h4 className="mt-2 font-bold text-base text-foreground">
+        <h4 className="mk-display mt-3 text-base font-bold text-ink">
           Dark mode is here
         </h4>
-        <p className="mt-2 text-sm leading-5 text-muted-foreground">
+        <p className="mt-2 text-sm leading-6 text-slate-1">
           After 42 votes and months of work, dark mode is now available for all
           workspaces. Toggle it in your profile settings.
         </p>
-        {/* Linked posts */}
-        <div className="mt-5 border-t border-border pt-4">
-          <p className="text-2xs font-semibold uppercase tracking-ui text-muted-foreground">
+        <div className="mt-5 border-t border-hairline pt-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-2">
             Delivered
           </p>
-          <div className="mt-2 flex items-center gap-2 border border-border bg-muted px-3 py-2">
-            <ChevronUp
-              aria-hidden="true"
-              className="size-3.5 text-muted-foreground"
-            />
-            <span className="font-mono text-2xs font-semibold text-muted-foreground">
-              42
-            </span>
-            <span className="text-xs font-medium text-foreground">
+          <div className="mt-2 flex items-center gap-2 rounded-mk border border-hairline bg-canvas-2/60 px-3 py-2">
+            <ChevronUp aria-hidden="true" className="size-3.5 text-brand-500" />
+            <span className="text-xs font-bold text-ink">42</span>
+            <span className="text-xs font-medium text-ink">
               Add dark mode support
             </span>
           </div>
         </div>
       </div>
-    </div>
+    </Frame>
   );
 }
 
@@ -208,63 +226,52 @@ function ChangelogMockup() {
 
 function EmailMockup() {
   return (
-    <div className="border border-border bg-card overflow-hidden">
-      {/* Email headers */}
-      <div className="space-y-1.5 border-b border-border bg-muted px-4 py-3">
-        <div className="flex gap-2">
-          <span className="w-14 shrink-0 text-2xs font-semibold text-muted-foreground">
-            From
-          </span>
-          <span className="text-2xs text-foreground">
-            IdeaRoads · Acme Corp &lt;noreply@acme.com&gt;
-          </span>
-        </div>
-        <div className="flex gap-2">
-          <span className="w-14 shrink-0 text-2xs font-semibold text-muted-foreground">
-            To
-          </span>
-          <span className="text-2xs text-foreground">alex@example.com</span>
-        </div>
-        <div className="flex gap-2">
-          <span className="w-14 shrink-0 text-2xs font-semibold text-muted-foreground">
-            Subject
-          </span>
-          <span className="text-2xs font-semibold text-foreground">
-            Dark mode just shipped — you asked for this
-          </span>
-        </div>
+    <Frame url="Inbox · alex@example.com">
+      <div className="space-y-1.5 border-b border-hairline bg-canvas-2/60 px-5 py-3">
+        {[
+          ["From", "IdeaRoads · Acme Corp"],
+          ["Subject", "Dark mode just shipped — you asked for this"],
+        ].map(([k, v]) => (
+          <div className="flex gap-3" key={k}>
+            <span className="w-14 shrink-0 text-xs font-semibold text-slate-2">
+              {k}
+            </span>
+            <span
+              className={`text-xs ${k === "Subject" ? "font-semibold text-ink" : "text-slate-1"}`}
+            >
+              {v}
+            </span>
+          </div>
+        ))}
       </div>
-      {/* Email body */}
       <div className="space-y-3 p-5 text-sm">
-        <p className="text-foreground">Hi Alex,</p>
-        <p className="leading-5 text-muted-foreground">
+        <p className="text-ink">Hi Alex,</p>
+        <p className="leading-6 text-slate-1">
           Something you voted for just shipped. The team at Acme Corp has
           published a new update.
         </p>
-        {/* Changelog card */}
-        <div className="border border-border bg-muted p-3">
-          <p className="text-xs font-semibold text-foreground">
-            Dark mode is here
-          </p>
-          <p className="mt-0.5 text-2xs text-muted-foreground">Jun 24, 2026</p>
-          <p className="mt-1.5 text-xs leading-4 text-muted-foreground">
+        <div className="rounded-mk-lg border border-hairline bg-canvas-2/60 p-3.5">
+          <p className="text-sm font-semibold text-ink">Dark mode is here</p>
+          <p className="mt-0.5 text-xs text-slate-2">Jun 24, 2026</p>
+          <p className="mt-1.5 text-xs leading-5 text-slate-1">
             Toggle it in your profile settings. Available on all workspaces now.
           </p>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-slate-2">
           You're receiving this because you voted for this feature.{" "}
-          <span className="underline">Unsubscribe</span>
+          <span className="text-brand-600 underline">Unsubscribe</span>
         </p>
       </div>
-    </div>
+    </Frame>
   );
 }
 
-/* ─── Tour frame ───────────────────────────────────────────────────── */
+/* ─── Frames ───────────────────────────────────────────────────────── */
 
 const FRAMES = [
   {
     step: "01",
+    eyebrow: "Collect",
     heading: "Feedback lands where it belongs.",
     caption:
       "Users submit requests directly to your board — no email, no Notion. Vote counts tell you exactly which problems are blocking the most users.",
@@ -272,6 +279,7 @@ const FRAMES = [
   },
   {
     step: "02",
+    eyebrow: "Plan",
     heading: "Your roadmap updates itself.",
     caption:
       "Change a post status and it appears on your public roadmap instantly. No separate tool to maintain. No manual sync.",
@@ -279,6 +287,7 @@ const FRAMES = [
   },
   {
     step: "03",
+    eyebrow: "Announce",
     heading: "Ship with a story.",
     caption:
       "Write a changelog entry and link it to the posts you shipped. Your users see what changed and why.",
@@ -286,6 +295,7 @@ const FRAMES = [
   },
   {
     step: "04",
+    eyebrow: "Notify",
     heading: "Every voter hears from you.",
     caption:
       "Publishing a changelog entry automatically notifies everyone who voted for the linked posts. The loop closes without any manual work.",
@@ -293,45 +303,50 @@ const FRAMES = [
   },
 ] as const;
 
-/* ─── Section ──────────────────────────────────────────────────────── */
-
 export function ProductTour() {
   return (
-    <section className="bg-background" id="how-it-works">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
-        <p className="font-bold text-xs uppercase tracking-eyebrow text-success">
-          Product Tour
-        </p>
+    <section className="bg-canvas-2" id="how-it-works">
+      <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50/70 px-3 py-1 text-xs font-semibold text-brand-700">
+            The closed loop
+          </span>
+          <h2 className="mk-display mt-5 text-3xl font-bold text-ink sm:text-4xl">
+            From idea to inbox, in one place.
+          </h2>
+          <p className="mt-4 text-lg leading-8 text-ink-soft">
+            Everything that happens between a user submitting a request and
+            receiving a notification that it shipped — connected end to end.
+          </p>
+        </div>
 
-        <h2 className="mt-4 font-bold text-3xl text-foreground sm:text-4xl">
-          From idea to inbox, in one place.
-        </h2>
+        <LoopStrip />
 
-        <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-          Everything that happens between a user submitting a request and
-          receiving a notification that it shipped.
-        </p>
-
-        <div className="mt-16 divide-y divide-border border-t border-border">
-          {FRAMES.map(({ step, heading, caption, Mockup }) => (
+        <div className="mt-16 space-y-16 lg:space-y-24">
+          {FRAMES.map(({ step, eyebrow, heading, caption, Mockup }, i) => (
             <div
-              className="grid gap-8 py-12 lg:grid-cols-[5fr_7fr] lg:items-start lg:gap-16"
+              className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16"
               key={step}
             >
-              {/* Caption */}
-              <div className="lg:pt-2">
-                <span className="font-mono text-2xs text-muted-foreground">
-                  {step}
-                </span>
-                <h3 className="mt-2 font-bold text-xl text-foreground">
+              <div className={i % 2 === 1 ? "lg:order-2" : ""}>
+                <div className="flex items-center gap-3">
+                  <span className="mk-display flex size-9 items-center justify-center rounded-mk bg-brand-500 text-sm font-bold text-white shadow-mk-brand">
+                    {step}
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">
+                    {eyebrow}
+                  </span>
+                </div>
+                <h3 className="mk-display mt-5 text-2xl font-bold text-ink sm:text-3xl">
                   {heading}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                <p className="mt-3 max-w-md text-base leading-7 text-ink-soft">
                   {caption}
                 </p>
               </div>
-              {/* Mockup */}
-              <Mockup />
+              <div className={i % 2 === 1 ? "lg:order-1" : ""}>
+                <Mockup />
+              </div>
             </div>
           ))}
         </div>

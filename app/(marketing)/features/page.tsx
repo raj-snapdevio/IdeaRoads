@@ -1,16 +1,25 @@
+import {
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  Check,
+  LayoutGrid,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CtaButton } from "@/components/marketing/cta-button";
+import { FinalCta } from "@/components/marketing/final-cta";
 import { PRODUCT_NAME } from "@/config/platform";
 
 export const metadata: Metadata = {
   title: "Features",
-  description: `Everything a product team needs to collect feedback, manage a roadmap, and ship with confidence. Every feature included, no per-voter fees.`,
+  description:
+    "Everything a product team needs to collect feedback, manage a roadmap, and ship with confidence. Every feature included, no per-voter fees.",
 };
 
 const MAJOR_FEATURES = [
   {
+    icon: LayoutGrid,
     title: "Feedback Boards",
     tagline: "One place for every feature request.",
     description:
@@ -24,6 +33,7 @@ const MAJOR_FEATURES = [
     href: "/features/feedback-boards",
   },
   {
+    icon: BarChart3,
     title: "Public Roadmap",
     tagline: "Your roadmap updates itself.",
     description:
@@ -37,6 +47,7 @@ const MAJOR_FEATURES = [
     href: "/features/roadmap",
   },
   {
+    icon: BookOpen,
     title: "Changelog",
     tagline: "Every voter hears from you automatically.",
     description:
@@ -105,63 +116,67 @@ export default function FeaturesPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
-          <p className="font-bold text-xs uppercase tracking-eyebrow text-success">
+      <section className="relative overflow-hidden bg-canvas">
+        <div aria-hidden="true" className="mk-aura absolute inset-0" />
+        <div className="relative mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
+          <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50/70 px-3 py-1 text-xs font-semibold text-brand-700">
             Features
-          </p>
-          <h1 className="mt-4 font-black text-5xl tracking-normal text-foreground sm:text-6xl">
-            Close the feedback loop,
-            <br className="hidden sm:block" /> automatically.
+          </span>
+          <h1 className="mk-display mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] text-ink sm:text-6xl">
+            Close the feedback loop,{" "}
+            <span className="mk-gradient-text">automatically.</span>
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-            From the first feature request to the shipped notification —
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-soft">
+            From the first feature request to the shipped notification —{" "}
             {PRODUCT_NAME} connects every step in one place. No duct tape, no
             manual sync.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link href="/login">Start Free</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/demo">View Demo</Link>
-            </Button>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <CtaButton href="/login">Start free</CtaButton>
+            <CtaButton href="/demo" variant="secondary">
+              View demo
+            </CtaButton>
           </div>
         </div>
       </section>
 
-      {/* 3 major feature panels */}
-      <section className="border-y border-border bg-muted">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
-          <div className="grid gap-px bg-border sm:grid-cols-3">
+      {/* Three major feature panels */}
+      <section className="bg-canvas-2">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
+          <div className="grid gap-6 lg:grid-cols-3">
             {MAJOR_FEATURES.map(
-              ({ title, tagline, description, included, href }) => (
-                <div className="flex flex-col bg-muted p-8" key={title}>
-                  <h2 className="font-bold text-xl text-foreground">{title}</h2>
-                  <p className="mt-1 text-sm font-semibold text-success">
+              ({ icon: Icon, title, tagline, description, included, href }) => (
+                <div
+                  className="flex flex-col rounded-mk-xl border border-hairline bg-surface p-7 shadow-mk-sm transition-all duration-150 hover:-translate-y-1 hover:shadow-mk"
+                  key={title}
+                >
+                  <span className="flex size-11 items-center justify-center rounded-mk bg-brand-50 text-brand-600">
+                    <Icon aria-hidden="true" className="size-5" />
+                  </span>
+                  <h2 className="mk-display mt-4 text-xl font-bold text-ink">
+                    {title}
+                  </h2>
+                  <p className="mt-1 text-sm font-semibold text-brand-600">
                     {tagline}
                   </p>
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  <p className="mt-3 text-sm leading-6 text-slate-1">
                     {description}
                   </p>
-                  <ul className="mt-5 space-y-2">
+                  <ul className="mt-5 space-y-2.5">
                     {included.map((item) => (
                       <li
-                        className="flex items-center gap-2 text-sm text-foreground"
+                        className="flex items-center gap-2.5 text-sm text-ink"
                         key={item}
                       >
-                        <span
-                          aria-hidden="true"
-                          className="shrink-0 font-mono text-success"
-                        >
-                          ✓
+                        <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                          <Check aria-hidden="true" className="size-3" />
                         </span>
                         {item}
                       </li>
                     ))}
                   </ul>
                   <Link
-                    className="mt-auto pt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground transition-colors duration-150 hover:text-muted-foreground"
+                    className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-semibold text-brand-700 transition-colors duration-150 hover:text-brand-500"
                     href={href}
                   >
                     Explore {title}
@@ -175,35 +190,34 @@ export default function FeaturesPage() {
       </section>
 
       {/* Full features list */}
-      <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
-          <p className="font-bold text-xs uppercase tracking-eyebrow text-muted-foreground">
-            Everything Included
-          </p>
-          <h2 className="mt-4 font-bold text-3xl text-foreground sm:text-4xl">
-            Every feature. Every plan.
-          </h2>
-          <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-            No feature gating. No per-voter fees. No surprise add-ons.
-          </p>
+      <section className="bg-canvas">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center rounded-full border border-hairline bg-canvas-2 px-3 py-1 text-xs font-semibold text-slate-1">
+              Everything included
+            </span>
+            <h2 className="mk-display mt-5 text-3xl font-bold text-ink sm:text-4xl">
+              Every feature. Every plan.
+            </h2>
+            <p className="mt-4 text-lg text-ink-soft">
+              No feature gating. No per-voter fees. No surprise add-ons.
+            </p>
+          </div>
 
-          <div className="mt-12 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
             {ALL_FEATURES.map(({ category, items }) => (
               <div key={category}>
-                <p className="border-b border-border pb-2 text-xs font-semibold uppercase tracking-ui text-muted-foreground">
+                <p className="border-b border-hairline pb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-2">
                   {category}
                 </p>
-                <ul className="mt-4 space-y-2.5">
+                <ul className="mt-4 space-y-3">
                   {items.map((item) => (
                     <li
-                      className="flex items-start gap-2 text-sm text-foreground"
+                      className="flex items-start gap-2.5 text-sm text-ink"
                       key={item}
                     >
-                      <span
-                        aria-hidden="true"
-                        className="mt-0.5 shrink-0 font-mono text-success"
-                      >
-                        ✓
+                      <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-600">
+                        <Check aria-hidden="true" className="size-3" />
                       </span>
                       {item}
                     </li>
@@ -215,25 +229,7 @@ export default function FeaturesPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="border-t border-border bg-muted">
-        <div className="mx-auto max-w-6xl px-4 py-24 text-center sm:px-8">
-          <h2 className="font-black text-3xl text-foreground sm:text-4xl">
-            Every feature. One flat price.
-          </h2>
-          <p className="mt-3 text-lg text-muted-foreground">
-            No credit card required. Voters never pay a seat fee.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg">
-              <Link href="/login">Start Free</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/demo">View Demo →</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <FinalCta />
     </>
   );
 }

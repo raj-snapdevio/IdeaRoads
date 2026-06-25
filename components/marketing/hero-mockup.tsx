@@ -1,144 +1,176 @@
-import { ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import {
+  Bell,
+  Check,
+  ChevronUp,
+  MessageSquare,
+  TrendingUp,
+} from "lucide-react";
 
-const STATUS_FILTERS = [
-  "All",
-  "Open",
-  "Planned",
-  "In Progress",
-  "Done",
-] as const;
+type HeroPost = {
+  votes: number;
+  title: string;
+  status: string;
+  tone: string;
+  category: string;
+  comments: number;
+  lead?: boolean;
+};
 
-const POSTS = [
+const POSTS: HeroPost[] = [
   {
-    id: 1,
-    title: "Add dark mode support",
-    votes: 42,
-    status: "Planned",
-    category: "Design",
-    comments: 8,
-    statusClass: "text-success",
-    voted: true,
-  },
-  {
-    id: 2,
-    title: "Custom webhook integrations",
-    votes: 31,
+    votes: 128,
+    title: "Dark mode across the dashboard",
     status: "In Progress",
-    category: "Developer",
-    comments: 11,
-    statusClass: "text-success",
-    voted: false,
+    tone: "brand",
+    category: "Design",
+    comments: 24,
+    lead: true,
   },
   {
-    id: 3,
-    title: "Export feedback to CSV",
-    votes: 24,
+    votes: 94,
+    title: "Slack notifications for new posts",
     status: "Planned",
-    category: "Data",
-    comments: 6,
-    statusClass: "text-success",
-    voted: false,
+    tone: "amber",
+    category: "Integrations",
+    comments: 16,
   },
   {
-    id: 4,
-    title: "Integrate with Zapier",
-    votes: 18,
-    status: "Open",
-    category: "Integrations",
-    comments: 3,
-    statusClass: "text-muted-foreground",
-    voted: false,
+    votes: 71,
+    title: "Export feedback to CSV",
+    status: "Planned",
+    tone: "amber",
+    category: "Data",
+    comments: 9,
   },
-] as const;
+  {
+    votes: 58,
+    title: "Single sign-on (SAML)",
+    status: "Under review",
+    tone: "slate",
+    category: "Security",
+    comments: 7,
+  },
+];
+
+const STATUS_TONE: Record<string, string> = {
+  brand: "bg-brand-50 text-brand-700",
+  amber: "bg-sun-300/30 text-[oklch(0.45_0.12_70)]",
+  slate: "bg-canvas-2 text-slate-1",
+};
 
 export function HeroMockup() {
   return (
-    <div aria-hidden="true" className="border border-border bg-card">
-      {/* Browser chrome */}
-      <div className="flex items-center gap-3 border-b border-border bg-muted px-4 py-3">
-        <div className="flex shrink-0 gap-1.5">
-          <span className="block size-2.5 bg-border" />
-          <span className="block size-2.5 bg-border" />
-          <span className="block size-2.5 bg-border" />
+    <div className="relative">
+      {/* Product frame */}
+      <div className="overflow-hidden rounded-mk-xl border border-hairline bg-surface shadow-mk-xl">
+        {/* Browser chrome */}
+        <div className="flex items-center gap-3 border-b border-hairline bg-canvas-2/70 px-4 py-3">
+          <div className="flex gap-1.5">
+            <span className="size-3 rounded-full bg-hairline-strong" />
+            <span className="size-3 rounded-full bg-hairline-strong" />
+            <span className="size-3 rounded-full bg-hairline-strong" />
+          </div>
+          <div className="mx-auto flex items-center gap-1.5 rounded-mk-sm border border-hairline bg-surface px-3 py-1">
+            <span className="size-1.5 rounded-full bg-mint-400" />
+            <span className="text-xs text-slate-1">feedback.acme.com</span>
+          </div>
         </div>
-        <div className="min-w-0 flex-1 border border-border bg-background px-3 py-1 text-center">
-          <span className="font-mono text-2xs text-muted-foreground">
-            acme.idearoads.com/boards/feature-requests
+
+        {/* Board header */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-4">
+          <div>
+            <p className="mk-display text-base font-bold text-ink">
+              Feature Requests
+            </p>
+            <p className="mt-0.5 text-xs text-slate-1">
+              312 ideas · sorted by votes
+            </p>
+          </div>
+          <span className="mk-btn-fill rounded-mk-sm px-3 py-1.5 text-xs font-semibold text-white">
+            + Submit
           </span>
         </div>
-      </div>
 
-      {/* Board header */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <span className="text-sm font-semibold text-foreground">
-          Feature Requests
-        </span>
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <span className="text-2xs font-semibold uppercase tracking-ui">
-            Trending
-          </span>
-          <ChevronDown aria-hidden="true" className="size-3" />
-        </div>
-      </div>
-
-      {/* Status filter tabs */}
-      <div className="flex items-center gap-px border-b border-border px-4">
-        {STATUS_FILTERS.map((filter, i) => (
-          <span
-            className={`px-2.5 py-2 text-2xs font-semibold uppercase tracking-ui ${
-              i === 0
-                ? "border-b border-foreground text-foreground"
-                : "text-muted-foreground"
-            }`}
-            key={filter}
-          >
-            {filter}
-          </span>
-        ))}
-      </div>
-
-      {/* Post list */}
-      <div className="divide-y divide-border">
-        {POSTS.map((post) => (
-          <div className="flex items-stretch" key={post.id}>
-            {/* Vote column */}
-            <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 border-r border-border px-2 py-3">
-              <ChevronUp
-                aria-hidden="true"
-                className={`size-4 ${post.voted ? "text-success" : "text-muted-foreground"}`}
-              />
-              <span
-                className={`font-mono text-sm font-semibold ${post.voted ? "text-success" : "text-foreground"}`}
+        {/* Posts */}
+        <div className="space-y-2 px-3 pb-4">
+          {POSTS.map((p) => (
+            <div
+              className={`flex items-center gap-3 rounded-mk-lg border p-3 transition-colors ${
+                p.lead
+                  ? "border-brand-200 bg-brand-50/50"
+                  : "border-hairline bg-surface"
+              }`}
+              key={p.title}
+            >
+              <div
+                className={`flex w-11 shrink-0 flex-col items-center gap-0.5 rounded-mk border py-2 ${
+                  p.lead
+                    ? "border-brand-300 bg-brand-500 text-white"
+                    : "border-hairline bg-canvas-2 text-ink"
+                }`}
               >
-                {post.votes}
-              </span>
-            </div>
-
-            {/* Content */}
-            <div className="min-w-0 flex-1 px-4 py-3">
-              <div className="flex items-start justify-between gap-4">
-                <span className="truncate text-sm font-medium text-foreground">
-                  {post.title}
-                </span>
-                <span
-                  className={`shrink-0 text-2xs font-semibold uppercase tracking-ui ${post.statusClass}`}
-                >
-                  {post.status}
+                <ChevronUp aria-hidden="true" className="size-4" />
+                <span className="text-sm font-bold tabular-nums">
+                  {p.votes}
                 </span>
               </div>
-              <div className="mt-1.5 flex items-center gap-2 text-muted-foreground">
-                <span className="text-2xs font-semibold uppercase tracking-ui">
-                  {post.category}
-                </span>
-                <span className="text-2xs">·</span>
-                <div className="flex items-center gap-1">
-                  <MessageSquare aria-hidden="true" className="size-3" />
-                  <span className="text-2xs">{post.comments}</span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-ink">
+                  {p.title}
+                </p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ${STATUS_TONE[p.tone]}`}
+                  >
+                    {p.status}
+                  </span>
+                  <span className="text-xs text-slate-2">{p.category}</span>
+                  <span className="flex items-center gap-1 text-xs text-slate-2">
+                    <MessageSquare aria-hidden="true" className="size-3" />
+                    {p.comments}
+                  </span>
                 </div>
               </div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Floating: notification toast */}
+      <div className="absolute -right-4 -top-5 hidden w-60 rounded-mk-lg border border-hairline bg-surface p-3.5 shadow-mk-lg sm:block">
+        <div className="flex items-start gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-mk bg-brand-50 text-brand-600">
+            <Bell aria-hidden="true" className="size-4" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-ink">
+              Dark mode just shipped
+            </p>
+            <p className="mt-0.5 text-[0.7rem] leading-4 text-slate-1">
+              128 voters notified automatically
+            </p>
           </div>
-        ))}
+        </div>
+      </div>
+
+      {/* Floating: weekly stat */}
+      <div className="absolute -bottom-6 -left-5 hidden items-center gap-3 rounded-mk-lg border border-hairline bg-surface p-3.5 pr-5 shadow-mk-lg sm:flex">
+        <span className="flex size-9 items-center justify-center rounded-mk bg-mint-400/15 text-[oklch(0.5_0.12_165)]">
+          <TrendingUp aria-hidden="true" className="size-4" />
+        </span>
+        <div>
+          <p className="text-sm font-bold text-ink">+412 votes</p>
+          <p className="text-[0.7rem] text-slate-1">this week</p>
+        </div>
+      </div>
+
+      {/* Floating: shipped badge */}
+      <div className="absolute -right-3 bottom-16 hidden items-center gap-1.5 rounded-full border border-mint-400/40 bg-surface px-3 py-1.5 shadow-mk lg:flex">
+        <Check
+          aria-hidden="true"
+          className="size-3.5 text-[oklch(0.5_0.13_165)]"
+        />
+        <span className="text-xs font-semibold text-ink">Loop closed</span>
       </div>
     </div>
   );

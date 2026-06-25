@@ -3,15 +3,19 @@ import { redirect } from "next/navigation";
 import { Comparison } from "@/components/marketing/comparison";
 import { FeaturesGrid } from "@/components/marketing/features-grid";
 import { FinalCta } from "@/components/marketing/final-cta";
+import { displayFont } from "@/components/marketing/fonts";
 import { Footer } from "@/components/marketing/footer";
 import { Hero } from "@/components/marketing/hero";
 import { LiveDemo } from "@/components/marketing/live-demo";
+import { LogosStrip } from "@/components/marketing/logos-strip";
 import { Nav } from "@/components/marketing/nav";
+import { OpenSource } from "@/components/marketing/open-source";
 import { ProblemFraming } from "@/components/marketing/problem-framing";
 import { ProductTour } from "@/components/marketing/product-tour";
-import { TrustBar } from "@/components/marketing/trust-bar";
+import { SocialProof } from "@/components/marketing/social-proof";
 import { PRODUCT_NAME } from "@/config/platform";
 import { getCurrentSession } from "@/lib/authz";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: `${PRODUCT_NAME} — Collect feedback, ship faster, close the loop`,
@@ -21,19 +25,28 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const session = await getCurrentSession();
-  if (session) redirect("/dashboard");
+  if (session) {
+    redirect("/dashboard");
+  }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      className={cn(
+        displayFont.variable,
+        "min-h-screen bg-canvas text-ink antialiased"
+      )}
+    >
       <Nav />
       <main>
         <Hero />
-        {/* <TrustBar /> */}
+        <LogosStrip />
         <ProblemFraming />
         <ProductTour />
         <FeaturesGrid />
         <LiveDemo />
         <Comparison />
+        <SocialProof />
+        <OpenSource />
         <FinalCta />
       </main>
       <Footer />

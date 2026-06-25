@@ -1,3 +1,5 @@
+import { ArrowDown, Check, X } from "lucide-react";
+
 const PROBLEMS = [
   {
     before: "Feature requests buried in email, Notion, and Slack",
@@ -17,36 +19,51 @@ const PROBLEMS = [
 
 export function ProblemFraming() {
   return (
-    <section className="bg-muted">
-      <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
-        <p className="font-bold text-xs uppercase tracking-eyebrow text-success">
-          Sound Familiar?
-        </p>
+    <section className="bg-canvas">
+      <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="inline-flex items-center rounded-full border border-hairline bg-canvas-2 px-3 py-1 text-xs font-semibold text-slate-1">
+            Sound familiar?
+          </span>
+          <h2 className="mk-display mt-5 text-3xl font-bold text-ink sm:text-4xl">
+            Feedback is everywhere.
+            <br className="hidden sm:block" /> Structure is nowhere.
+          </h2>
+          <p className="mt-4 text-lg leading-8 text-ink-soft">
+            Most product teams collect feedback in five different places, make
+            roadmap decisions by instinct, and ship features into silence.
+            IdeaRoads fixes all three.
+          </p>
+        </div>
 
-        <h2 className="mt-4 font-bold text-3xl text-foreground sm:text-4xl">
-          Feedback is everywhere.
-          <br className="hidden sm:block" />
-          Structure is nowhere.
-        </h2>
-
-        <p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-          Most product teams collect feedback in five different places, make
-          roadmap decisions by instinct, and ship features into silence.
-          IdeaRoads fixes all three.
-        </p>
-
-        <div className="mt-12 grid gap-px bg-border sm:grid-cols-3">
+        <div className="mt-14 grid gap-6 lg:grid-cols-3">
           {PROBLEMS.map(({ before, after }) => (
-            <div className="bg-card p-6" key={before}>
-              <p className="text-sm text-muted-foreground">{before}</p>
-              <div className="mt-4 flex items-start gap-2">
-                <span
-                  aria-hidden="true"
-                  className="mt-0.5 font-mono text-success"
-                >
-                  ✓
+            <div
+              className="flex flex-col rounded-mk-xl border border-hairline bg-surface p-6 shadow-mk-sm transition-all duration-150 hover:-translate-y-1 hover:shadow-mk"
+              key={before}
+            >
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-canvas-2 text-slate-2">
+                  <X aria-hidden="true" className="size-3.5" />
                 </span>
-                <p className="text-sm font-semibold text-foreground">{after}</p>
+                <p className="text-sm leading-6 text-slate-1 line-through decoration-hairline-strong decoration-1">
+                  {before}
+                </p>
+              </div>
+
+              <div className="my-4 flex justify-center">
+                <span className="flex size-7 items-center justify-center rounded-full bg-brand-50 text-brand-500">
+                  <ArrowDown aria-hidden="true" className="size-4" />
+                </span>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-brand-500 text-white">
+                  <Check aria-hidden="true" className="size-3.5" />
+                </span>
+                <p className="text-sm font-semibold leading-6 text-ink">
+                  {after}
+                </p>
               </div>
             </div>
           ))}

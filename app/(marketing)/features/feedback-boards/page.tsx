@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
-import Link from "next/link";
 import { ChevronUp, MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import type { Metadata } from "next";
+import { BrowserFrame } from "@/components/marketing/browser-frame";
+import { FeatureDetail } from "@/components/marketing/feature-detail";
 
 export const metadata: Metadata = {
   title: "Feedback Boards",
@@ -9,13 +9,7 @@ export const metadata: Metadata = {
     "One place for every feature request. Users submit and vote. You ship what matters most — not what the loudest voice asked for.",
 };
 
-const STATUS_FILTERS = [
-  "All",
-  "Open",
-  "Planned",
-  "In Progress",
-  "Done",
-] as const;
+const STATUS_FILTERS = ["All", "Open", "Planned", "In Progress", "Done"];
 
 const POSTS = [
   {
@@ -58,7 +52,7 @@ const POSTS = [
     comments: 3,
     voted: false,
   },
-] as const;
+];
 
 const BENEFITS = [
   {
@@ -73,7 +67,7 @@ const BENEFITS = [
     heading: "Your team always knows what to build.",
     body: "A ranked, filtered, organized list of validated requests. Open the board and immediately see the highest-impact work — no estimation needed.",
   },
-] as const;
+];
 
 const FEATURE_LIST = [
   "Public & private boards",
@@ -88,48 +82,30 @@ const FEATURE_LIST = [
   "Board search & filtering",
   "Custom board branding",
   "Embeddable board widget",
-] as const;
+];
 
 function BoardMockup() {
   return (
-    <div aria-hidden="true" className="border border-border bg-card">
-      {/* Browser chrome */}
-      <div className="flex items-center gap-3 border-b border-border bg-muted px-4 py-2.5">
-        <div className="flex shrink-0 gap-1.5">
-          <span className="block size-2 bg-border" />
-          <span className="block size-2 bg-border" />
-          <span className="block size-2 bg-border" />
-        </div>
-        <div className="min-w-0 flex-1 border border-border bg-background px-3 py-0.5 text-center">
-          <span className="font-mono text-2xs text-muted-foreground">
-            feedback.acme.com/boards/feature-requests
-          </span>
-        </div>
-      </div>
-
-      {/* Board header */}
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-foreground">
+    <BrowserFrame url="feedback.acme.com/feature-requests">
+      <div className="flex items-center justify-between px-5 pt-4 pb-3">
+        <div className="flex items-baseline gap-2">
+          <span className="mk-display text-sm font-bold text-ink">
             Feature Requests
           </span>
-          <span className="text-2xs font-semibold uppercase tracking-ui text-muted-foreground">
-            67 posts
-          </span>
+          <span className="text-xs text-slate-1">67 posts</span>
         </div>
-        <span className="border border-border px-2 py-0.5 text-2xs font-semibold uppercase tracking-ui text-foreground">
+        <span className="mk-btn-fill rounded-mk-sm px-3 py-1.5 text-xs font-semibold text-white">
           + Submit Idea
         </span>
       </div>
 
-      {/* Status filter tabs */}
-      <div className="flex items-center gap-px border-b border-border px-4">
+      <div className="flex items-center gap-1 border-b border-hairline px-4">
         {STATUS_FILTERS.map((filter, i) => (
           <span
-            className={`px-2.5 py-2 text-2xs font-semibold uppercase tracking-ui ${
+            className={`px-2.5 py-2.5 text-xs font-semibold ${
               i === 0
-                ? "border-b border-foreground text-foreground"
-                : "text-muted-foreground"
+                ? "border-b-2 border-brand-500 text-brand-700"
+                : "text-slate-1"
             }`}
             key={filter}
           >
@@ -138,152 +114,69 @@ function BoardMockup() {
         ))}
       </div>
 
-      {/* Post list */}
-      <div className="divide-y divide-border">
+      <div className="space-y-2 p-3">
         {POSTS.map((post) => (
-          <div className="flex items-stretch" key={post.title}>
-            <div className="flex w-12 shrink-0 flex-col items-center justify-center gap-0.5 border-r border-border px-2 py-3">
-              <ChevronUp
-                aria-hidden="true"
-                className={`size-3.5 ${post.voted ? "text-success" : "text-muted-foreground"}`}
-              />
-              <span
-                className={`font-mono text-sm font-semibold ${post.voted ? "text-success" : "text-foreground"}`}
-              >
+          <div
+            className={`flex items-center gap-3 rounded-mk-lg border p-3 ${
+              post.voted
+                ? "border-brand-200 bg-brand-50/50"
+                : "border-hairline bg-surface"
+            }`}
+            key={post.title}
+          >
+            <div
+              className={`flex w-11 shrink-0 flex-col items-center gap-0.5 rounded-mk border py-2 ${
+                post.voted
+                  ? "border-brand-300 bg-brand-500 text-white"
+                  : "border-hairline bg-canvas-2 text-ink"
+              }`}
+            >
+              <ChevronUp aria-hidden="true" className="size-4" />
+              <span className="text-sm font-bold tabular-nums">
                 {post.votes}
               </span>
             </div>
-            <div className="min-w-0 flex-1 px-4 py-3">
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-sm font-medium text-foreground">
-                  {post.title}
-                </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-ink">
+                {post.title}
+              </p>
+              <div className="mt-1.5 flex items-center gap-2">
                 <span
-                  className={`shrink-0 text-2xs font-semibold uppercase tracking-ui ${
+                  className={`rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ${
                     post.status === "Open"
-                      ? "text-muted-foreground"
-                      : "text-success"
+                      ? "bg-canvas-2 text-slate-1"
+                      : "bg-brand-50 text-brand-700"
                   }`}
                 >
                   {post.status}
                 </span>
-              </div>
-              <div className="mt-1 flex items-center gap-2 text-muted-foreground">
-                <span className="text-2xs font-semibold uppercase tracking-ui">
-                  {post.category}
-                </span>
-                <span className="text-2xs">·</span>
-                <div className="flex items-center gap-1">
+                <span className="text-xs text-slate-2">{post.category}</span>
+                <span className="flex items-center gap-1 text-xs text-slate-2">
                   <MessageSquare aria-hidden="true" className="size-3" />
-                  <span className="text-2xs">{post.comments}</span>
-                </div>
+                  {post.comments}
+                </span>
               </div>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </BrowserFrame>
   );
 }
 
 export default function FeedbackBoardsPage() {
   return (
-    <>
-      {/* Hero */}
-      <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
-          <p className="font-bold text-xs uppercase tracking-eyebrow text-success">
-            Feedback Boards
-          </p>
-          <h1 className="mt-4 font-black text-5xl tracking-normal text-foreground sm:text-6xl">
-            One place for every
-            <br className="hidden sm:block" /> feature request.
-          </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-            Users submit ideas, vote on what matters most, and leave comments.
-            You get a ranked, organized list of exactly what to build next.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link href="/login">Start Free</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/demo">View Demo</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* 3 benefit pillars */}
-      <section className="border-y border-border bg-muted">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
-          <div className="grid gap-px bg-border sm:grid-cols-3">
-            {BENEFITS.map(({ heading, body }) => (
-              <div className="bg-muted p-8" key={heading}>
-                <h3 className="font-bold text-base text-foreground">
-                  {heading}
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  {body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Mockup + feature list */}
-      <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
-          <div className="grid gap-12 lg:grid-cols-[7fr_5fr] lg:items-start lg:gap-16">
-            <BoardMockup />
-            <div>
-              <p className="font-bold text-xs uppercase tracking-eyebrow text-muted-foreground">
-                What&apos;s Included
-              </p>
-              <h2 className="mt-4 font-bold text-2xl text-foreground">
-                Everything you need to collect and organize feedback.
-              </h2>
-              <ul className="mt-8 space-y-2.5">
-                {FEATURE_LIST.map((item) => (
-                  <li
-                    className="flex items-start gap-2.5 text-sm text-foreground"
-                    key={item}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="mt-0.5 shrink-0 font-mono text-success"
-                    >
-                      ✓
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="border-t border-border bg-muted">
-        <div className="mx-auto max-w-6xl px-4 py-24 text-center sm:px-8">
-          <h2 className="font-black text-3xl text-foreground sm:text-4xl">
-            Ready to hear from your users?
-          </h2>
-          <p className="mt-3 text-lg text-muted-foreground">
-            No credit card required. Set up your first board in minutes.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg">
-              <Link href="/login">Start Free</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/features">See All Features →</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-    </>
+    <FeatureDetail
+      benefits={BENEFITS}
+      ctaHeading="Ready to hear from your users?"
+      ctaSubtitle="No credit card required. Set up your first board in minutes."
+      eyebrow="Feedback Boards"
+      features={FEATURE_LIST}
+      listTitle="Everything you need to collect and organize feedback."
+      mockup={<BoardMockup />}
+      subtitle="Users submit ideas, vote on what matters most, and leave comments. You get a ranked, organized list of exactly what to build next."
+      titleHighlight="every feature request."
+      titleLead="One place for"
+    />
   );
 }

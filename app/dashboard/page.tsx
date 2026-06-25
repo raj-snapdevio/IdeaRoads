@@ -24,7 +24,7 @@ import { auditLogs, emailOutbox, user } from "@/db/schema";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { formatDateTime } from "@/lib/utils";
-
+  
 export const metadata = {
   title: "Dashboard",
 };

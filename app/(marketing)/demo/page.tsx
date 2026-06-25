@@ -1,13 +1,37 @@
+import { ChevronUp, MessageSquare, Settings2, Users } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ChevronUp, MessageSquare } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CtaButton } from "@/components/marketing/cta-button";
+import { FinalCta } from "@/components/marketing/final-cta";
 
 export const metadata: Metadata = {
   title: "Demo",
   description:
     "See IdeaRoads in action. Explore the public feedback board, admin workspace, and automated notifications — no account required.",
 };
+
+/* ─── Frame chrome ─────────────────────────────────────────────────── */
+
+function Frame({ url, children }: { url: string; children: React.ReactNode }) {
+  return (
+    <div
+      aria-hidden="true"
+      className="overflow-hidden rounded-mk-xl border border-hairline bg-surface shadow-mk-lg"
+    >
+      <div className="flex items-center gap-3 border-b border-hairline bg-canvas-2/70 px-4 py-3">
+        <div className="flex gap-1.5">
+          <span className="size-2.5 rounded-full bg-hairline-strong" />
+          <span className="size-2.5 rounded-full bg-hairline-strong" />
+          <span className="size-2.5 rounded-full bg-hairline-strong" />
+        </div>
+        <div className="mx-auto flex items-center gap-1.5 rounded-mk-sm border border-hairline bg-surface px-3 py-1">
+          <span className="size-1.5 rounded-full bg-mint-400" />
+          <span className="text-xs text-slate-1">{url}</span>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
 
 /* ─── Public board mockup ──────────────────────────────────────────── */
 
@@ -48,132 +72,130 @@ const BOARD_POSTS = [
 
 function PublicBoardMockup() {
   return (
-    <div aria-hidden="true" className="border border-border bg-card">
-      <div className="flex items-center gap-3 border-b border-border bg-muted px-4 py-3">
-        <div className="flex shrink-0 gap-1.5">
-          <span className="block size-2.5 bg-border" />
-          <span className="block size-2.5 bg-border" />
-          <span className="block size-2.5 bg-border" />
-        </div>
-        <div className="min-w-0 flex-1 border border-border bg-background px-3 py-1 text-center">
-          <span className="font-mono text-2xs text-muted-foreground">
-            feedback.acme.com/boards/feature-requests
-          </span>
-        </div>
-      </div>
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <span className="text-sm font-semibold text-foreground">
+    <Frame url="feedback.acme.com/feature-requests">
+      <div className="flex items-center justify-between px-5 pt-4 pb-3">
+        <span className="mk-display text-sm font-bold text-ink">
           Feature Requests
         </span>
-        <span className="border border-border px-2 py-0.5 text-2xs font-semibold uppercase tracking-ui text-foreground">
+        <span className="mk-btn-fill rounded-mk-sm px-3 py-1.5 text-xs font-semibold text-white">
           + Submit Idea
         </span>
       </div>
-      <div className="divide-y divide-border">
+      <div className="space-y-2 px-3 pb-4">
         {BOARD_POSTS.map((post) => (
-          <div className="flex items-stretch" key={post.title}>
-            <div className="flex w-14 shrink-0 flex-col items-center justify-center gap-0.5 border-r border-border px-2 py-3">
-              <ChevronUp
-                aria-hidden="true"
-                className={`size-4 ${post.voted ? "text-success" : "text-muted-foreground"}`}
-              />
-              <span
-                className={`font-mono text-sm font-semibold ${post.voted ? "text-success" : "text-foreground"}`}
-              >
+          <div
+            className={`flex items-center gap-3 rounded-mk-lg border p-3 ${
+              post.voted
+                ? "border-brand-200 bg-brand-50/50"
+                : "border-hairline bg-surface"
+            }`}
+            key={post.title}
+          >
+            <div
+              className={`flex w-11 shrink-0 flex-col items-center gap-0.5 rounded-mk border py-2 ${
+                post.voted
+                  ? "border-brand-300 bg-brand-500 text-white"
+                  : "border-hairline bg-canvas-2 text-ink"
+              }`}
+            >
+              <ChevronUp aria-hidden="true" className="size-4" />
+              <span className="text-sm font-bold tabular-nums">
                 {post.votes}
               </span>
             </div>
-            <div className="min-w-0 flex-1 px-4 py-3">
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-sm font-medium text-foreground">
-                  {post.title}
-                </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-ink">
+                {post.title}
+              </p>
+              <div className="mt-1.5 flex items-center gap-2">
                 <span
-                  className={`shrink-0 text-2xs font-semibold uppercase tracking-ui ${post.status === "Open" ? "text-muted-foreground" : "text-success"}`}
+                  className={`rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ${
+                    post.status === "Open"
+                      ? "bg-canvas-2 text-slate-1"
+                      : "bg-brand-50 text-brand-700"
+                  }`}
                 >
                   {post.status}
                 </span>
-              </div>
-              <div className="mt-1.5 flex items-center gap-2 text-muted-foreground">
-                <span className="text-2xs font-semibold uppercase tracking-ui">
-                  {post.category}
-                </span>
-                <span className="text-2xs">·</span>
-                <div className="flex items-center gap-1">
+                <span className="text-xs text-slate-2">{post.category}</span>
+                <span className="flex items-center gap-1 text-xs text-slate-2">
                   <MessageSquare aria-hidden="true" className="size-3" />
-                  <span className="text-2xs">{post.comments}</span>
-                </div>
+                  {post.comments}
+                </span>
               </div>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </Frame>
   );
 }
 
 /* ─── Admin workspace mockup ───────────────────────────────────────── */
 
-const BOARDS = [
-  { name: "Feature Requests", posts: 67, activity: "Updated 2h ago" },
+const BOARDS: {
+  name: string;
+  posts: number;
+  activity: string;
+  lead?: boolean;
+}[] = [
+  {
+    name: "Feature Requests",
+    posts: 67,
+    activity: "Updated 2h ago",
+    lead: true,
+  },
   { name: "Bug Reports", posts: 12, activity: "Updated 1d ago" },
   { name: "Design Feedback", posts: 7, activity: "Updated 3d ago" },
-] as const;
+];
 
 function AdminWorkspaceMockup() {
   return (
-    <div aria-hidden="true" className="border border-border bg-card">
-      <div className="flex items-center gap-3 border-b border-border bg-muted px-4 py-3">
-        <div className="flex shrink-0 gap-1.5">
-          <span className="block size-2.5 bg-border" />
-          <span className="block size-2.5 bg-border" />
-          <span className="block size-2.5 bg-border" />
-        </div>
-        <div className="min-w-0 flex-1 border border-border bg-background px-3 py-1 text-center">
-          <span className="font-mono text-2xs text-muted-foreground">
-            app.idearoads.com/workspace
+    <Frame url="app.idearoads.com/workspace">
+      <div className="flex items-center justify-between px-5 py-4">
+        <div className="flex items-center gap-3">
+          <span className="flex size-9 items-center justify-center rounded-mk bg-linear-to-br from-brand-500 to-grape-500 text-sm font-bold text-white">
+            A
           </span>
+          <div>
+            <p className="text-sm font-bold text-ink">Acme Corp</p>
+            <p className="text-xs text-slate-1">Workspace</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 text-slate-1">
+          <Users aria-hidden="true" className="size-4" />
+          <Settings2 aria-hidden="true" className="size-4" />
         </div>
       </div>
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div>
-          <p className="text-2xs font-semibold uppercase tracking-ui text-muted-foreground">
-            Workspace
-          </p>
-          <p className="text-sm font-semibold text-foreground">Acme Corp</p>
-        </div>
-        <span className="text-2xs font-semibold uppercase tracking-ui text-muted-foreground">
-          Team · Settings
-        </span>
-      </div>
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <span className="text-sm font-semibold text-foreground">Boards</span>
-        <span className="border border-border px-2 py-0.5 text-2xs font-semibold uppercase tracking-ui text-foreground">
+      <div className="flex items-center justify-between border-y border-hairline px-5 py-3">
+        <span className="text-sm font-semibold text-ink">Boards</span>
+        <span className="mk-btn-fill rounded-mk-sm px-2.5 py-1 text-xs font-semibold text-white">
           + New Board
         </span>
       </div>
-      <div className="divide-y divide-border">
-        {BOARDS.map(({ name, posts, activity }) => (
+      <div className="divide-y divide-hairline">
+        {BOARDS.map(({ name, posts, activity, lead }) => (
           <div
-            className="flex items-center justify-between px-4 py-3.5"
+            className="flex items-center justify-between px-5 py-3.5"
             key={name}
           >
             <div>
-              <p className="text-sm font-medium text-foreground">{name}</p>
-              <p className="mt-0.5 text-2xs text-muted-foreground">
+              <p className="text-sm font-medium text-ink">{name}</p>
+              <p className="mt-0.5 text-xs text-slate-1">
                 {posts} posts · {activity}
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-xs font-semibold text-muted-foreground">
-                {posts}
-              </span>
-              <span className="text-sm text-muted-foreground">→</span>
-            </div>
+            <span
+              className={`rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${
+                lead ? "bg-brand-50 text-brand-700" : "bg-canvas-2 text-slate-1"
+              }`}
+            >
+              {posts}
+            </span>
           </div>
         ))}
       </div>
-    </div>
+    </Frame>
   );
 }
 
@@ -181,54 +203,44 @@ function AdminWorkspaceMockup() {
 
 function EmailMockup() {
   return (
-    <div aria-hidden="true" className="border border-border bg-card">
-      <div className="space-y-1.5 border-b border-border bg-muted px-4 py-3">
-        <div className="flex gap-3">
-          <span className="w-14 shrink-0 text-2xs font-semibold uppercase tracking-ui text-muted-foreground">
-            From
-          </span>
-          <span className="text-2xs text-foreground">
-            IdeaRoads · Acme Corp &lt;noreply@acme.com&gt;
-          </span>
-        </div>
-        <div className="flex gap-3">
-          <span className="w-14 shrink-0 text-2xs font-semibold uppercase tracking-ui text-muted-foreground">
-            To
-          </span>
-          <span className="text-2xs text-foreground">alex@example.com</span>
-        </div>
-        <div className="flex gap-3">
-          <span className="w-14 shrink-0 text-2xs font-semibold uppercase tracking-ui text-muted-foreground">
-            Subject
-          </span>
-          <span className="text-2xs font-semibold text-foreground">
-            Dark mode just shipped — you asked for this
-          </span>
-        </div>
+    <Frame url="Inbox · alex@example.com">
+      <div className="space-y-1.5 border-b border-hairline bg-canvas-2/60 px-5 py-3">
+        {[
+          ["From", "IdeaRoads · Acme Corp"],
+          ["To", "alex@example.com"],
+          ["Subject", "Dark mode just shipped — you asked for this"],
+        ].map(([k, v]) => (
+          <div className="flex gap-3" key={k}>
+            <span className="w-14 shrink-0 text-xs font-semibold text-slate-2">
+              {k}
+            </span>
+            <span
+              className={`text-xs ${k === "Subject" ? "font-semibold text-ink" : "text-slate-1"}`}
+            >
+              {v}
+            </span>
+          </div>
+        ))}
       </div>
       <div className="space-y-3 p-5 text-sm">
-        <p className="text-foreground">Hi Alex,</p>
-        <p className="leading-5 text-muted-foreground">
+        <p className="text-ink">Hi Alex,</p>
+        <p className="leading-6 text-slate-1">
           Something you voted for just shipped. The team at Acme Corp has
           published a new update.
         </p>
-        <div className="border border-border bg-muted p-3">
-          <p className="text-xs font-semibold text-foreground">
-            Dark mode is here
-          </p>
-          <p className="mt-0.5 text-2xs text-muted-foreground">
-            Jun 24, 2026 · Feature
-          </p>
-          <p className="mt-1.5 text-xs leading-4 text-muted-foreground">
+        <div className="rounded-mk-lg border border-hairline bg-canvas-2/60 p-3.5">
+          <p className="text-sm font-semibold text-ink">Dark mode is here</p>
+          <p className="mt-0.5 text-xs text-slate-2">Jun 24, 2026 · Feature</p>
+          <p className="mt-1.5 text-xs leading-5 text-slate-1">
             Toggle it in your profile settings. Available on all workspaces now.
           </p>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-slate-2">
           You&apos;re receiving this because you voted for this feature.{" "}
-          <span className="underline">Unsubscribe</span>
+          <span className="text-brand-600 underline">Unsubscribe</span>
         </p>
       </div>
-    </div>
+    </Frame>
   );
 }
 
@@ -265,55 +277,57 @@ export default function DemoPage() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-20 sm:px-8">
-          <p className="font-bold text-xs uppercase tracking-eyebrow text-success">
-            Live Demo
-          </p>
-          <h1 className="mt-4 font-black text-5xl tracking-normal text-foreground sm:text-6xl">
-            See IdeaRoads
-            <br className="hidden sm:block" /> in action.
+      <section className="relative overflow-hidden bg-canvas">
+        <div aria-hidden="true" className="mk-aura absolute inset-0" />
+        <div className="relative mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
+          <span className="inline-flex items-center rounded-full border border-brand-200 bg-brand-50/70 px-3 py-1 text-xs font-semibold text-brand-700">
+            Live demo
+          </span>
+          <h1 className="mk-display mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] text-ink sm:text-6xl">
+            See IdeaRoads <span className="mk-gradient-text">in action.</span>
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-soft">
             Here&apos;s exactly what your users see, what your team manages, and
             what happens automatically when you ship. No account required.
           </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg">
-              <Link href="/login">Start Free</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/features">See All Features →</Link>
-            </Button>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <CtaButton href="/login">Start free</CtaButton>
+            <CtaButton href="/features" variant="secondary">
+              See all features
+            </CtaButton>
           </div>
         </div>
       </section>
 
       {/* Demo sections */}
-      <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-4 pb-20 sm:px-8">
-          <div className="divide-y divide-border border-t border-border">
+      <section className="bg-canvas-2">
+        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 sm:py-24">
+          <div className="space-y-16 lg:space-y-24">
             {DEMO_SECTIONS.map(
-              ({ step, label, heading, description, Mockup }) => (
+              ({ step, label, heading, description, Mockup }, i) => (
                 <div
-                  className="grid gap-8 py-16 lg:grid-cols-[4fr_8fr] lg:items-start lg:gap-16"
+                  className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16"
                   key={step}
                 >
-                  <div className="lg:pt-2">
-                    <span className="font-mono text-2xs text-muted-foreground">
-                      {step}
-                    </span>
-                    <p className="mt-1 font-bold text-xs uppercase tracking-eyebrow text-success">
-                      {label}
-                    </p>
-                    <h2 className="mt-3 font-bold text-2xl text-foreground">
+                  <div className={i % 2 === 1 ? "lg:order-2" : ""}>
+                    <div className="flex items-center gap-3">
+                      <span className="mk-display flex size-9 items-center justify-center rounded-mk bg-brand-500 text-sm font-bold text-white shadow-mk-brand">
+                        {step}
+                      </span>
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-600">
+                        {label}
+                      </span>
+                    </div>
+                    <h2 className="mk-display mt-5 text-2xl font-bold text-ink sm:text-3xl">
                       {heading}
                     </h2>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    <p className="mt-3 max-w-md text-base leading-7 text-ink-soft">
                       {description}
                     </p>
                   </div>
-                  <Mockup />
+                  <div className={i % 2 === 1 ? "lg:order-1" : ""}>
+                    <Mockup />
+                  </div>
                 </div>
               )
             )}
@@ -321,25 +335,7 @@ export default function DemoPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="border-t border-border bg-muted">
-        <div className="mx-auto max-w-6xl px-4 py-24 text-center sm:px-8">
-          <h2 className="font-black text-3xl text-foreground sm:text-4xl">
-            Ready to set up your own?
-          </h2>
-          <p className="mt-3 text-lg text-muted-foreground">
-            No credit card required. Your first board is live in minutes.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Button asChild size="lg">
-              <Link href="/login">Start Free</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/features">Explore Features →</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <FinalCta />
     </>
   );
 }
