@@ -4,9 +4,10 @@ import { format } from "date-fns";
 import { Bell, Edit, Globe, Lock, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ChangelogLabelBadge } from "@/components/changelog/changelog-label-badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   deleteChangelogEntryAction,
   publishChangelogEntryAction,
@@ -36,6 +37,7 @@ export function ChangelogAdminCard({
 }: ChangelogAdminCardProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const excerpt = truncateMarkdownToText(entry.body, 180);
 
   function handlePublish() {
@@ -68,12 +70,7 @@ export function ChangelogAdminCard({
     });
   }
 
-  function handleDelete() {
-    if (
-      !window.confirm(`Delete "${entry.title}"? This action cannot be undone.`)
-    )
-      return;
-
+  function handleDeleteConfirm() {
     startTransition(async () => {
       const result = await deleteChangelogEntryAction({
         entryId: entry.id,
@@ -84,6 +81,7 @@ export function ChangelogAdminCard({
         return;
       }
       toast.success("Entry deleted");
+      setDeleteDialogOpen(false);
       router.refresh();
     });
   }
@@ -155,7 +153,7 @@ export function ChangelogAdminCard({
           )}
 
           <button
-            onClick={handleDelete}
+            onClick={() => setDeleteDialogOpen(true)}
             disabled={isPending}
             className="flex items-center justify-center p-1.5 text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             aria-label="Delete entry"
@@ -164,6 +162,17 @@ export function ChangelogAdminCard({
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete changelog entry"
+        description={`Are you sure you want to delete "${entry.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={handleDeleteConfirm}
+        isPending={isPending}
+        variant="destructive"
+      />
 
       {/* Title */}
       <h3 className="mt-3 text-base font-semibold text-foreground leading-snug">

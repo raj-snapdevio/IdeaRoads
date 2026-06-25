@@ -13,3 +13,4 @@ export * from "@/db/schema/votes";
 export * from "@/db/schema/comments";
 export * from "@/db/schema/comment-reactions";
 export * from "@/db/schema/changelog";
+export * from "@/db/schema/notifications";

@@ -58,6 +58,15 @@ export async function startWorker() {
   const { handleSendChangelogEmail } = await import(
     "@/lib/worker/handlers/send-changelog-email"
   );
+  const { handleSendStatusChangeEmail } = await import(
+    "@/lib/worker/handlers/send-status-change-email"
+  );
+  const { handleSendNewPostAlert } = await import(
+    "@/lib/worker/handlers/send-new-post-alert"
+  );
+  const { handleCleanupReadNotifications } = await import(
+    "@/lib/worker/handlers/cleanup-read-notifications"
+  );
 
   await Promise.all([
     work(JOB_NAMES.EMAIL_SEND, handleEmailSend),
@@ -65,11 +74,15 @@ export async function startWorker() {
     work(JOB_NAMES.EMAIL_EVENTS_PRUNE, handleEmailEventsPrune),
     work(JOB_NAMES.SCAFFOLD_HEALTHCHECK, handleScaffoldHealthcheck),
     work(JOB_NAMES.SEND_CHANGELOG_EMAIL, handleSendChangelogEmail),
+    work(JOB_NAMES.SEND_STATUS_CHANGE_EMAIL, handleSendStatusChangeEmail),
+    work(JOB_NAMES.SEND_NEW_POST_ALERT, handleSendNewPostAlert),
+    work(JOB_NAMES.CLEANUP_READ_NOTIFICATIONS, handleCleanupReadNotifications),
   ]);
 
   await boss.schedule(JOB_NAMES.EMAIL_OUTBOX_REAP, "*/15 * * * *", {});
   await boss.schedule(JOB_NAMES.EMAIL_EVENTS_PRUNE, "17 3 * * *", {});
   await boss.schedule(JOB_NAMES.SCAFFOLD_HEALTHCHECK, "*/10 * * * *", {});
+  await boss.schedule(JOB_NAMES.CLEANUP_READ_NOTIFICATIONS, "0 3 * * *", {});
 
   console.log("[worker] handlers registered");
 }

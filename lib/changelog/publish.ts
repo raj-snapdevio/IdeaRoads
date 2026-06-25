@@ -61,6 +61,7 @@ export async function publishChangelogEntry(
         await enqueueJob(JOB_NAMES.SEND_CHANGELOG_EMAIL, {
           voterEmail: email,
           voterName: voter.userName ?? email.split("@")[0],
+          voterUserId: voter.userId ?? null,
           entryId,
           entryTitle: entry.title,
           entryLabel: entry.label,

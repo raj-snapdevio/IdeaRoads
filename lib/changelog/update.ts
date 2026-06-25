@@ -66,14 +66,12 @@ export async function updateChangelogEntry(
         .where(eq(changelogPosts.changelogEntryId, entryId));
 
       if (updates.postIds.length > 0) {
-        await tx
-          .insert(changelogPosts)
-          .values(
-            updates.postIds.map((postId) => ({
-              changelogEntryId: entryId,
-              postId,
-            }))
-          );
+        await tx.insert(changelogPosts).values(
+          updates.postIds.map((postId) => ({
+            changelogEntryId: entryId,
+            postId,
+          }))
+        );
       }
     }
   });

@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { truncateMarkdownToText } from "@/lib/changelog/markdown";
 import { enqueueEmail } from "@/lib/email/index";
 import { changelogEmailTemplate } from "@/lib/email/templates/changelog";
+import { createNotification } from "@/lib/notifications/create";
+import { env } from "@/lib/env";
 import type { SendChangelogEmailPayload } from "@/lib/worker/job-types";
 
 export async function handleSendChangelogEmail(
@@ -19,6 +21,7 @@ async function processSendChangelogEmail(job: Job<SendChangelogEmailPayload>) {
   const {
     voterEmail,
     voterName,
+    voterUserId,
     entryId,
     entryTitle,
     entryLabel,
@@ -65,4 +68,15 @@ async function processSendChangelogEmail(job: Job<SendChangelogEmailPayload>) {
   });
 
   await enqueueEmail({ to: voterEmail, subject, html, text });
+
+  // In-app notification for signed-in voters
+  if (voterUserId) {
+    await createNotification({
+      userId: voterUserId,
+      workspaceId,
+      type: "changelog_published",
+      title: `New update: "${entryTitle}"`,
+      link: `${env.NEXT_PUBLIC_APP_URL}/${workspace.slug}/changelog/${entryId}`,
+    });
+  }
 }

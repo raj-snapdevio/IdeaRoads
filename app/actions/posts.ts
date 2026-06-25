@@ -1,7 +1,10 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { WORKSPACE_MEMBER } from "@/config/platform";
+import { boards, votes, workspaceMembers, workspaces } from "@/db/schema";
+import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireSession } from "@/lib/authz";
 import {
@@ -13,6 +16,8 @@ import {
   updatePostCategory,
   updatePostStatus,
 } from "@/lib/posts/queries";
+import { enqueueJob } from "@/lib/worker/enqueue";
+import { JOB_NAMES } from "@/lib/worker/job-types";
 import { getWorkspaceMember } from "@/lib/workspaces/queries";
 
 type ActionResult<T = undefined> =
@@ -88,6 +93,20 @@ export async function createPostAction(input: {
     },
   });
 
+  // Notify workspace admins/owners (fire-and-forget)
+  enqueueNewPostAlerts({
+    postId: post.id,
+    postTitle: parsed.data.title,
+    postBody: parsed.data.body ?? null,
+    postSlug: slug,
+    boardId: parsed.data.boardId,
+    workspaceId: parsed.data.workspaceId,
+    authorId: session.user.id,
+    authorName: session.user.name ?? session.user.email,
+  }).catch((err) =>
+    console.error("[posts] failed to enqueue new-post alerts", err)
+  );
+
   return { success: true, data: { postSlug: post.slug } };
 }
 
@@ -145,6 +164,20 @@ export async function updatePostStatusAction(input: {
       toStatus: parsed.data.status,
     },
   });
+
+  // Notify voters (fire-and-forget)
+  enqueueStatusChangeEmails({
+    postId: parsed.data.postId,
+    postTitle: post.title,
+    postSlug: post.slug,
+    boardId: post.boardId,
+    workspaceId: parsed.data.workspaceId,
+    fromStatus: post.status,
+    toStatus: parsed.data.status,
+    changedById: session.user.id,
+  }).catch((err) =>
+    console.error("[posts] failed to enqueue status-change emails", err)
+  );
 
   return { success: true, data: undefined };
 }
@@ -269,4 +302,118 @@ export async function updatePostCategoryAction(input: {
 
   await updatePostCategory(input.postId, input.categoryId);
   return { success: true, data: undefined };
+}
+
+// ─── Internal Helpers ─────────────────────────────────────────────────────────
+
+async function enqueueStatusChangeEmails(input: {
+  postId: string;
+  postTitle: string;
+  postSlug: string;
+  boardId: string;
+  workspaceId: string;
+  fromStatus: string;
+  toStatus: string;
+  changedById: string;
+}) {
+  const [boardRow] = await db
+    .select({ slug: boards.slug })
+    .from(boards)
+    .where(eq(boards.id, input.boardId))
+    .limit(1);
+
+  const [workspaceRow] = await db
+    .select({ slug: workspaces.slug, name: workspaces.name })
+    .from(workspaces)
+    .where(eq(workspaces.id, input.workspaceId))
+    .limit(1);
+
+  if (!boardRow || !workspaceRow) return;
+
+  const voters = await db
+    .select({
+      userId: votes.userId,
+      userEmail: votes.userEmail,
+      userName: votes.userName,
+    })
+    .from(votes)
+    .where(eq(votes.postId, input.postId));
+
+  for (const voter of voters) {
+    const email = voter.userEmail;
+    if (!email) continue;
+
+    await enqueueJob(JOB_NAMES.SEND_STATUS_CHANGE_EMAIL, {
+      postId: input.postId,
+      postTitle: input.postTitle,
+      postSlug: input.postSlug,
+      workspaceId: input.workspaceId,
+      workspaceSlug: workspaceRow.slug,
+      workspaceName: workspaceRow.name,
+      boardSlug: boardRow.slug,
+      fromStatus: input.fromStatus,
+      toStatus: input.toStatus,
+      voterEmail: email,
+      voterName: voter.userName ?? email.split("@")[0],
+      voterUserId: voter.userId ?? null,
+      changedById: input.changedById,
+    });
+  }
+}
+
+async function enqueueNewPostAlerts(input: {
+  postId: string;
+  postTitle: string;
+  postBody: string | null;
+  postSlug: string;
+  boardId: string;
+  workspaceId: string;
+  authorId: string;
+  authorName: string;
+}) {
+  const [boardRow] = await db
+    .select({ slug: boards.slug, name: boards.name })
+    .from(boards)
+    .where(eq(boards.id, input.boardId))
+    .limit(1);
+
+  const [workspaceRow] = await db
+    .select({ slug: workspaces.slug, name: workspaces.name })
+    .from(workspaces)
+    .where(eq(workspaces.id, input.workspaceId))
+    .limit(1);
+
+  if (!boardRow || !workspaceRow) return;
+
+  const { user: userTable } = await import("@/db/schema/auth");
+
+  const admins = await db
+    .select({
+      userId: workspaceMembers.userId,
+      email: userTable.email,
+      name: userTable.name,
+    })
+    .from(workspaceMembers)
+    .innerJoin(userTable, eq(workspaceMembers.userId, userTable.id))
+    .where(eq(workspaceMembers.workspaceId, input.workspaceId));
+
+  for (const admin of admins) {
+    if (admin.userId === input.authorId) continue;
+
+    await enqueueJob(JOB_NAMES.SEND_NEW_POST_ALERT, {
+      postId: input.postId,
+      postTitle: input.postTitle,
+      postBody: input.postBody,
+      postSlug: input.postSlug,
+      workspaceId: input.workspaceId,
+      workspaceSlug: workspaceRow.slug,
+      workspaceName: workspaceRow.name,
+      boardName: boardRow.name,
+      boardSlug: boardRow.slug,
+      authorName: input.authorName,
+      authorId: input.authorId,
+      adminEmail: admin.email,
+      adminUserId: admin.userId,
+    });
+  }
 }

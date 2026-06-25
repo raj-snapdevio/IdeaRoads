@@ -37,6 +37,21 @@ export const QUEUE_OPTIONS: Record<
     policy: "standard",
     retryLimit: 3,
   },
+  [JOB_NAMES.SEND_STATUS_CHANGE_EMAIL]: {
+    expireInSeconds: 3600,
+    policy: "standard",
+    retryLimit: 3,
+  },
+  [JOB_NAMES.SEND_NEW_POST_ALERT]: {
+    expireInSeconds: 3600,
+    policy: "standard",
+    retryLimit: 3,
+  },
+  [JOB_NAMES.CLEANUP_READ_NOTIFICATIONS]: {
+    expireInSeconds: 300,
+    policy: "exclusive",
+    retryLimit: 0,
+  },
 };
 
 export async function ensureJobQueues(boss: PgBoss) {

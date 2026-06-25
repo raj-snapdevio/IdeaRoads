@@ -4,6 +4,9 @@ export const JOB_NAMES = {
   EMAIL_SEND: "email.send",
   SCAFFOLD_HEALTHCHECK: "scaffold.healthcheck",
   SEND_CHANGELOG_EMAIL: "changelog.send-email",
+  SEND_STATUS_CHANGE_EMAIL: "notifications.send-status-change-email",
+  SEND_NEW_POST_ALERT: "notifications.send-new-post-alert",
+  CLEANUP_READ_NOTIFICATIONS: "notifications.cleanup-read",
 } as const;
 
 export type JobName = (typeof JOB_NAMES)[keyof typeof JOB_NAMES];
@@ -15,10 +18,43 @@ export interface EmailSendPayload {
 export interface SendChangelogEmailPayload {
   voterEmail: string;
   voterName: string;
+  voterUserId: string | null;
   entryId: string;
   entryTitle: string;
   entryLabel: string;
   workspaceId: string;
+}
+
+export interface SendStatusChangeEmailPayload {
+  postId: string;
+  postTitle: string;
+  postSlug: string;
+  workspaceId: string;
+  workspaceSlug: string;
+  workspaceName: string;
+  boardSlug: string;
+  fromStatus: string;
+  toStatus: string;
+  voterEmail: string;
+  voterName: string;
+  voterUserId: string | null;
+  changedById: string;
+}
+
+export interface SendNewPostAlertPayload {
+  postId: string;
+  postTitle: string;
+  postBody: string | null;
+  postSlug: string;
+  workspaceId: string;
+  workspaceSlug: string;
+  workspaceName: string;
+  boardName: string;
+  boardSlug: string;
+  authorName: string;
+  adminEmail: string;
+  adminUserId: string;
+  authorId: string;
 }
 
 export type JobPayloads = {
@@ -27,4 +63,7 @@ export type JobPayloads = {
   [JOB_NAMES.EMAIL_SEND]: EmailSendPayload;
   [JOB_NAMES.SCAFFOLD_HEALTHCHECK]: Record<string, never>;
   [JOB_NAMES.SEND_CHANGELOG_EMAIL]: SendChangelogEmailPayload;
+  [JOB_NAMES.SEND_STATUS_CHANGE_EMAIL]: SendStatusChangeEmailPayload;
+  [JOB_NAMES.SEND_NEW_POST_ALERT]: SendNewPostAlertPayload;
+  [JOB_NAMES.CLEANUP_READ_NOTIFICATIONS]: Record<string, never>;
 };

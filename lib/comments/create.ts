@@ -1,11 +1,12 @@
 import { createId } from "@paralleldrive/cuid2";
 import { eq, sql } from "drizzle-orm";
-import { comments, posts, user, workspaces } from "@/db/schema";
+import { boards, comments, posts, user, workspaces } from "@/db/schema";
 import { db } from "@/lib/db";
 import { enqueueEmail } from "@/lib/email";
 import { renderEmailTemplate } from "@/lib/email/renderer";
 import { NewCommentEmail } from "@/lib/email/components/new-comment";
 import { CommentReplyEmail } from "@/lib/email/components/comment-reply";
+import { createNotification } from "@/lib/notifications/create";
 import { env } from "@/lib/env";
 
 export class CommentBlockedError extends Error {
@@ -153,6 +154,7 @@ export async function sendCommentNotifications(
   post: {
     id: string;
     title: string;
+    slug: string | null;
     authorId: string | null;
     authorEmail: string;
     authorName: string | null;
@@ -161,9 +163,9 @@ export async function sendCommentNotifications(
   },
   _moderationEnabled: boolean
 ) {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+  const appUrl = env.NEXT_PUBLIC_APP_URL;
 
-  // Get workspace name
+  // Get workspace + board info for URLs
   const workspace = await db
     .select({ name: workspaces.name, slug: workspaces.slug })
     .from(workspaces)
@@ -173,8 +175,21 @@ export async function sendCommentNotifications(
 
   if (!workspace) return;
 
+  const board = await db
+    .select({ slug: boards.slug })
+    .from(boards)
+    .where(eq(boards.id, post.boardId))
+    .limit(1)
+    .then((r) => r[0] ?? null);
+
   const commenterName = comment.authorName ?? comment.authorEmail ?? "Someone";
   const bodyPreview = comment.body.slice(0, 300);
+  const postUrl = board
+    ? `${appUrl}/${workspace.slug}/b/${board.slug}/p/${post.slug ?? post.id}`
+    : `${appUrl}/${workspace.slug}`;
+  const postLink = board
+    ? `/${workspace.slug}/b/${board.slug}/p/${post.slug ?? post.id}`
+    : `/${workspace.slug}`;
 
   if (!comment.parentId) {
     // Top-level comment: notify post author
@@ -187,8 +202,6 @@ export async function sendCommentNotifications(
       .where(eq(user.id, post.authorId))
       .limit(1)
       .then((r) => r[0] ?? null);
-
-    const postUrl = buildPostUrl(appUrl, workspace.slug, post);
 
     try {
       const html = await renderEmailTemplate(
@@ -210,6 +223,18 @@ export async function sendCommentNotifications(
     } catch (err) {
       console.error("[comments] failed to enqueue new-comment email", err);
     }
+
+    // In-app notification for post author
+    if (post.authorId) {
+      createNotification({
+        userId: post.authorId,
+        workspaceId: post.workspaceId,
+        type: "new_comment",
+        title: `New comment on "${post.title}"`,
+        body: bodyPreview.slice(0, 120),
+        link: postLink,
+      }).catch(() => {});
+    }
   } else {
     // Reply: notify parent comment author
     const parent = await db
@@ -228,6 +253,7 @@ export async function sendCommentNotifications(
 
     let recipientEmail: string | null = parent.authorEmail;
     let recipientName = parent.authorName ?? "there";
+    let recipientUserId: string | null = parent.authorId ?? null;
 
     if (parent.authorId) {
       const parentUserRow = await db
@@ -240,12 +266,11 @@ export async function sendCommentNotifications(
       if (parentUserRow) {
         recipientEmail = parentUserRow.email;
         recipientName = parentUserRow.name ?? recipientName;
+        recipientUserId = parent.authorId;
       }
     }
 
     if (!recipientEmail) return;
-
-    const postUrl = buildPostUrl(appUrl, workspace.slug, post);
 
     try {
       const html = await renderEmailTemplate(
@@ -267,14 +292,17 @@ export async function sendCommentNotifications(
     } catch (err) {
       console.error("[comments] failed to enqueue comment-reply email", err);
     }
-  }
-}
 
-function buildPostUrl(
-  appUrl: string,
-  workspaceSlug: string,
-  post: { boardId: string; id: string; title: string }
-) {
-  // We don't have board slug here easily, so use a best-effort URL
-  return `${appUrl}/${workspaceSlug}`;
+    // In-app notification for parent comment author
+    if (recipientUserId) {
+      createNotification({
+        userId: recipientUserId,
+        workspaceId: post.workspaceId,
+        type: "reply",
+        title: `${commenterName} replied to your comment`,
+        body: bodyPreview.slice(0, 120),
+        link: postLink,
+      }).catch(() => {});
+    }
+  }
 }

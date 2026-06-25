@@ -1,4 +1,5 @@
 import {
+  Bell,
   CircleDot,
   LayoutGrid,
   LogOut,
@@ -15,6 +16,8 @@ import { boards } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
+import { getUnreadCount } from "@/lib/notifications/queries";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -55,6 +58,7 @@ export default async function WorkspaceLayout({
 
   const initial = workspace.name.charAt(0).toUpperCase();
   const email = session.user.email;
+  const unreadCount = await getUnreadCount(session.user.id);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -111,6 +115,13 @@ export default async function WorkspaceLayout({
               <span className="truncate">Changelog</span>
             </Link>
           </div>
+
+          <div className="mt-4 space-y-0.5">
+            <NotificationBell
+              workspaceSlug={workspace.slug}
+              initialCount={unreadCount}
+            />
+          </div>
         </nav>
 
         {/* Settings */}
@@ -145,6 +156,13 @@ export default async function WorkspaceLayout({
           >
             <CircleDot className="size-4 shrink-0" />
             <span className="truncate">Statuses</span>
+          </Link>
+          <Link
+            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={`/${workspace.slug}/settings/notifications`}
+          >
+            <Bell className="size-4 shrink-0" />
+            <span className="truncate">Notifications</span>
           </Link>
         </div>
 

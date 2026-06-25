@@ -71,6 +71,13 @@
       "when": 1750920000000,
       "tag": "0009_changelog",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1750930000000,
+      "tag": "0010_notifications",
+      "breakpoints": true
     }
   ]
 }
