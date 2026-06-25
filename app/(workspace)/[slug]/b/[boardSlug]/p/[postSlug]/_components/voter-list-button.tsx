@@ -20,7 +20,7 @@ export default function VoterListButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="text-[10px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+        className="text-2xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
       >
         See who voted
       </button>

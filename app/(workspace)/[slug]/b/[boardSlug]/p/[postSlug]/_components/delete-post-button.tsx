@@ -1,9 +1,11 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { deletePostAction } from "@/app/actions/posts";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface DeletePostButtonProps {
   postId: string;
@@ -18,26 +20,41 @@ export default function DeletePostButton({
 }: DeletePostButtonProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [showDialog, setShowDialog] = useState(false);
 
-  function handleDelete() {
-    if (!confirm("Delete this post? This cannot be undone.")) return;
-
+  function handleConfirm() {
     startTransition(async () => {
       const result = await deletePostAction({ postId, workspaceId });
       if (result.success) {
+        toast.success("Post deleted successfully");
         router.push(boardHref);
+      } else {
+        toast.error(result.error ?? "Failed to delete post.");
+        setShowDialog(false);
       }
     });
   }
 
   return (
-    <button
-      onClick={handleDelete}
-      disabled={isPending}
-      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-    >
-      <Trash2 className="size-3.5" />
-      {isPending ? "Deleting…" : "Delete"}
-    </button>
+    <>
+      <button
+        onClick={() => setShowDialog(true)}
+        disabled={isPending}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+      >
+        <Trash2 className="size-3.5" />
+        {isPending ? "Deleting…" : "Delete"}
+      </button>
+
+      <ConfirmDialog
+        open={showDialog}
+        onOpenChange={setShowDialog}
+        title="Delete Post"
+        description="Are you sure you want to delete this post? This action cannot be undone."
+        onConfirm={handleConfirm}
+        isPending={isPending}
+        confirmLabel="Delete"
+      />
+    </>
   );
 }

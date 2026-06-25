@@ -38,6 +38,7 @@ export const workspaces = pgTable(
     roadmapPublic: boolean("roadmap_public").notNull().default(false),
     changelogPublic: boolean("changelog_public").notNull().default(false),
     moderationMode: moderationMode("moderation_mode").notNull().default("off"),
+    commentModeration: boolean("comment_moderation").notNull().default(false),
     isSuspended: boolean("is_suspended").notNull().default(false),
     suspendedAt: timestamp("suspended_at", { withTimezone: true }),
     suspendedBy: text("suspended_by"),

@@ -1,22 +1,20 @@
 import { format } from "date-fns";
-import { ArrowLeft, MessageSquare } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CommentSection from "@/components/comments/comment-section";
 import VoteButton from "@/components/voting/vote-button";
 import VoterListButton from "./_components/voter-list-button";
 import { WORKSPACE_MEMBER } from "@/config/platform";
 import { requireSession } from "@/lib/authz";
 import { getBoardBySlug } from "@/lib/boards/queries";
-import { listPostComments } from "@/lib/posts/comments";
 import { getPostBySlug } from "@/lib/posts/queries";
 import { hasUserVoted } from "@/lib/voting";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
 } from "@/lib/workspaces/queries";
-import CommentForm from "./_components/comment-form";
-import CommentList from "./_components/comment-list";
 import DeletePostButton from "./_components/delete-post-button";
 import PinButton from "./_components/pin-button";
 import StatusSelect from "./_components/status-select";
@@ -55,10 +53,7 @@ export default async function PostDetailPage({ params }: Props) {
   const isAdminOrOwner = member.role !== WORKSPACE_MEMBER;
   const isAuthor = post.authorId === session.user.id;
 
-  const [votedByUser, comments] = await Promise.all([
-    hasUserVoted(post.id, { userId: session.user.id }),
-    listPostComments(post.id),
-  ]);
+  const votedByUser = await hasUserVoted(post.id, { userId: session.user.id });
 
   const boardHref = `/${slug}/b/${boardSlug}`;
 
@@ -148,23 +143,13 @@ export default async function PostDetailPage({ params }: Props) {
 
         {/* Comments */}
         <div className="mt-10 border-t border-border pt-8">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground mb-6">
-            <MessageSquare className="size-4 text-muted-foreground" />
-            {comments.length === 0
-              ? "Comments"
-              : `${comments.length} ${comments.length === 1 ? "comment" : "comments"}`}
-          </h2>
-
-          <CommentList
-            comments={comments}
-            workspaceId={workspace.id}
+          <CommentSection
+            postId={post.id}
+            isSignedIn={true}
+            isLocked={post.isLocked}
             currentUserId={session.user.id}
             canModerate={isAdminOrOwner}
           />
-
-          <div className="mt-6 pt-6 border-t border-border">
-            <CommentForm postId={post.id} workspaceId={workspace.id} />
-          </div>
         </div>
       </div>
     </div>

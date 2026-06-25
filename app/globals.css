@@ -186,3 +186,291 @@ body {
     font: inherit;
   }
 }
+
+/* ── Quill editor — base CSS imported statically in quill-editor.tsx ── */
+
+/* Container & toolbar borders */
+.ql-container.ql-snow {
+  border: none !important;
+  font-family: inherit;
+  font-size: 0.875rem;
+  position: relative;
+}
+
+.ql-toolbar.ql-snow {
+  border: none !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  padding: 5px 8px;
+  font-family: inherit;
+  line-height: 1;
+}
+
+/* Toolbar format groups */
+.ql-snow .ql-formats {
+  margin-right: 8px !important;
+  vertical-align: middle;
+}
+
+/* ── Toolbar buttons ──
+   Tailwind preflight resets display/sizing on button+svg, so we must restore them */
+.ql-snow .ql-toolbar button,
+.ql-snow.ql-toolbar button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 24px !important;
+  width: 26px !important;
+  padding: 2px !important;
+  cursor: pointer;
+  background: none;
+  border: none !important;
+  border-radius: 3px;
+  float: none !important;
+  vertical-align: middle;
+  transition: background 0.1s;
+}
+
+.ql-snow .ql-toolbar button:hover,
+.ql-snow.ql-toolbar button:hover {
+  background: hsl(var(--muted));
+}
+
+.ql-snow.ql-toolbar button.ql-active,
+.ql-snow .ql-toolbar button.ql-active {
+  background: hsl(var(--muted));
+}
+
+/* SVGs inside buttons */
+.ql-snow .ql-toolbar button svg,
+.ql-snow.ql-toolbar button svg {
+  display: block !important;
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0;
+}
+
+/* Icon stroke/fill colors */
+.ql-snow .ql-stroke {
+  stroke: hsl(var(--muted-foreground));
+}
+.ql-snow .ql-fill,
+.ql-snow .ql-stroke.ql-fill {
+  fill: hsl(var(--muted-foreground));
+}
+.ql-snow.ql-toolbar button:hover .ql-stroke,
+.ql-snow .ql-toolbar button:hover .ql-stroke,
+.ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.ql-snow .ql-toolbar button.ql-active .ql-stroke {
+  stroke: hsl(var(--foreground));
+}
+.ql-snow.ql-toolbar button:hover .ql-fill,
+.ql-snow .ql-toolbar button:hover .ql-fill,
+.ql-snow.ql-toolbar button.ql-active .ql-fill,
+.ql-snow .ql-toolbar button.ql-active .ql-fill {
+  fill: hsl(var(--foreground));
+}
+
+/* Picker (header / size dropdowns) */
+.ql-snow .ql-picker {
+  color: hsl(var(--muted-foreground));
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  font-size: 0.8125rem;
+}
+.ql-snow .ql-picker-label {
+  color: hsl(var(--muted-foreground));
+  border: none !important;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.ql-snow .ql-picker-label:hover {
+  color: hsl(var(--foreground));
+}
+.ql-snow .ql-picker-label .ql-stroke {
+  stroke: hsl(var(--muted-foreground));
+}
+.ql-snow .ql-picker-label:hover .ql-stroke {
+  stroke: hsl(var(--foreground));
+}
+.ql-snow .ql-picker-options {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  z-index: 100;
+}
+.ql-snow .ql-picker-item {
+  color: hsl(var(--foreground));
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.ql-snow .ql-picker-item:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+.ql-snow .ql-picker-item.ql-selected {
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+/* ── Editor area ── */
+.ql-editor {
+  min-height: var(--ql-min-height, 80px);
+  padding: 10px 12px;
+  color: hsl(var(--foreground));
+  line-height: 1.65;
+  font-size: 0.875rem;
+}
+.ql-editor.ql-blank::before {
+  color: hsl(var(--muted-foreground));
+  font-style: normal;
+  left: 12px;
+  right: 12px;
+}
+
+/* Editor content formatting */
+.ql-editor strong,
+.ql-editor b {
+  font-weight: 600;
+}
+.ql-editor em,
+.ql-editor i {
+  font-style: italic;
+}
+.ql-editor u {
+  text-decoration: underline;
+}
+.ql-editor s {
+  text-decoration: line-through;
+}
+.ql-editor a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
+.ql-editor blockquote {
+  border-left: 3px solid hsl(var(--border));
+  padding-left: 12px;
+  margin: 6px 0;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+.ql-editor pre.ql-syntax {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  font-family: ui-monospace, monospace;
+  font-size: 0.8125rem;
+  padding: 10px 12px;
+  border-radius: 4px;
+  overflow-x: auto;
+  margin: 6px 0;
+}
+.ql-editor code {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  font-family: ui-monospace, monospace;
+  font-size: 0.8125rem;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+.ql-editor ol,
+.ql-editor ul {
+  padding-left: 1.5rem;
+  margin: 4px 0;
+}
+.ql-editor li {
+  margin: 2px 0;
+}
+.ql-editor p {
+  margin: 0 0 4px;
+}
+.ql-editor p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Link tooltip popup ── */
+.ql-snow .ql-tooltip {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  color: hsl(var(--foreground));
+  padding: 6px 10px;
+  white-space: nowrap;
+  z-index: 100;
+}
+.ql-snow .ql-tooltip::before {
+  content: "URL:";
+  line-height: 26px;
+  margin-right: 8px;
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+}
+.ql-snow .ql-tooltip input[type="text"] {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 3px;
+  color: hsl(var(--foreground));
+  font-size: 0.8125rem;
+  height: 26px;
+  padding: 0 8px;
+  outline: none;
+  width: 180px;
+}
+.ql-snow .ql-tooltip input[type="text"]:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+.ql-snow .ql-tooltip a.ql-action,
+.ql-snow .ql-tooltip a.ql-remove {
+  font-size: 0.75rem;
+  color: hsl(var(--primary));
+  cursor: pointer;
+  text-decoration: none;
+  margin-left: 8px;
+}
+.ql-snow .ql-tooltip a.ql-action::after {
+  content: "Edit";
+}
+.ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+  content: "Save";
+}
+.ql-snow .ql-tooltip a.ql-remove::before {
+  content: "Remove";
+  margin-left: 8px;
+  color: hsl(var(--destructive));
+}
+.ql-snow .ql-tooltip[data-mode="link"]::before {
+  content: "Link URL:";
+}
+
+/* Comment body rendered HTML */
+.comment-body p {
+  margin: 0 0 0.25rem;
+}
+.comment-body p:last-child {
+  margin-bottom: 0;
+}
+.comment-body strong {
+  font-weight: 600;
+}
+.comment-body em {
+  font-style: italic;
+}
+.comment-body a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+}
+.comment-body ul,
+.comment-body ol {
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+.comment-body li {
+  margin: 0.125rem 0;
+}

@@ -68,3 +68,10 @@ export const RESERVED_SLUGS: readonly string[] = [
   "404",
   "500",
 ];
+
+// Soft-delete marker for comments
+export const DELETED_COMMENT_BODY = "[deleted]";
+
+// Supported emoji reactions on comments
+export const REACTION_EMOJIS = ["👍", "❤️", "😄", "🎉", "😮", "😢"] as const;
+export type ReactionEmoji = (typeof REACTION_EMOJIS)[number];

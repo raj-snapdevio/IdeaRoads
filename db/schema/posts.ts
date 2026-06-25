@@ -43,6 +43,7 @@ export const posts = pgTable(
     authorName: text("author_name"),
     authorEmail: text("author_email").notNull(),
     upvotes: integer("upvotes").notNull().default(0),
+    commentCount: integer("comment_count").notNull().default(0),
     isPinned: boolean("is_pinned").notNull().default(false),
     isLocked: boolean("is_locked").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
