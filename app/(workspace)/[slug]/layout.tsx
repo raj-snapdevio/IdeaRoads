@@ -1,10 +1,11 @@
 import {
+  CircleDot,
   LayoutGrid,
   LogOut,
-  MessageSquare,
+  Map,
   Settings,
+  Sliders,
   Tag,
-  CircleDot,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
@@ -94,13 +95,13 @@ export default async function WorkspaceLayout({
             <p className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
               Publish
             </p>
-            <span className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/30 cursor-default select-none">
-              <MessageSquare className="size-4 shrink-0" />
+            <Link
+              className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/${workspace.slug}/roadmap`}
+            >
+              <Map className="size-4 shrink-0" />
               <span className="truncate">Roadmap</span>
-              <span className="ml-auto text-[10px] font-medium uppercase tracking-wider text-sidebar-foreground/25">
-                Soon
-              </span>
-            </span>
+            </Link>
           </div>
         </nav>
 
@@ -109,6 +110,13 @@ export default async function WorkspaceLayout({
           <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
             Settings
           </p>
+          <Link
+            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={`/${workspace.slug}/settings/general`}
+          >
+            <Sliders className="size-4 shrink-0" />
+            <span className="truncate">General</span>
+          </Link>
           <Link
             className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             href={`/${workspace.slug}/settings/members`}
