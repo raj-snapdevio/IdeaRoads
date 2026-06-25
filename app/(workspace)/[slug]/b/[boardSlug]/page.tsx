@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { Pin, Plus } from "lucide-react";
+import { MessageSquare, Pin, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -158,10 +158,18 @@ export default async function BoardPage({ params, searchParams }: Props) {
                       {post.body}
                     </p>
                   )}
-                  <p className="mt-1.5 text-xs text-muted-foreground">
-                    {post.authorName ?? post.authorEmail} ·{" "}
-                    {formatDistanceToNow(post.createdAt, { addSuffix: true })}
-                  </p>
+                  <div className="mt-1.5 flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>
+                      {post.authorName ?? post.authorEmail} ·{" "}
+                      {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                    </span>
+                    {post.commentCount > 0 && (
+                      <span className="flex items-center gap-1">
+                        <MessageSquare className="size-3" />
+                        {post.commentCount}
+                      </span>
+                    )}
+                  </div>
                 </Link>
               </div>
             ))}

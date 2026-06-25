@@ -3,12 +3,14 @@
 import { Loader2, MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import {
   changeRoleAction,
   removeMemberAction,
   transferOwnershipAction,
 } from "@/app/actions/members";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +43,15 @@ interface MembersTableProps {
   workspaceId: string;
 }
 
+interface PendingConfirm {
+  title: string;
+  description: string;
+  memberId: string;
+  confirmLabel: string;
+  action: () => Promise<{ success: boolean; error?: string }>;
+  successMessage: string;
+}
+
 const ROLE_LABELS: Record<string, string> = {
   owner: "Owner",
   admin: "Admin",
@@ -63,6 +74,9 @@ export function MembersTable({
   const router = useRouter();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(
+    null
+  );
 
   async function handleAction(
     memberId: string,
@@ -79,154 +93,191 @@ export function MembersTable({
     }
   }
 
-  return (
-    <div className="space-y-px bg-border">
-      {members.map((member) => {
-        const isSelf = member.userId === actorUserId;
-        const isOwner = member.role === WORKSPACE_OWNER;
-        const canAct =
-          actorRole === WORKSPACE_OWNER ||
-          (actorRole === WORKSPACE_ADMIN && member.role === WORKSPACE_MEMBER);
-        const canChangeRole = actorRole === WORKSPACE_OWNER && !isOwner;
-        const canRemove =
-          !isOwner &&
-          !isSelf &&
-          (actorRole === WORKSPACE_OWNER ||
-            (actorRole === WORKSPACE_ADMIN &&
-              member.role === WORKSPACE_MEMBER));
-        const canTransfer =
-          actorRole === WORKSPACE_OWNER && !isOwner && !isSelf;
-        const showMenu = canChangeRole || canRemove || canTransfer;
+  async function handleConfirmedAction() {
+    if (!pendingConfirm) return;
+    const { memberId, action, successMessage } = pendingConfirm;
+    setPendingConfirm(null);
+    setLoadingId(memberId);
+    const result = await action();
+    setLoadingId(null);
+    if (!result.success && result.error) {
+      toast.error(result.error);
+    } else {
+      toast.success(successMessage);
+      router.refresh();
+    }
+  }
 
-        return (
-          <div
-            key={member.id}
-            className="flex items-center gap-4 bg-background px-6 py-4"
-          >
-            <div className="flex size-9 shrink-0 items-center justify-center bg-muted text-sm font-semibold text-muted-foreground uppercase">
-              {(member.user.name || member.user.email).charAt(0)}
-            </div>
-            <div className="flex-1 min-w-0">
-              {member.user.name && (
-                <p className="text-sm font-medium text-foreground truncate">
-                  {member.user.name}
-                  {isSelf && (
+  return (
+    <>
+      <div className="space-y-px bg-border">
+        {members.map((member) => {
+          const isSelf = member.userId === actorUserId;
+          const isOwner = member.role === WORKSPACE_OWNER;
+          const canChangeRole = actorRole === WORKSPACE_OWNER && !isOwner;
+          const canRemove =
+            !isOwner &&
+            !isSelf &&
+            (actorRole === WORKSPACE_OWNER ||
+              (actorRole === WORKSPACE_ADMIN &&
+                member.role === WORKSPACE_MEMBER));
+          const canTransfer =
+            actorRole === WORKSPACE_OWNER && !isOwner && !isSelf;
+          const showMenu = canChangeRole || canRemove || canTransfer;
+
+          return (
+            <div
+              key={member.id}
+              className="flex items-center gap-4 bg-background px-6 py-4"
+            >
+              <div className="flex size-9 shrink-0 items-center justify-center bg-muted text-sm font-semibold text-muted-foreground uppercase">
+                {(member.user.name || member.user.email).charAt(0)}
+              </div>
+              <div className="flex-1 min-w-0">
+                {member.user.name && (
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {member.user.name}
+                    {isSelf && (
+                      <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                        (you)
+                      </span>
+                    )}
+                  </p>
+                )}
+                <p
+                  className={`truncate text-sm ${member.user.name ? "text-muted-foreground" : "font-medium text-foreground"}`}
+                >
+                  {member.user.email}
+                  {!member.user.name && isSelf && (
                     <span className="ml-1.5 text-xs text-muted-foreground font-normal">
                       (you)
                     </span>
                   )}
                 </p>
-              )}
-              <p
-                className={`truncate text-sm ${member.user.name ? "text-muted-foreground" : "font-medium text-foreground"}`}
-              >
-                {member.user.email}
-                {!member.user.name && isSelf && (
-                  <span className="ml-1.5 text-xs text-muted-foreground font-normal">
-                    (you)
-                  </span>
+                {errors[member.id] && (
+                  <p className="mt-0.5 text-xs text-destructive">
+                    {errors[member.id]}
+                  </p>
                 )}
-              </p>
-              {errors[member.id] && (
-                <p className="mt-0.5 text-xs text-destructive">
-                  {errors[member.id]}
-                </p>
+              </div>
+              <span
+                className={`shrink-0 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider ${ROLE_BADGE[member.role]}`}
+              >
+                {ROLE_LABELS[member.role]}
+              </span>
+              {showMenu && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                      disabled={loadingId === member.id}
+                    >
+                      {loadingId === member.id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <MoreHorizontal className="size-4" />
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {canChangeRole && (
+                      <>
+                        {member.role === WORKSPACE_MEMBER && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleAction(member.id, () =>
+                                changeRoleAction({
+                                  memberId: member.id,
+                                  workspaceId,
+                                  role: "admin",
+                                })
+                              )
+                            }
+                          >
+                            Promote to admin
+                          </DropdownMenuItem>
+                        )}
+                        {member.role === WORKSPACE_ADMIN && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              handleAction(member.id, () =>
+                                changeRoleAction({
+                                  memberId: member.id,
+                                  workspaceId,
+                                  role: "member",
+                                })
+                              )
+                            }
+                          >
+                            Demote to member
+                          </DropdownMenuItem>
+                        )}
+                      </>
+                    )}
+                    {canTransfer && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          setPendingConfirm({
+                            title: "Transfer Ownership",
+                            description: `Transfer workspace ownership to ${member.user.name ?? member.user.email}? You will become an admin and lose owner privileges.`,
+                            memberId: member.id,
+                            confirmLabel: "Transfer",
+                            action: () =>
+                              transferOwnershipAction({
+                                targetMemberId: member.id,
+                                workspaceId,
+                              }),
+                            successMessage:
+                              "Ownership transferred successfully",
+                          })
+                        }
+                      >
+                        Transfer ownership
+                      </DropdownMenuItem>
+                    )}
+                    {(canChangeRole || canTransfer) && canRemove && (
+                      <DropdownMenuSeparator />
+                    )}
+                    {canRemove && (
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() =>
+                          setPendingConfirm({
+                            title: "Remove Member",
+                            description: `Remove ${member.user.name ?? member.user.email} from this workspace? They will lose all access immediately.`,
+                            memberId: member.id,
+                            confirmLabel: "Remove",
+                            action: () =>
+                              removeMemberAction({
+                                memberId: member.id,
+                                workspaceId,
+                              }),
+                            successMessage: "Member removed successfully",
+                          })
+                        }
+                      >
+                        Remove member
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
-            <span
-              className={`shrink-0 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider ${ROLE_BADGE[member.role]}`}
-            >
-              {ROLE_LABELS[member.role]}
-            </span>
-            {showMenu && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="size-8 p-0 text-muted-foreground hover:text-foreground"
-                    disabled={loadingId === member.id}
-                  >
-                    {loadingId === member.id ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <MoreHorizontal className="size-4" />
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {canChangeRole && (
-                    <>
-                      {member.role === WORKSPACE_MEMBER && (
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleAction(member.id, () =>
-                              changeRoleAction({
-                                memberId: member.id,
-                                workspaceId,
-                                role: "admin",
-                              })
-                            )
-                          }
-                        >
-                          Promote to admin
-                        </DropdownMenuItem>
-                      )}
-                      {member.role === WORKSPACE_ADMIN && (
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleAction(member.id, () =>
-                              changeRoleAction({
-                                memberId: member.id,
-                                workspaceId,
-                                role: "member",
-                              })
-                            )
-                          }
-                        >
-                          Demote to member
-                        </DropdownMenuItem>
-                      )}
-                    </>
-                  )}
-                  {canTransfer && (
-                    <DropdownMenuItem
-                      onClick={() =>
-                        handleAction(member.id, () =>
-                          transferOwnershipAction({
-                            targetMemberId: member.id,
-                            workspaceId,
-                          })
-                        )
-                      }
-                    >
-                      Transfer ownership
-                    </DropdownMenuItem>
-                  )}
-                  {(canChangeRole || canTransfer) && canRemove && (
-                    <DropdownMenuSeparator />
-                  )}
-                  {canRemove && (
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() =>
-                        handleAction(member.id, () =>
-                          removeMemberAction({
-                            memberId: member.id,
-                            workspaceId,
-                          })
-                        )
-                      }
-                    >
-                      Remove member
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+
+      <ConfirmDialog
+        open={!!pendingConfirm}
+        onOpenChange={(open) => !open && setPendingConfirm(null)}
+        title={pendingConfirm?.title ?? ""}
+        description={pendingConfirm?.description ?? ""}
+        confirmLabel={pendingConfirm?.confirmLabel ?? "Confirm"}
+        isPending={!!loadingId}
+        onConfirm={handleConfirmedAction}
+      />
+    </>
   );
 }
