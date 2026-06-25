@@ -1,22 +1,22 @@
 import { formatDistanceToNow } from "date-fns";
-import { ChevronUp } from "lucide-react";
+import { ChevronUp, Pin, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSession } from "@/lib/authz";
 import { getBoardBySlug } from "@/lib/boards/queries";
 import { listBoardPosts } from "@/lib/posts/queries";
+import { getBatchUserVotes } from "@/lib/posts/votes";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
 } from "@/lib/workspaces/queries";
-import NewPostForm from "./_components/new-post-form";
+import BoardFilters from "./_components/board-filters";
 import { PostStatusBadge } from "./_components/post-status-badge";
-import SortTabs from "./_components/sort-tabs";
 
 interface Props {
   params: Promise<{ slug: string; boardSlug: string }>;
-  searchParams: Promise<{ sort?: string }>;
+  searchParams: Promise<{ sort?: string; status?: string; q?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function BoardPage({ params, searchParams }: Props) {
   const { slug, boardSlug } = await params;
-  const { sort } = await searchParams;
+  const { sort, status, q } = await searchParams;
 
   const session = await requireSession();
 
@@ -43,13 +43,25 @@ export default async function BoardPage({ params, searchParams }: Props) {
   if (!board) notFound();
 
   const validSort = sort === "top" ? "top" : "newest";
-  const boardPosts = await listBoardPosts(board.id, validSort);
+  const validStatus = status ?? "";
+  const searchQuery = q ?? "";
+
+  const boardPosts = await listBoardPosts(board.id, {
+    sort: validSort,
+    status: validStatus || undefined,
+    search: searchQuery || undefined,
+  });
+
+  const votedSet = await getBatchUserVotes(
+    boardPosts.map((p) => p.id),
+    session.user.id
+  );
 
   return (
     <div className="flex flex-col">
       {/* Page header */}
       <div className="border-b border-border px-8 py-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-foreground">
               {board.name}
@@ -60,71 +72,97 @@ export default async function BoardPage({ params, searchParams }: Props) {
               </p>
             )}
           </div>
-          <div className="shrink-0">
-            <NewPostForm
-              boardId={board.id}
-              workspaceId={workspace.id}
-              boardSlug={boardSlug}
-              workspaceSlug={slug}
-            />
-          </div>
+          <Link
+            href={`/${slug}/b/${boardSlug}/new`}
+            className="flex shrink-0 items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Plus className="size-4" />
+            New post
+          </Link>
         </div>
       </div>
 
-      {/* Sort tabs */}
-      <div className="border-b border-border px-4">
-        <SortTabs activeSort={validSort} />
-      </div>
+      {/* Filters */}
+      <BoardFilters
+        activeSort={validSort}
+        activeStatus={validStatus}
+        activeSearch={searchQuery}
+      />
 
       {/* Post list */}
       <div className="flex-1">
         {boardPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center px-8">
-            <p className="text-sm font-medium text-foreground">
-              No feedback yet
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Be the first to submit an idea or request.
-            </p>
+            {searchQuery || validStatus ? (
+              <>
+                <p className="text-sm font-medium text-foreground">
+                  No posts match your filters
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Try a different search term or status.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-foreground">
+                  No feedback yet
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Be the first to submit an idea or request.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {boardPosts.map((post) => (
-              <Link
-                key={post.id}
-                href={`/${slug}/b/${boardSlug}/p/${post.id}`}
-                className="group flex items-start gap-4 px-8 py-5 hover:bg-muted/40 transition-colors duration-150"
-              >
-                {/* Vote count */}
-                <div className="flex shrink-0 flex-col items-center gap-0.5 pt-0.5">
-                  <ChevronUp className="size-4 text-muted-foreground group-hover:text-foreground transition-colors duration-150" />
-                  <span className="text-xs font-semibold tabular-nums text-muted-foreground group-hover:text-foreground transition-colors duration-150">
-                    {post.upvotes}
-                  </span>
-                </div>
-
-                {/* Post content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-medium text-foreground">
-                      {post.title}
-                    </p>
-                    {post.status !== "open" && (
-                      <PostStatusBadge status={post.status} />
-                    )}
+            {boardPosts.map((post) => {
+              const hasVoted = votedSet.has(post.id);
+              return (
+                <Link
+                  key={post.id}
+                  href={`/${slug}/b/${boardSlug}/p/${post.slug}`}
+                  className="group flex items-start gap-4 px-8 py-5 hover:bg-muted/40 transition-colors duration-150"
+                >
+                  {/* Vote pill */}
+                  <div
+                    className={`flex shrink-0 flex-col items-center gap-0.5 border px-2.5 py-2 transition-colors duration-150 ${
+                      hasVoted
+                        ? "border-primary/30 bg-primary/5 text-primary"
+                        : "border-border text-muted-foreground group-hover:border-muted-foreground/40"
+                    }`}
+                  >
+                    <ChevronUp className="size-3.5" />
+                    <span className="text-xs font-semibold tabular-nums">
+                      {post.upvotes}
+                    </span>
                   </div>
-                  {post.body && (
-                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                      {post.body}
+
+                  {/* Post content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {post.isPinned && (
+                        <Pin className="size-3 text-muted-foreground shrink-0" />
+                      )}
+                      <p className="text-sm font-medium text-foreground">
+                        {post.title}
+                      </p>
+                      {post.status !== "open" && (
+                        <PostStatusBadge status={post.status} />
+                      )}
+                    </div>
+                    {post.body && (
+                      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+                        {post.body}
+                      </p>
+                    )}
+                    <p className="mt-1.5 text-xs text-muted-foreground">
+                      {post.authorName ?? post.authorEmail} ·{" "}
+                      {formatDistanceToNow(post.createdAt, { addSuffix: true })}
                     </p>
-                  )}
-                  <p className="mt-1.5 text-xs text-muted-foreground">
-                    {post.authorName ?? post.authorEmail} ·{" "}
-                    {formatDistanceToNow(post.createdAt, { addSuffix: true })}
-                  </p>
-                </div>
-              </Link>
-            ))}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

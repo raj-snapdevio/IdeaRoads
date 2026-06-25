@@ -7,3 +7,5 @@ export * from "@/db/schema/workspaces";
 export * from "@/db/schema/boards";
 export * from "@/db/schema/invites";
 export * from "@/db/schema/posts";
+export * from "@/db/schema/votes";
+export * from "@/db/schema/comments";

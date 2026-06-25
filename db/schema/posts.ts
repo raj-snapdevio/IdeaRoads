@@ -7,6 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { user } from "@/db/schema/auth";
 import { boards } from "@/db/schema/boards";
@@ -14,11 +15,10 @@ import { workspaces } from "@/db/schema/workspaces";
 
 export const postStatus = pgEnum("post_status", [
   "open",
-  "under_review",
   "planned",
   "in_progress",
-  "done",
-  "declined",
+  "completed",
+  "closed",
 ]);
 
 export const posts = pgTable(
@@ -33,6 +33,7 @@ export const posts = pgTable(
     workspaceId: text("workspace_id")
       .notNull()
       .references(() => workspaces.id, { onDelete: "cascade" }),
+    slug: text("slug").notNull(),
     title: text("title").notNull(),
     body: text("body"),
     status: postStatus("status").notNull().default("open"),
@@ -52,6 +53,7 @@ export const posts = pgTable(
       .defaultNow(),
   },
   (t) => [
+    uniqueIndex("posts_board_id_slug_unq").on(t.boardId, t.slug),
     index("posts_board_id_created_at_idx").on(t.boardId, t.createdAt),
     index("posts_board_id_upvotes_idx").on(t.boardId, t.upvotes),
     index("posts_board_id_status_idx").on(t.boardId, t.status),
