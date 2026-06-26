@@ -113,7 +113,7 @@ export default async function DashboardPage() {
               Replace this dashboard with your application logic while keeping
               the auth/admin/worker backbone.
             </p>
-            <Button asChild variant="secondary" size="sm">
+            <Button asChild size="sm" variant="secondary">
               <Link href="/dashboard/profile">Edit profile</Link>
             </Button>
           </CardContent>
@@ -128,19 +128,23 @@ export default async function DashboardPage() {
               Latest transactional emails sent from this workspace.
             </CardDescription>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="p-0">
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead className="w-[55%]">Subject</TableHead>
+                  <TableHead className="w-[18%]">Status</TableHead>
+                  <TableHead className="w-[27%]">Created</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {emails.map((email) => (
                   <TableRow key={email.id}>
-                    <TableCell>{email.payload.subject}</TableCell>
+                    <TableCell className="max-w-0">
+                      <span className="block truncate">
+                        {email.payload.subject}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <Badge
                         className={
@@ -152,7 +156,9 @@ export default async function DashboardPage() {
                         {email.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDateTime(email.createdAt)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatDateTime(email.createdAt)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -166,19 +172,23 @@ export default async function DashboardPage() {
               Your recent account actions and security events.
             </CardDescription>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="p-0">
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Action</TableHead>
-                  <TableHead>When</TableHead>
+                  <TableHead className="w-[65%]">Action</TableHead>
+                  <TableHead className="w-[35%]">When</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {audits.map((entry) => (
                   <TableRow key={entry.id}>
-                    <TableCell>{entry.action}</TableCell>
-                    <TableCell>{formatDateTime(entry.createdAt)}</TableCell>
+                    <TableCell className="max-w-0">
+                      <span className="block truncate">{entry.action}</span>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {formatDateTime(entry.createdAt)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

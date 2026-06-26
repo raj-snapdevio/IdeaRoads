@@ -1,5 +1,11 @@
+import { eq } from "drizzle-orm";
 import { type Job, PgBoss } from "pg-boss";
+import { ADMIN_ROLE } from "@/config/platform";
+import { featureFlags, user } from "@/db/schema";
+import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import { DEFAULT_FEATURE_FLAGS } from "@/lib/orbit/feature-flags";
+import { getPlatformSettings } from "@/lib/orbit/settings";
 import { normalizePgConnectionString } from "@/lib/pg-connection";
 import { sleep } from "@/lib/utils";
 import { ensureJobQueues } from "@/lib/worker/ensure-queues";
@@ -94,6 +100,49 @@ export async function startWorker() {
   await boss.schedule(JOB_NAMES.CLEANUP_WEBHOOK_DELIVERIES, "0 4 * * *", {});
 
   console.log("[worker] handlers registered");
+
+  await seedPlatformData();
+}
+
+async function seedPlatformData() {
+  try {
+    // Seed default feature flags (INSERT ON CONFLICT DO NOTHING)
+    for (const flag of DEFAULT_FEATURE_FLAGS) {
+      await db
+        .insert(featureFlags)
+        .values({
+          key: flag.key,
+          description: flag.description,
+          isEnabled: flag.isEnabled,
+        })
+        .onConflictDoNothing();
+    }
+
+    // Ensure platform settings singleton exists
+    await getPlatformSettings();
+
+    // Seed superadmin from ORBIT_SEED_EMAIL if set
+    if (env.ORBIT_SEED_EMAIL) {
+      const email = env.ORBIT_SEED_EMAIL;
+      const [existingUser] = await db
+        .select({ id: user.id, role: user.role })
+        .from(user)
+        .where(eq(user.email, email))
+        .limit(1);
+
+      if (existingUser && existingUser.role !== ADMIN_ROLE) {
+        await db
+          .update(user)
+          .set({ role: ADMIN_ROLE, updatedAt: new Date() })
+          .where(eq(user.id, existingUser.id));
+        console.log(`[worker] Seeded admin role for ${email}`);
+      }
+    }
+
+    console.log("[worker] platform data seeded");
+  } catch (error) {
+    console.error("[worker] failed to seed platform data", error);
+  }
 }
 
 export async function stopWorker() {

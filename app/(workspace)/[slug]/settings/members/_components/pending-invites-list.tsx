@@ -9,18 +9,18 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface PendingInvite {
-  id: string;
-  email: string;
-  role: "owner" | "admin" | "member";
-  expiresAt: Date;
   createdAt: Date;
+  email: string;
+  expiresAt: Date;
+  id: string;
+  role: "owner" | "admin" | "member";
 }
 
 interface PendingInvitesListProps {
+  actorRole: "owner" | "admin" | "member";
+  canManage: boolean;
   invites: PendingInvite[];
   workspaceId: string;
-  canManage: boolean;
-  actorRole: "owner" | "admin" | "member";
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -31,8 +31,12 @@ const ROLE_LABELS: Record<string, string> = {
 
 function formatExpiry(date: Date): string {
   const diff = Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  if (diff <= 0) return "Expiring soon";
-  if (diff === 1) return "Expires in 1 day";
+  if (diff <= 0) {
+    return "Expiring soon";
+  }
+  if (diff === 1) {
+    return "Expires in 1 day";
+  }
   return `Expires in ${diff} days`;
 }
 
@@ -49,7 +53,9 @@ export function PendingInvitesList({
   );
 
   async function handleConfirmRevoke() {
-    if (!pendingRevoke) return;
+    if (!pendingRevoke) {
+      return;
+    }
     const invite = pendingRevoke;
     setPendingRevoke(null);
     setRevoking(invite.id);
@@ -58,11 +64,11 @@ export function PendingInvitesList({
       workspaceId,
     });
     setRevoking(null);
-    if (!result.success) {
-      toast.error(result.error ?? "Failed to revoke invitation.");
-    } else {
+    if (result.success) {
       toast.success("Invitation revoked");
       router.refresh();
+    } else {
+      toast.error(result.error ?? "Failed to revoke invitation.");
     }
   }
 
@@ -84,8 +90,8 @@ export function PendingInvitesList({
                 canManage && (actorRole === "owner" || invite.role !== "admin");
               return (
                 <div
-                  key={invite.id}
                   className="flex items-center gap-4 bg-background px-6 py-4"
+                  key={invite.id}
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
@@ -98,11 +104,11 @@ export function PendingInvitesList({
                   </div>
                   {canRevoke && (
                     <Button
+                      className="text-muted-foreground hover:text-destructive shrink-0"
                       disabled={revoking === invite.id}
                       onClick={() => setPendingRevoke(invite)}
                       size="sm"
                       variant="ghost"
-                      className="text-muted-foreground hover:text-destructive shrink-0"
                     >
                       {revoking === invite.id ? (
                         <Loader2 className="size-4 animate-spin" />
@@ -120,13 +126,13 @@ export function PendingInvitesList({
       </div>
 
       <ConfirmDialog
-        open={!!pendingRevoke}
-        onOpenChange={(open) => !open && setPendingRevoke(null)}
-        title="Revoke Invitation"
-        description={`Revoke the invitation sent to ${pendingRevoke?.email ?? "this person"}? They will no longer be able to use this invite link.`}
         confirmLabel="Revoke"
+        description={`Revoke the invitation sent to ${pendingRevoke?.email ?? "this person"}? They will no longer be able to use this invite link.`}
         isPending={!!revoking}
         onConfirm={handleConfirmRevoke}
+        onOpenChange={(open) => !open && setPendingRevoke(null)}
+        open={!!pendingRevoke}
+        title="Revoke Invitation"
       />
     </>
   );

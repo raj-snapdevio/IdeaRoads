@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDistanceToNow } from "date-fns";
 import {
   ArrowRight,
   Bell,
@@ -11,7 +12,6 @@ import {
   UserX,
 } from "lucide-react";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 import type { NotificationType } from "@/db/schema/notifications";
 import type { NotificationRow } from "@/lib/notifications/queries";
 
@@ -55,18 +55,18 @@ export function NotificationItem({
 
   return (
     <Link
+      className={`flex items-start gap-3 px-5 py-3.5 border-b border-border transition-colors hover:bg-muted/40 ${
+        notification.isRead ? "" : "bg-primary/[0.03]"
+      }`}
       href={notification.link}
       onClick={handleClick}
-      className={`flex items-start gap-3 px-5 py-3.5 border-b border-border transition-colors hover:bg-muted/40 ${
-        !notification.isRead ? "bg-primary/[0.03]" : ""
-      }`}
     >
       {/* Unread indicator */}
       <span className="mt-1 shrink-0 flex items-center justify-center size-4">
-        {!notification.isRead ? (
-          <span className="size-2 rounded-full bg-primary" />
-        ) : (
+        {notification.isRead ? (
           <span className="size-2 rounded-full bg-transparent" />
+        ) : (
+          <span className="size-2 rounded-full bg-primary" />
         )}
       </span>
 
@@ -79,9 +79,9 @@ export function NotificationItem({
       <div className="flex-1 min-w-0">
         <p
           className={`text-sm leading-snug ${
-            !notification.isRead
-              ? "font-medium text-foreground"
-              : "text-foreground/80"
+            notification.isRead
+              ? "text-foreground/80"
+              : "font-medium text-foreground"
           }`}
         >
           {notification.title}

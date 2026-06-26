@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { requireSession } from "@/lib/authz";
 import { NotificationList } from "@/components/notifications/notification-list";
+import { requireSession } from "@/lib/authz";
 import {
   listNotifications,
   markAllNotificationsAsRead,
@@ -19,10 +19,14 @@ export default async function NotificationsPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) notFound();
+  if (!member) {
+    notFound();
+  }
 
   // Mark all as read for this workspace server-side on page load
   await markAllNotificationsAsRead(session.user.id, workspace.id);
@@ -36,8 +40,8 @@ export default async function NotificationsPage({ params }: Props) {
     <div className="flex flex-col min-h-full">
       <div className="max-w-2xl w-full mx-auto">
         <NotificationList
-          initialItems={items}
           hasMore={hasMore}
+          initialItems={items}
           total={total}
           workspaceId={workspace.id}
         />

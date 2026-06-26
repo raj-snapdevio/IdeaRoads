@@ -5,12 +5,12 @@ import { toast } from "sonner";
 import { updateNotificationPreferencesAction } from "@/app/actions/notifications";
 
 interface Prefs {
-  emailStatusChange: boolean;
-  emailNewComment: boolean;
   emailChangelog: boolean;
-  inAppStatusChange: boolean;
-  inAppNewComment: boolean;
+  emailNewComment: boolean;
+  emailStatusChange: boolean;
   inAppChangelog: boolean;
+  inAppNewComment: boolean;
+  inAppStatusChange: boolean;
 }
 
 interface NotificationPreferencesFormProps {
@@ -46,14 +46,14 @@ function PreferenceRow({
             Email
           </span>
           <button
-            type="button"
-            role="switch"
             aria-checked={emailEnabled}
-            onClick={() => onEmailChange(!emailEnabled)}
-            disabled={disabled}
             className={`relative inline-flex h-5 w-9 items-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${
               emailEnabled ? "bg-primary" : "bg-muted-foreground/30"
             }`}
+            disabled={disabled}
+            onClick={() => onEmailChange(!emailEnabled)}
+            role="switch"
+            type="button"
           >
             <span
               className={`inline-block size-3.5 bg-white transition-transform ${
@@ -67,14 +67,14 @@ function PreferenceRow({
             In-app
           </span>
           <button
-            type="button"
-            role="switch"
             aria-checked={inAppEnabled}
-            onClick={() => onInAppChange(!inAppEnabled)}
-            disabled={disabled}
             className={`relative inline-flex h-5 w-9 items-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${
               inAppEnabled ? "bg-primary" : "bg-muted-foreground/30"
             }`}
+            disabled={disabled}
+            onClick={() => onInAppChange(!inAppEnabled)}
+            role="switch"
+            type="button"
           >
             <span
               className={`inline-block size-3.5 bg-white transition-transform ${
@@ -123,31 +123,31 @@ export function NotificationPreferencesForm({
 
       <div className="divide-y divide-border px-4">
         <PreferenceRow
-          label="Status changes"
           description="When a post you voted on changes status (e.g. Planned, In Progress)"
+          disabled={isPending}
           emailEnabled={prefs.emailStatusChange}
           inAppEnabled={prefs.inAppStatusChange}
+          label="Status changes"
           onEmailChange={(v) => handleChange("emailStatusChange", v)}
           onInAppChange={(v) => handleChange("inAppStatusChange", v)}
-          disabled={isPending}
         />
         <PreferenceRow
-          label="Comments & Replies"
           description="When someone comments on your post or replies to your comment"
+          disabled={isPending}
           emailEnabled={prefs.emailNewComment}
           inAppEnabled={prefs.inAppNewComment}
+          label="Comments & Replies"
           onEmailChange={(v) => handleChange("emailNewComment", v)}
           onInAppChange={(v) => handleChange("inAppNewComment", v)}
-          disabled={isPending}
         />
         <PreferenceRow
-          label="Changelog updates"
           description="When a new changelog entry is published for a post you voted on"
+          disabled={isPending}
           emailEnabled={prefs.emailChangelog}
           inAppEnabled={prefs.inAppChangelog}
+          label="Changelog updates"
           onEmailChange={(v) => handleChange("emailChangelog", v)}
           onInAppChange={(v) => handleChange("inAppChangelog", v)}
-          disabled={isPending}
         />
       </div>
     </div>

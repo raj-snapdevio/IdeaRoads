@@ -1,12 +1,16 @@
 "use client";
 
 import {
+  ArrowLeft,
+  Buildings,
   ChartBar,
   Envelope,
-  ArrowLeft,
+  Flag,
+  Gauge,
+  Scroll,
   SignOut,
-  Stack,
   Users,
+  Wrench,
 } from "@phosphor-icons/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,8 +20,22 @@ import { PRODUCT_NAME } from "@/config/platform";
 
 const navItems = [
   { href: "/orbit", label: "Overview", icon: ChartBar, exact: true },
+  {
+    href: "/orbit/workspaces",
+    label: "Workspaces",
+    icon: Buildings,
+    exact: false,
+  },
   { href: "/orbit/users", label: "Users", icon: Users, exact: false },
-  { href: "/orbit/queues", label: "Queues", icon: Stack, exact: false },
+  {
+    href: "/orbit/feature-flags",
+    label: "Feature Flags",
+    icon: Flag,
+    exact: false,
+  },
+  { href: "/orbit/settings", label: "Settings", icon: Wrench, exact: false },
+  { href: "/orbit/jobs", label: "Job Queue", icon: Gauge, exact: false },
+  { href: "/orbit/audit-log", label: "Audit Log", icon: Scroll, exact: false },
   { href: "/orbit/email", label: "Email", icon: Envelope, exact: false },
 ];
 
@@ -34,13 +52,13 @@ export function AdminSidebar({ email }: { email: string }) {
         <div className="min-w-0">
           <p className="font-black text-sm leading-none">{PRODUCT_NAME}</p>
           <p className="mt-1 text-2xs font-semibold uppercase tracking-ui text-sidebar-foreground/40">
-            Admin Panel
+            Orbit Admin
           </p>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-5">
+      <nav className="flex-1 overflow-y-auto px-3 py-5">
         <p className="mb-2 px-3 text-2xs font-semibold uppercase tracking-ui text-sidebar-foreground/30">
           Navigation
         </p>
@@ -51,13 +69,13 @@ export function AdminSidebar({ email }: { email: string }) {
               : pathname.startsWith(href);
             return (
               <Link
-                key={href}
-                href={href}
                 className={`flex items-center gap-3 border-l-2 px-3 py-2.5 text-xs font-semibold uppercase tracking-ui transition-colors ${
                   isActive
                     ? "border-sidebar-foreground bg-sidebar-accent text-sidebar-foreground"
                     : "border-transparent text-sidebar-foreground/50 hover:border-sidebar-foreground/20 hover:bg-sidebar-accent hover:text-sidebar-foreground"
                 }`}
+                href={href}
+                key={href}
               >
                 <Icon size={15} weight={isActive ? "fill" : "regular"} />
                 {label}
@@ -74,9 +92,9 @@ export function AdminSidebar({ email }: { email: string }) {
         </p>
         <Button
           asChild
-          variant="secondary"
-          size="sm"
           className="w-full justify-start gap-2"
+          size="sm"
+          variant="secondary"
         >
           <Link href="/dashboard">
             <ArrowLeft size={14} />
@@ -85,10 +103,10 @@ export function AdminSidebar({ email }: { email: string }) {
         </Button>
         <form action={logoutAction}>
           <Button
+            className="w-full justify-start gap-2"
+            size="sm"
             type="submit"
             variant="secondary"
-            size="sm"
-            className="w-full justify-start gap-2"
           >
             <SignOut size={14} />
             Sign out

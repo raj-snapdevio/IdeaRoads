@@ -1,8 +1,8 @@
 import { createId } from "@paralleldrive/cuid2";
 import { and, eq, inArray } from "drizzle-orm";
 import { changelogEntries, changelogPosts, posts } from "@/db/schema";
-import { db } from "@/lib/db";
 import { isValidLabel } from "@/lib/changelog/constants";
+import { db } from "@/lib/db";
 
 export async function createChangelogEntry({
   workspaceId,
@@ -19,9 +19,13 @@ export async function createChangelogEntry({
   label?: string;
   postIds?: string[];
 }) {
-  if (!isValidLabel(label)) throw new Error("Invalid label.");
+  if (!isValidLabel(label)) {
+    throw new Error("Invalid label.");
+  }
 
-  if (postIds.length > 20) throw new Error("Maximum 20 linked posts allowed.");
+  if (postIds.length > 20) {
+    throw new Error("Maximum 20 linked posts allowed.");
+  }
 
   if (postIds.length > 0) {
     const found = await db

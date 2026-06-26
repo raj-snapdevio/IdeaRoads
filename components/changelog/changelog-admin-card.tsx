@@ -6,13 +6,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { ChangelogLabelBadge } from "@/components/changelog/changelog-label-badge";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   deleteChangelogEntryAction,
   publishChangelogEntryAction,
   unpublishChangelogEntryAction,
 } from "@/app/actions/changelog";
+import { ChangelogLabelBadge } from "@/components/changelog/changelog-label-badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { truncateMarkdownToText } from "@/lib/changelog/markdown";
 
 interface ChangelogAdminCardProps {
@@ -88,27 +88,27 @@ export function ChangelogAdminCard({
 
   return (
     <div
-      className={`border border-border bg-card p-5 ${!entry.isPublished ? "opacity-80" : ""}`}
+      className={`border border-border bg-card p-5 ${entry.isPublished ? "" : "opacity-80"}`}
     >
       {/* Header row */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-2.5 flex-wrap">
           <ChangelogLabelBadge label={entry.label} />
-          {!entry.isPublished ? (
-            <span
-              className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold bg-muted text-muted-foreground"
-              style={{ borderRadius: 2 }}
-            >
-              <Lock className="size-2.5" />
-              Draft
-            </span>
-          ) : (
+          {entry.isPublished ? (
             <span
               className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold text-emerald-700"
               style={{ backgroundColor: "#d1fae518", borderRadius: 2 }}
             >
               <Globe className="size-2.5" />
               Published
+            </span>
+          ) : (
+            <span
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold bg-muted text-muted-foreground"
+              style={{ borderRadius: 2 }}
+            >
+              <Lock className="size-2.5" />
+              Draft
             </span>
           )}
           {entry.notifiedAt && (
@@ -125,8 +125,8 @@ export function ChangelogAdminCard({
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            href={`/${workspaceSlug}/changelog/${entry.id}/edit`}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={`/${workspaceSlug}/changelog/${entry.id}/edit`}
           >
             <Edit className="size-3" />
             Edit
@@ -134,18 +134,18 @@ export function ChangelogAdminCard({
 
           {entry.isPublished ? (
             <button
-              onClick={handleUnpublish}
-              disabled={isPending}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              disabled={isPending}
+              onClick={handleUnpublish}
             >
               <Lock className="size-3" />
               Unpublish
             </button>
           ) : (
             <button
-              onClick={handlePublish}
-              disabled={isPending}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              disabled={isPending}
+              onClick={handlePublish}
             >
               <Globe className="size-3" />
               Publish
@@ -153,10 +153,10 @@ export function ChangelogAdminCard({
           )}
 
           <button
-            onClick={() => setDeleteDialogOpen(true)}
-            disabled={isPending}
-            className="flex items-center justify-center p-1.5 text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             aria-label="Delete entry"
+            className="flex items-center justify-center p-1.5 text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            disabled={isPending}
+            onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash2 className="size-3.5" />
           </button>
@@ -164,13 +164,13 @@ export function ChangelogAdminCard({
       </div>
 
       <ConfirmDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        title="Delete changelog entry"
-        description={`Are you sure you want to delete "${entry.title}"? This action cannot be undone.`}
         confirmLabel="Delete"
-        onConfirm={handleDeleteConfirm}
+        description={`Are you sure you want to delete "${entry.title}"? This action cannot be undone.`}
         isPending={isPending}
+        onConfirm={handleDeleteConfirm}
+        onOpenChange={setDeleteDialogOpen}
+        open={deleteDialogOpen}
+        title="Delete changelog entry"
         variant="destructive"
       />
 
@@ -194,7 +194,7 @@ export function ChangelogAdminCard({
         {entry.linkedPostCount > 0 && (
           <span>
             {entry.linkedPostCount} linked post
-            {entry.linkedPostCount !== 1 ? "s" : ""}
+            {entry.linkedPostCount === 1 ? "" : "s"}
           </span>
         )}
         {!entry.isPublished && !entry.publishedAt && (

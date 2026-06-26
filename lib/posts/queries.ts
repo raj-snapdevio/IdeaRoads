@@ -34,10 +34,14 @@ export async function generatePostSlug(
     );
 
   const taken = new Set(existing.map((r) => r.slug));
-  if (!taken.has(base)) return base;
+  if (!taken.has(base)) {
+    return base;
+  }
 
   let i = 2;
-  while (taken.has(`${base}-${i}`)) i++;
+  while (taken.has(`${base}-${i}`)) {
+    i++;
+  }
   return `${base}-${i}`;
 }
 
@@ -180,7 +184,9 @@ export async function countWorkspacePostsByStatus(workspaceId: string) {
     .groupBy(posts.status);
 
   const map: Record<string, number> = {};
-  for (const row of rows) map[row.status] = row.count;
+  for (const row of rows) {
+    map[row.status] = row.count;
+  }
   return map;
 }
 

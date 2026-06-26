@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RoadmapBoard } from "@/components/roadmap/roadmap-board";
 import { getCurrentSession } from "@/lib/authz";
@@ -43,7 +43,9 @@ export default async function PublicRoadmapPage({ params }: Props) {
   const { slug: wsSlug } = await params;
 
   const workspace = await getWorkspaceBySlug(wsSlug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const session = await getCurrentSession();
   const member = session
@@ -75,34 +77,34 @@ export default async function PublicRoadmapPage({ params }: Props) {
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <Link
-              href={`/${wsSlug}`}
               className="text-sm font-semibold text-foreground hover:text-foreground/80 transition-colors"
+              href={`/${wsSlug}`}
             >
               {workspace.name}
             </Link>
             <nav className="hidden sm:flex items-center gap-1">
               <Link
-                href={`/${wsSlug}/roadmap`}
                 className="px-3 py-1.5 text-sm font-medium text-foreground border-b-2 border-foreground"
+                href={`/${wsSlug}/roadmap`}
               >
                 Roadmap
               </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3">
-            {!isSignedIn ? (
+            {isSignedIn ? (
               <Link
-                href="/login"
                 className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                href={`/${wsSlug}`}
               >
-                Sign in
+                Dashboard
               </Link>
             ) : (
               <Link
-                href={`/${wsSlug}`}
                 className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                href="/login"
               >
-                Dashboard
+                Sign in
               </Link>
             )}
           </div>
@@ -117,7 +119,7 @@ export default async function PublicRoadmapPage({ params }: Props) {
         <p className="mt-1.5 text-sm text-muted-foreground">
           {totalPosts === 0
             ? "No items on the roadmap yet."
-            : `${totalPosts} item${totalPosts !== 1 ? "s" : ""} across all columns`}
+            : `${totalPosts} item${totalPosts === 1 ? "" : "s"} across all columns`}
         </p>
       </div>
 
@@ -125,9 +127,9 @@ export default async function PublicRoadmapPage({ params }: Props) {
       <div className="max-w-6xl mx-auto">
         <RoadmapBoard
           data={roadmapData}
-          workspaceSlug={wsSlug}
-          isSignedIn={isSignedIn}
           isAdmin={isAdmin}
+          isSignedIn={isSignedIn}
+          workspaceSlug={wsSlug}
         />
       </div>
     </div>

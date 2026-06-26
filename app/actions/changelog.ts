@@ -31,7 +31,7 @@ const createEntrySchema = z.object({
     .string()
     .min(1, "Title is required.")
     .max(200, "Title must be 200 characters or fewer."),
-  body: z.string().max(50000).default(""),
+  body: z.string().max(50_000).default(""),
   label: z
     .enum(CHANGELOG_LABEL_VALUES as [string, ...string[]])
     .default("new_feature"),
@@ -99,7 +99,7 @@ const updateEntrySchema = z.object({
   entryId: z.string().min(1),
   workspaceId: z.string().min(1),
   title: z.string().min(1).max(200).optional(),
-  body: z.string().max(50000).optional(),
+  body: z.string().max(50_000).optional(),
   label: z.enum(CHANGELOG_LABEL_VALUES as [string, ...string[]]).optional(),
   postIds: z.array(z.string()).max(20).optional(),
 });
@@ -185,7 +185,7 @@ export async function publishChangelogEntryAction(input: {
       action: "changelog.published",
       actorId: session.user.id,
       actorEmail: session.user.email,
-      description: `Changelog entry published`,
+      description: "Changelog entry published",
       entityType: "changelog_entry",
       entityId: input.entryId,
       metadata: { workspaceId: input.workspaceId },
@@ -223,7 +223,7 @@ export async function unpublishChangelogEntryAction(input: {
       action: "changelog.unpublished",
       actorId: session.user.id,
       actorEmail: session.user.email,
-      description: `Changelog entry unpublished`,
+      description: "Changelog entry unpublished",
       entityType: "changelog_entry",
       entityId: input.entryId,
       metadata: { workspaceId: input.workspaceId },
@@ -261,7 +261,7 @@ export async function deleteChangelogEntryAction(input: {
       action: "changelog.deleted",
       actorId: session.user.id,
       actorEmail: session.user.email,
-      description: `Changelog entry deleted`,
+      description: "Changelog entry deleted",
       entityType: "changelog_entry",
       entityId: input.entryId,
       metadata: { workspaceId: input.workspaceId },

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { Toaster } from "sonner";
+import { ImpersonateBanner } from "@/components/orbit/impersonate-banner";
 import { PRODUCT_DESCRIPTION, PRODUCT_NAME } from "@/config/platform";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html className={cn("font-sans", inter.variable)} lang="en">
       <body suppressHydrationWarning>
+        <ImpersonateBanner />
         {children}
         <Toaster position="bottom-right" />
       </body>

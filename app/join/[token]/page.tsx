@@ -13,7 +13,9 @@ export default async function JoinPage({ params }: Props) {
   const { token } = await params;
   const link = await getInviteLinkByToken(token);
 
-  if (!link) notFound();
+  if (!link) {
+    notFound();
+  }
 
   const now = new Date();
 
@@ -21,8 +23,8 @@ export default async function JoinPage({ params }: Props) {
     return (
       <JoinLayout>
         <JoinStateCard
-          heading="Link deactivated"
           body="This invite link has been deactivated by a workspace admin."
+          heading="Link deactivated"
         />
       </JoinLayout>
     );
@@ -32,8 +34,8 @@ export default async function JoinPage({ params }: Props) {
     return (
       <JoinLayout>
         <JoinStateCard
-          heading="Link expired"
           body="This invite link has expired. Ask a workspace admin for a new one."
+          heading="Link expired"
         />
       </JoinLayout>
     );
@@ -43,8 +45,8 @@ export default async function JoinPage({ params }: Props) {
     return (
       <JoinLayout>
         <JoinStateCard
-          heading="Link unavailable"
           body="This invite link has reached its maximum number of uses."
+          heading="Link unavailable"
         />
       </JoinLayout>
     );
@@ -54,8 +56,8 @@ export default async function JoinPage({ params }: Props) {
     return (
       <JoinLayout>
         <JoinStateCard
-          heading="Workspace unavailable"
           body="This workspace is currently suspended."
+          heading="Workspace unavailable"
         />
       </JoinLayout>
     );

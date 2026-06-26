@@ -3,12 +3,12 @@ import { REACTION_EMOJIS } from "@/config/platform";
 import { commentReactions } from "@/db/schema";
 import { db } from "@/lib/db";
 
-export { REACTION_EMOJIS } from "@/config/platform";
 export type { ReactionEmoji } from "@/config/platform";
+export { REACTION_EMOJIS } from "@/config/platform";
 
 export interface ReactionGroup {
-  emoji: string;
   count: number;
+  emoji: string;
   hasReacted: boolean;
 }
 
@@ -16,7 +16,9 @@ export async function getReactionsForComments(
   commentIds: string[],
   userId?: string | null
 ): Promise<Map<string, ReactionGroup[]>> {
-  if (commentIds.length === 0) return new Map();
+  if (commentIds.length === 0) {
+    return new Map();
+  }
 
   const rows = await db
     .select({

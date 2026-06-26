@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getCurrentSession } from "@/lib/authz";
 import { getCommentById } from "@/lib/comments";
 import { REACTION_EMOJIS, toggleReaction } from "@/lib/comments/reactions";

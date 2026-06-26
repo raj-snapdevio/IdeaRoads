@@ -1,5 +1,4 @@
 import { PRODUCT_NAME } from "@/config/platform";
-import { env } from "@/lib/env";
 
 const STATUS_LABELS: Record<string, string> = {
   open: "Open",

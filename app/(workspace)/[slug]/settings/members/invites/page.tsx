@@ -27,10 +27,14 @@ export default async function InvitesPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const actorMember = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!actorMember) notFound();
+  if (!actorMember) {
+    notFound();
+  }
 
   const canManage = actorMember.role !== WORKSPACE_MEMBER;
   const canManageAdmin = actorMember.role === WORKSPACE_OWNER;
@@ -49,34 +53,34 @@ export default async function InvitesPage({ params }: Props) {
       {canManage && (
         <div className="space-y-6 border-b border-border pb-10">
           <InviteForm
-            workspaceId={workspace.id}
             canInviteAdmin={canManageAdmin}
+            workspaceId={workspace.id}
           />
           <div>
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-eyebrow text-muted-foreground">
               Shareable invite link
             </h2>
             <InviteLinksList
-              links={activeLinks}
-              workspaceId={workspace.id}
               appUrl={appUrl}
               canManage={canManage}
+              links={activeLinks}
+              workspaceId={workspace.id}
             />
             <div className="mt-4">
               <CreateLinkForm
-                workspaceId={workspace.id}
                 appUrl={appUrl}
                 canCreateAdmin={canManageAdmin}
+                workspaceId={workspace.id}
               />
             </div>
           </div>
         </div>
       )}
       <PendingInvitesList
+        actorRole={actorMember.role}
+        canManage={canManage}
         invites={pendingInvites}
         workspaceId={workspace.id}
-        canManage={canManage}
-        actorRole={actorMember.role}
       />
     </div>
   );

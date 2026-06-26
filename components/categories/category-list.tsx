@@ -28,27 +28,27 @@ const COLOR_PRESETS = [
 ];
 
 interface Category {
+  color: string;
+  description: string | null;
+  displayOrder: number;
   id: string;
+  isArchived: boolean;
   name: string;
   slug: string;
-  description: string | null;
-  color: string;
-  isArchived: boolean;
-  displayOrder: number;
 }
 
 interface CategoryListProps {
+  canManage: boolean;
   categories: Category[];
   workspaceId: string;
-  canManage: boolean;
 }
 
 interface FormState {
-  mode: "create" | "edit";
   categoryId?: string;
-  name: string;
-  description: string;
   color: string;
+  description: string;
+  mode: "create" | "edit";
+  name: string;
 }
 
 const DEFAULT_FORM: FormState = {
@@ -93,7 +93,9 @@ export function CategoryList({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form) return;
+    if (!form) {
+      return;
+    }
     const trimmedName = form.name.trim();
     if (!trimmedName) {
       setError("Name is required.");
@@ -133,7 +135,9 @@ export function CategoryList({
   }
 
   function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
     startTransition(async () => {
       const result = await deleteCategoryAction({
         categoryId: deleteTarget.id,
@@ -150,7 +154,9 @@ export function CategoryList({
   }
 
   function handleArchiveToggle() {
-    if (!archiveTarget) return;
+    if (!archiveTarget) {
+      return;
+    }
     startTransition(async () => {
       const result = await updateCategoryAction({
         categoryId: archiveTarget.id,
@@ -177,8 +183,8 @@ export function CategoryList({
       {/* Add button */}
       {canManage && !form && (
         <button
-          onClick={openCreate}
           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={openCreate}
         >
           <Plus className="size-3.5" />
           New Category
@@ -188,8 +194,8 @@ export function CategoryList({
       {/* Inline form */}
       {form && canManage && (
         <form
-          onSubmit={handleSubmit}
           className="border border-border p-4 space-y-4"
+          onSubmit={handleSubmit}
         >
           <h3 className="text-sm font-semibold text-foreground">
             {form.mode === "create" ? "New Category" : "Edit Category"}
@@ -201,14 +207,14 @@ export function CategoryList({
                 Name <span className="text-destructive">*</span>
               </label>
               <input
-                type="text"
-                value={form.name}
+                className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                maxLength={64}
                 onChange={(e) =>
                   setForm((f) => f && { ...f, name: e.target.value })
                 }
                 placeholder="e.g. Bug, Feature Request"
-                maxLength={64}
-                className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                type="text"
+                value={form.name}
               />
             </div>
 
@@ -220,14 +226,14 @@ export function CategoryList({
                 </span>
               </label>
               <input
-                type="text"
-                value={form.description}
+                className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                maxLength={200}
                 onChange={(e) =>
                   setForm((f) => f && { ...f, description: e.target.value })
                 }
                 placeholder="Short description"
-                maxLength={200}
-                className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                type="text"
+                value={form.description}
               />
             </div>
 
@@ -238,23 +244,23 @@ export function CategoryList({
               <div className="flex flex-wrap gap-1.5">
                 {COLOR_PRESETS.map((c) => (
                   <button
-                    key={c}
-                    type="button"
-                    onClick={() => setForm((f) => f && { ...f, color: c })}
                     className="size-6 rounded-full border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    key={c}
+                    onClick={() => setForm((f) => f && { ...f, color: c })}
                     style={{
                       backgroundColor: c,
                       borderColor: form.color === c ? "#000" : "transparent",
                     }}
                     title={c}
+                    type="button"
                   />
                 ))}
               </div>
               {form.name && (
                 <div className="mt-2">
                   <CategoryChip
-                    name={form.name || "Preview"}
                     color={form.color}
+                    name={form.name || "Preview"}
                   />
                 </div>
               )}
@@ -265,9 +271,9 @@ export function CategoryList({
 
           <div className="flex items-center gap-2">
             <button
-              type="submit"
-              disabled={isPending}
               className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              disabled={isPending}
+              type="submit"
             >
               {isPending
                 ? "Saving…"
@@ -276,10 +282,10 @@ export function CategoryList({
                   : "Save Changes"}
             </button>
             <button
-              type="button"
-              onClick={closeForm}
-              disabled={isPending}
               className="px-4 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              disabled={isPending}
+              onClick={closeForm}
+              type="button"
             >
               Cancel
             </button>
@@ -293,8 +299,8 @@ export function CategoryList({
           <p className="text-sm text-muted-foreground">No categories yet.</p>
           {canManage && (
             <button
-              onClick={openCreate}
               className="mt-3 text-sm text-primary hover:underline focus-visible:outline-none"
+              onClick={openCreate}
             >
               Create your first category
             </button>
@@ -304,8 +310,8 @@ export function CategoryList({
         active.length > 0 && (
           <div className="border border-border divide-y divide-border">
             {active.map((cat) => (
-              <div key={cat.id} className="flex items-center gap-3 px-4 py-3">
-                <CategoryChip name={cat.name} color={cat.color} />
+              <div className="flex items-center gap-3 px-4 py-3" key={cat.id}>
+                <CategoryChip color={cat.color} name={cat.name} />
                 {cat.description && (
                   <span className="text-xs text-muted-foreground truncate flex-1">
                     {cat.description}
@@ -314,22 +320,22 @@ export function CategoryList({
                 {canManage && (
                   <div className="ml-auto flex items-center gap-1 shrink-0">
                     <button
-                      onClick={() => openEdit(cat)}
                       className="p-1.5 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => openEdit(cat)}
                       title="Edit"
                     >
                       <Edit2 className="size-3.5" />
                     </button>
                     <button
-                      onClick={() => setArchiveTarget(cat)}
                       className="p-1.5 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => setArchiveTarget(cat)}
                       title="Archive"
                     >
                       <Archive className="size-3.5" />
                     </button>
                     <button
-                      onClick={() => setDeleteTarget(cat)}
                       className="p-1.5 text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => setDeleteTarget(cat)}
                       title="Delete"
                     >
                       <Trash2 className="size-3.5" />
@@ -350,8 +356,8 @@ export function CategoryList({
           </p>
           <div className="border border-border divide-y divide-border opacity-60">
             {archived.map((cat) => (
-              <div key={cat.id} className="flex items-center gap-3 px-4 py-3">
-                <CategoryChip name={cat.name} color={cat.color} />
+              <div className="flex items-center gap-3 px-4 py-3" key={cat.id}>
+                <CategoryChip color={cat.color} name={cat.name} />
                 {cat.description && (
                   <span className="text-xs text-muted-foreground truncate flex-1">
                     {cat.description}
@@ -360,15 +366,15 @@ export function CategoryList({
                 {canManage && (
                   <div className="ml-auto flex items-center gap-1 shrink-0">
                     <button
-                      onClick={() => setArchiveTarget(cat)}
                       className="p-1.5 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-xs"
+                      onClick={() => setArchiveTarget(cat)}
                       title="Restore"
                     >
                       Restore
                     </button>
                     <button
-                      onClick={() => setDeleteTarget(cat)}
                       className="p-1.5 text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => setDeleteTarget(cat)}
                       title="Delete"
                     >
                       <Trash2 className="size-3.5" />
@@ -383,31 +389,31 @@ export function CategoryList({
 
       {/* Confirm delete */}
       <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Delete Category"
-        description={`Delete "${deleteTarget?.name}"? Posts in this category will become uncategorized. This action cannot be undone.`}
         confirmLabel="Delete"
-        onConfirm={handleDelete}
+        description={`Delete "${deleteTarget?.name}"? Posts in this category will become uncategorized. This action cannot be undone.`}
         isPending={isPending}
+        onConfirm={handleDelete}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        open={!!deleteTarget}
+        title="Delete Category"
         variant="destructive"
       />
 
       {/* Confirm archive */}
       <ConfirmDialog
-        open={!!archiveTarget}
-        onOpenChange={(open) => !open && setArchiveTarget(null)}
-        title={
-          archiveTarget?.isArchived ? "Restore Category" : "Archive Category"
-        }
+        confirmLabel={archiveTarget?.isArchived ? "Restore" : "Archive"}
         description={
           archiveTarget?.isArchived
             ? `Restore "${archiveTarget?.name}"? It will be available for new posts again.`
             : `Archive "${archiveTarget?.name}"? It will be hidden from new post selections.`
         }
-        confirmLabel={archiveTarget?.isArchived ? "Restore" : "Archive"}
-        onConfirm={handleArchiveToggle}
         isPending={isPending}
+        onConfirm={handleArchiveToggle}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        open={!!archiveTarget}
+        title={
+          archiveTarget?.isArchived ? "Restore Category" : "Archive Category"
+        }
         variant="default"
       />
     </div>

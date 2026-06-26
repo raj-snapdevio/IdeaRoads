@@ -27,10 +27,14 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) notFound();
+  if (!member) {
+    notFound();
+  }
 
   const [workspaceBoards, [{ memberCount }], boardPostCounts, statusCounts] =
     await Promise.all([
@@ -139,9 +143,9 @@ export default async function WorkspaceDashboardPage({ params }: Props) {
           <div className="space-y-px bg-border">
             {workspaceBoards.map((board) => (
               <Link
-                key={board.id}
                 className="group flex items-center gap-4 bg-background px-6 py-4 hover:bg-muted transition-colors duration-150"
                 href={`/${workspace.slug}/b/${board.slug}`}
+                key={board.id}
               >
                 <div className="flex size-9 shrink-0 items-center justify-center bg-muted group-hover:bg-background transition-colors duration-150">
                   <LayoutGrid className="size-4 text-muted-foreground" />

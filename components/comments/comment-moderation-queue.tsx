@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { useRouter } from "next/navigation";
 import { Check, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import type { CommentData, ReplyData } from "./types";
@@ -33,7 +33,9 @@ function PendingCommentRow({
       const res = await fetch(`/api/comments/${comment.id}/approve`, {
         method: "PATCH",
       });
-      if (res.ok) onApprove(comment.id);
+      if (res.ok) {
+        onApprove(comment.id);
+      }
     } catch {
       // silent
     } finally {
@@ -95,17 +97,17 @@ function PendingCommentRow({
         </div>
         <div className="shrink-0 flex items-start gap-2 pt-0.5">
           <button
-            onClick={handleApprove}
-            disabled={isApproving || isDeleting}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-150 focus-visible:outline-none disabled:opacity-50"
+            disabled={isApproving || isDeleting}
+            onClick={handleApprove}
             title="Approve"
           >
             <Check className="size-4 text-green-600" />
           </button>
           <button
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={isApproving || isDeleting}
             className="text-xs text-muted-foreground/40 hover:text-destructive transition-colors duration-150 focus-visible:outline-none disabled:opacity-50"
+            disabled={isApproving || isDeleting}
+            onClick={() => setShowDeleteDialog(true)}
             title="Delete"
           >
             <Trash2 className="size-4" />
@@ -114,13 +116,13 @@ function PendingCommentRow({
       </div>
 
       <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Comment"
-        description="Are you sure you want to delete this comment? This action cannot be undone."
-        onConfirm={handleConfirmDelete}
-        isPending={isDeleting}
         confirmLabel="Delete"
+        description="Are you sure you want to delete this comment? This action cannot be undone."
+        isPending={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onOpenChange={setShowDeleteDialog}
+        open={showDeleteDialog}
+        title="Delete Comment"
       />
     </>
   );
@@ -132,7 +134,9 @@ export default function CommentModerationQueue({
   const router = useRouter();
   const [pending, setPending] = useState<PendingComment[]>(initialPending);
 
-  if (pending.length === 0) return null;
+  if (pending.length === 0) {
+    return null;
+  }
 
   function handleApprove(id: string) {
     setPending((prev) => prev.filter((c) => c.id !== id));
@@ -151,8 +155,8 @@ export default function CommentModerationQueue({
       <div>
         {pending.map((comment) => (
           <PendingCommentRow
-            key={comment.id}
             comment={comment}
+            key={comment.id}
             onApprove={handleApprove}
             onDelete={handleDelete}
           />

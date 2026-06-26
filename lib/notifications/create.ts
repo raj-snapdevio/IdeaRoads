@@ -1,18 +1,20 @@
+import type { NotificationType } from "@/db/schema/notifications";
 import { notifications } from "@/db/schema/notifications";
 import { db } from "@/lib/db";
-import type { NotificationType } from "@/db/schema/notifications";
 
 export interface CreateNotificationInput {
-  userId: string;
-  workspaceId: string;
-  type: NotificationType;
-  title: string;
   body?: string;
   link: string;
+  title: string;
+  type: NotificationType;
+  userId: string;
+  workspaceId: string;
 }
 
 export async function createNotification(input: CreateNotificationInput) {
-  if (!input.userId || !input.workspaceId) return null;
+  if (!input.userId || !input.workspaceId) {
+    return null;
+  }
 
   try {
     const [notification] = await db

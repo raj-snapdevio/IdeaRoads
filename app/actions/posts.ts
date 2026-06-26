@@ -4,9 +4,9 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { WORKSPACE_MEMBER } from "@/config/platform";
 import { boards, votes, workspaceMembers, workspaces } from "@/db/schema";
-import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireSession } from "@/lib/authz";
+import { db } from "@/lib/db";
 import { isBlocked } from "@/lib/moderation/queries";
 import {
   approvePost,
@@ -37,7 +37,7 @@ const createPostSchema = z.object({
     .max(150, "Title must be 150 characters or fewer."),
   body: z
     .string()
-    .max(10000, "Description must be 10,000 characters or fewer.")
+    .max(10_000, "Description must be 10,000 characters or fewer.")
     .optional(),
 });
 
@@ -440,7 +440,9 @@ async function enqueueStatusChangeEmails(input: {
     .where(eq(workspaces.id, input.workspaceId))
     .limit(1);
 
-  if (!boardRow || !workspaceRow) return;
+  if (!boardRow || !workspaceRow) {
+    return;
+  }
 
   const voters = await db
     .select({
@@ -453,7 +455,9 @@ async function enqueueStatusChangeEmails(input: {
 
   for (const voter of voters) {
     const email = voter.userEmail;
-    if (!email) continue;
+    if (!email) {
+      continue;
+    }
 
     await enqueueJob(JOB_NAMES.SEND_STATUS_CHANGE_EMAIL, {
       postId: input.postId,
@@ -495,7 +499,9 @@ async function enqueueNewPostAlerts(input: {
     .where(eq(workspaces.id, input.workspaceId))
     .limit(1);
 
-  if (!boardRow || !workspaceRow) return;
+  if (!boardRow || !workspaceRow) {
+    return;
+  }
 
   const { user: userTable } = await import("@/db/schema/auth");
 
@@ -510,7 +516,9 @@ async function enqueueNewPostAlerts(input: {
     .where(eq(workspaceMembers.workspaceId, input.workspaceId));
 
   for (const admin of admins) {
-    if (admin.userId === input.authorId) continue;
+    if (admin.userId === input.authorId) {
+      continue;
+    }
 
     await enqueueJob(JOB_NAMES.SEND_NEW_POST_ALERT, {
       postId: input.postId,

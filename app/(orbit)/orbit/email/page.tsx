@@ -41,9 +41,9 @@ export default async function OrbitEmailPage() {
   return (
     <div>
       <OrbitPageHeader
+        description="Transactional email queue and inbound delivery events."
         eyebrow="Admin"
         title="Email"
-        description="Transactional email queue and inbound delivery events."
       />
 
       <div className="grid gap-4 xl:grid-cols-2">
@@ -54,21 +54,29 @@ export default async function OrbitEmailPage() {
               Queued and delivered transactional emails.
             </CardDescription>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="p-0">
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Recipient</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Attempts</TableHead>
+                  <TableHead className="w-[38%]">Recipient</TableHead>
+                  <TableHead className="w-[38%]">Subject</TableHead>
+                  <TableHead className="w-[14%]">Status</TableHead>
+                  <TableHead className="w-[10%] text-right">Attempts</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {outbox.map((email) => (
                   <TableRow key={email.id}>
-                    <TableCell>{email.payload.to}</TableCell>
-                    <TableCell>{email.payload.subject}</TableCell>
+                    <TableCell className="max-w-0">
+                      <span className="block truncate text-sm">
+                        {email.payload.to}
+                      </span>
+                    </TableCell>
+                    <TableCell className="max-w-0">
+                      <span className="block truncate text-sm text-muted-foreground">
+                        {email.payload.subject}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <Badge
                         className={
@@ -80,7 +88,9 @@ export default async function OrbitEmailPage() {
                         {email.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{email.attemptCount}</TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
+                      {email.attemptCount}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -95,21 +105,31 @@ export default async function OrbitEmailPage() {
               Inbound webhook events from your SMTP provider.
             </CardDescription>
           </CardHeader>
-          <CardContent className="overflow-x-auto p-0">
-            <Table>
+          <CardContent className="p-0">
+            <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Recipient</TableHead>
-                  <TableHead>Received</TableHead>
+                  <TableHead className="w-[22%]">Type</TableHead>
+                  <TableHead className="w-[45%]">Recipient</TableHead>
+                  <TableHead className="w-[33%]">Received</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {events.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell>{event.eventType}</TableCell>
-                    <TableCell>{event.recipient ?? "-"}</TableCell>
-                    <TableCell>{formatDateTime(event.receivedAt)}</TableCell>
+                    <TableCell>
+                      <span className="block truncate text-sm">
+                        {event.eventType}
+                      </span>
+                    </TableCell>
+                    <TableCell className="max-w-0">
+                      <span className="block truncate text-sm text-muted-foreground">
+                        {event.recipient ?? "-"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatDateTime(event.receivedAt)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

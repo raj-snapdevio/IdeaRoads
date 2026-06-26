@@ -20,13 +20,19 @@ export default async function EditChangelogEntryPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member || member.role === WORKSPACE_MEMBER) notFound();
+  if (!member || member.role === WORKSPACE_MEMBER) {
+    notFound();
+  }
 
   const entry = await getChangelogEntryById(entryId, workspace.id);
-  if (!entry) notFound();
+  if (!entry) {
+    notFound();
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -42,8 +48,6 @@ export default async function EditChangelogEntryPage({ params }: Props) {
       </div>
       <div className="flex-1 overflow-y-auto">
         <ChangelogEditor
-          workspaceId={workspace.id}
-          workspaceSlug={slug}
           initialEntry={{
             id: entry.id,
             title: entry.title,
@@ -52,6 +56,8 @@ export default async function EditChangelogEntryPage({ params }: Props) {
             isPublished: entry.isPublished,
             linkedPosts: entry.linkedPosts,
           }}
+          workspaceId={workspace.id}
+          workspaceSlug={slug}
         />
       </div>
     </div>

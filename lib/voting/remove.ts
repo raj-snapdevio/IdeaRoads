@@ -7,7 +7,9 @@ export async function removeVote(
   voter: { userId?: string; userEmail?: string }
 ): Promise<void> {
   const { userId, userEmail } = voter;
-  if (!userId && !userEmail) return;
+  if (!userId && !userEmail) {
+    return;
+  }
 
   const condition = userId
     ? and(eq(votes.postId, postId), eq(votes.userId, userId))

@@ -19,10 +19,14 @@ export default async function NewChangelogEntryPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member || member.role === WORKSPACE_MEMBER) notFound();
+  if (!member || member.role === WORKSPACE_MEMBER) {
+    notFound();
+  }
 
   return (
     <div className="flex flex-col h-full">

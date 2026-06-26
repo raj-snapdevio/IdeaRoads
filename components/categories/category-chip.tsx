@@ -1,6 +1,6 @@
 interface CategoryChipProps {
-  name: string;
   color: string;
+  name: string;
   size?: "sm" | "xs";
 }
 

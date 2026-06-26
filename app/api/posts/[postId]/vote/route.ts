@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentSession } from "@/lib/authz";
+import { type NextRequest, NextResponse } from "next/server";
 import { audit } from "@/lib/audit";
+import { getCurrentSession } from "@/lib/authz";
 import { getPost } from "@/lib/posts/queries";
 import {
   castVote,
@@ -21,7 +21,9 @@ export async function POST(req: NextRequest, { params }: Params) {
   let body: { email?: string; name?: string } = {};
   try {
     const text = await req.text();
-    if (text) body = JSON.parse(text);
+    if (text) {
+      body = JSON.parse(text);
+    }
   } catch {
     // empty body is fine for signed-in users
   }

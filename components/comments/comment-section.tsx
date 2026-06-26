@@ -1,16 +1,16 @@
 import { MessageSquare } from "lucide-react";
 import { listComments } from "@/lib/comments";
 import { getReactionsForComments } from "@/lib/comments/reactions";
-import type { CommentData, ReactionGroup, ReplyData } from "./types";
-import CommentThread from "./comment-thread";
 import CommentModerationQueue from "./comment-moderation-queue";
+import CommentThread from "./comment-thread";
+import type { CommentData, ReplyData } from "./types";
 
 interface CommentSectionProps {
-  postId: string;
-  isSignedIn: boolean;
-  isLocked: boolean;
-  currentUserId: string | null;
   canModerate: boolean;
+  currentUserId: string | null;
+  isLocked: boolean;
+  isSignedIn: boolean;
+  postId: string;
 }
 
 export default async function CommentSection({
@@ -85,12 +85,12 @@ export default async function CommentSection({
       </h2>
 
       <CommentThread
-        initialComments={allComments}
-        postId={postId}
-        isSignedIn={isSignedIn}
-        isLocked={isLocked}
-        currentUserId={currentUserId}
         canModerate={canModerate}
+        currentUserId={currentUserId}
+        initialComments={allComments}
+        isLocked={isLocked}
+        isSignedIn={isSignedIn}
+        postId={postId}
       />
 
       {canModerate && pending.length > 0 && (

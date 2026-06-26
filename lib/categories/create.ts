@@ -27,9 +27,13 @@ async function generateCategorySlug(
       sql`${categories.workspaceId} = ${workspaceId} AND ${categories.slug} LIKE ${base + "%"}`
     );
   const taken = new Set(existing.map((r) => r.slug));
-  if (!taken.has(base)) return base;
+  if (!taken.has(base)) {
+    return base;
+  }
   let i = 2;
-  while (taken.has(`${base}-${i}`)) i++;
+  while (taken.has(`${base}-${i}`)) {
+    i++;
+  }
   return `${base}-${i}`;
 }
 

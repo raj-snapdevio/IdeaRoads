@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { WORKSPACE_MEMBER } from "@/config/platform";
 import { getCurrentSession } from "@/lib/authz";
 import { getPost } from "@/lib/posts/queries";
-import { getWorkspaceMember } from "@/lib/workspaces/queries";
 import { listVoters } from "@/lib/voting";
+import { getWorkspaceMember } from "@/lib/workspaces/queries";
 
 interface Params {
   params: Promise<{ postId: string }>;
@@ -26,9 +26,9 @@ export async function GET(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
-  const page = parseInt(req.nextUrl.searchParams.get("page") ?? "1", 10);
+  const page = Number.parseInt(req.nextUrl.searchParams.get("page") ?? "1", 10);
   const limit = Math.min(
-    parseInt(req.nextUrl.searchParams.get("limit") ?? "50", 10),
+    Number.parseInt(req.nextUrl.searchParams.get("limit") ?? "50", 10),
     50
   );
 

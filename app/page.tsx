@@ -9,7 +9,6 @@ import { LiveDemo } from "@/components/marketing/live-demo";
 import { Nav } from "@/components/marketing/nav";
 import { ProblemFraming } from "@/components/marketing/problem-framing";
 import { ProductTour } from "@/components/marketing/product-tour";
-import { TrustBar } from "@/components/marketing/trust-bar";
 import { PRODUCT_NAME } from "@/config/platform";
 import { getCurrentSession } from "@/lib/authz";
 
@@ -21,7 +20,9 @@ export const metadata: Metadata = {
 
 export default async function HomePage() {
   const session = await getCurrentSession();
-  if (session) redirect("/dashboard");
+  if (session) {
+    redirect("/dashboard");
+  }
 
   return (
     <div className="min-h-screen bg-background">

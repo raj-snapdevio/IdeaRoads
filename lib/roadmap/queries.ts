@@ -10,27 +10,27 @@ export const ROADMAP_STATUSES = [
 export type RoadmapStatus = (typeof ROADMAP_STATUSES)[number];
 
 export interface RoadmapPost {
-  id: string;
-  slug: string;
-  title: string;
-  status: string;
-  upvotes: number;
-  commentCount: number;
-  isPinned: boolean;
-  hasVoted: boolean;
-  createdAt: Date;
   boardId: string;
-  boardSlug: string;
   boardName: string;
+  boardSlug: string;
+  categoryColor: string | null;
   categoryId: string | null;
   categoryName: string | null;
-  categoryColor: string | null;
+  commentCount: number;
+  createdAt: Date;
+  hasVoted: boolean;
+  id: string;
+  isPinned: boolean;
+  slug: string;
+  status: string;
+  title: string;
+  upvotes: number;
 }
 
 export interface RoadmapData {
-  planned: RoadmapPost[];
-  in_progress: RoadmapPost[];
   completed: RoadmapPost[];
+  in_progress: RoadmapPost[];
+  planned: RoadmapPost[];
 }
 
 export async function listPostsForRoadmap(

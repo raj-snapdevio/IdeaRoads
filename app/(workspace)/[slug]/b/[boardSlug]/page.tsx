@@ -3,8 +3,8 @@ import { MessageSquare, Pin, Plus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import VoteButton from "@/components/voting/vote-button";
 import { CategoryChip } from "@/components/categories/category-chip";
+import VoteButton from "@/components/voting/vote-button";
 import { requireSession } from "@/lib/authz";
 import { getBoardBySlug } from "@/lib/boards/queries";
 import { getActiveCategoriesForWorkspace } from "@/lib/categories/queries";
@@ -31,7 +31,9 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, boardSlug } = await params;
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) return { title: "Board" };
+  if (!workspace) {
+    return { title: "Board" };
+  }
   const board = await getBoardBySlug(workspace.id, boardSlug);
   return { title: board?.name ?? "Board" };
 }
@@ -43,13 +45,19 @@ export default async function BoardPage({ params, searchParams }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) notFound();
+  if (!member) {
+    notFound();
+  }
 
   const board = await getBoardBySlug(workspace.id, boardSlug);
-  if (!board) notFound();
+  if (!board) {
+    notFound();
+  }
 
   const validSort = sort === "top" ? "top" : "newest";
   const validStatus = status ?? "";
@@ -89,8 +97,8 @@ export default async function BoardPage({ params, searchParams }: Props) {
             )}
           </div>
           <Link
-            href={`/${slug}/b/${boardSlug}/new`}
             className="flex shrink-0 items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            href={`/${slug}/b/${boardSlug}/new`}
           >
             <Plus className="size-4" />
             New post
@@ -100,14 +108,14 @@ export default async function BoardPage({ params, searchParams }: Props) {
 
       {/* Filters */}
       <BoardFilters
-        activeSort={validSort}
-        activeStatus={validStatus}
         activeCategoryId={validCategoryId}
         activeSearch={searchQuery}
+        activeSort={validSort}
+        activeStatus={validStatus}
+        categories={categories}
         myVotesActive={myVotesActive}
         showMyVotes={true}
         workspaceStatuses={workspaceStatuses}
-        categories={categories}
       />
 
       {/* Post list */}
@@ -143,25 +151,25 @@ export default async function BoardPage({ params, searchParams }: Props) {
 
               return (
                 <div
-                  key={post.id}
                   className="group flex items-start gap-4 px-8 py-5 hover:bg-muted/40 transition-colors duration-150"
+                  key={post.id}
                 >
                   {/* Vote button */}
                   <div className="shrink-0">
                     <VoteButton
-                      postId={post.id}
                       initialCount={post.upvotes}
                       initialHasVoted={post.hasVoted}
-                      isSignedIn={true}
-                      isLocked={false}
                       isArchived={board.isArchived}
+                      isLocked={false}
+                      isSignedIn={true}
+                      postId={post.id}
                     />
                   </div>
 
                   {/* Post content */}
                   <Link
-                    href={`/${slug}/b/${boardSlug}/p/${post.slug}`}
                     className="flex-1 min-w-0 pt-1"
+                    href={`/${slug}/b/${boardSlug}/p/${post.slug}`}
                   >
                     <div className="flex flex-wrap items-center gap-2">
                       {post.isPinned && (
@@ -178,8 +186,8 @@ export default async function BoardPage({ params, searchParams }: Props) {
                       )}
                       {postCategory && (
                         <CategoryChip
-                          name={postCategory.name}
                           color={postCategory.color}
+                          name={postCategory.name}
                           size="xs"
                         />
                       )}

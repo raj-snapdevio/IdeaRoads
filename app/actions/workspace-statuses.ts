@@ -80,12 +80,13 @@ export async function createWorkspaceStatusAction(input: {
     return { success: true, data: { id: status.id } };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Failed to create status.";
-    if (msg.includes("unique"))
+    if (msg.includes("unique")) {
       return {
         success: false,
         error: "A status with this name already exists.",
         field: "name",
       };
+    }
     return { success: false, error: msg };
   }
 }

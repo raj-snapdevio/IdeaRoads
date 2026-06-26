@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { WORKSPACE_MEMBER } from "@/config/platform";
-import { getCurrentSession } from "@/lib/authz";
+import { type NextRequest, NextResponse } from "next/server";
 import { audit } from "@/lib/audit";
+import { getCurrentSession } from "@/lib/authz";
 import {
-  getCommentById,
-  deleteComment,
   CommentDeleteError,
+  deleteComment,
+  getCommentById,
 } from "@/lib/comments";
 import { getPost } from "@/lib/posts/queries";
 import { getWorkspaceMember } from "@/lib/workspaces/queries";

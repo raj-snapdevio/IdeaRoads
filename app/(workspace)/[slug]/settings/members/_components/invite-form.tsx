@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface InviteFormProps {
-  workspaceId: string;
   canInviteAdmin: boolean;
+  workspaceId: string;
 }
 
 export function InviteForm({ workspaceId, canInviteAdmin }: InviteFormProps) {
@@ -56,7 +56,7 @@ export function InviteForm({ workspaceId, canInviteAdmin }: InviteFormProps) {
       <h2 className="mb-4 text-sm font-semibold uppercase tracking-eyebrow text-muted-foreground">
         Invite a member
       </h2>
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form className="space-y-4" onSubmit={onSubmit}>
         {generalError && (
           <p className="bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {generalError}

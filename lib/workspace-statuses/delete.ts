@@ -9,7 +9,9 @@ export async function deleteWorkspaceStatus(statusId: string) {
     .where(eq(workspaceStatuses.id, statusId))
     .limit(1);
 
-  if (!status[0]) return;
+  if (!status[0]) {
+    return;
+  }
 
   // Ensure at least one status remains and we're not deleting the last one
   const remaining = await db

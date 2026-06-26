@@ -11,11 +11,11 @@ import { db } from "@/lib/db";
 import { seedDefaultStatuses } from "@/lib/workspace-statuses/create";
 
 export interface CreateWorkspaceInput {
-  name: string;
-  slug: string;
   description?: string | null;
-  ownerId: string;
+  name: string;
   ownerEmail: string;
+  ownerId: string;
+  slug: string;
 }
 
 export async function createWorkspace(

@@ -14,22 +14,24 @@ export default function VoterListButton({
 }: VoterListButtonProps) {
   const [open, setOpen] = useState(false);
 
-  if (voteCount === 0) return null;
+  if (voteCount === 0) {
+    return null;
+  }
 
   return (
     <>
       <button
-        onClick={() => setOpen(true)}
         className="text-2xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+        onClick={() => setOpen(true)}
       >
         See who voted
       </button>
 
       {open && (
         <VoterListModal
+          onClose={() => setOpen(false)}
           postId={postId}
           voteCount={voteCount}
-          onClose={() => setOpen(false)}
         />
       )}
     </>

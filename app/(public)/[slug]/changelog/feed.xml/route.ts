@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
-import { env } from "@/lib/env";
-import { listChangelogEntries } from "@/lib/changelog/queries";
 import { getLabelInfo } from "@/lib/changelog/constants";
 import { truncateMarkdownToText } from "@/lib/changelog/markdown";
+import { listChangelogEntries } from "@/lib/changelog/queries";
+import { env } from "@/lib/env";
 import { getWorkspaceBySlug } from "@/lib/workspaces/queries";
 
 export async function GET(

@@ -18,45 +18,45 @@ export interface EmailSendPayload {
 }
 
 export interface SendChangelogEmailPayload {
+  entryId: string;
+  entryLabel: string;
+  entryTitle: string;
   voterEmail: string;
   voterName: string;
   voterUserId: string | null;
-  entryId: string;
-  entryTitle: string;
-  entryLabel: string;
   workspaceId: string;
 }
 
 export interface SendStatusChangeEmailPayload {
-  postId: string;
-  postTitle: string;
-  postSlug: string;
-  workspaceId: string;
-  workspaceSlug: string;
-  workspaceName: string;
   boardSlug: string;
+  changedById: string;
   fromStatus: string;
+  postId: string;
+  postSlug: string;
+  postTitle: string;
   toStatus: string;
   voterEmail: string;
   voterName: string;
   voterUserId: string | null;
-  changedById: string;
+  workspaceId: string;
+  workspaceName: string;
+  workspaceSlug: string;
 }
 
 export interface SendNewPostAlertPayload {
-  postId: string;
-  postTitle: string;
-  postBody: string | null;
-  postSlug: string;
-  workspaceId: string;
-  workspaceSlug: string;
-  workspaceName: string;
-  boardName: string;
-  boardSlug: string;
-  authorName: string;
   adminEmail: string;
   adminUserId: string;
   authorId: string;
+  authorName: string;
+  boardName: string;
+  boardSlug: string;
+  postBody: string | null;
+  postId: string;
+  postSlug: string;
+  postTitle: string;
+  workspaceId: string;
+  workspaceName: string;
+  workspaceSlug: string;
 }
 
 export interface DeliverOutboundWebhookPayload {

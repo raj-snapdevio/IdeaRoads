@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   ArrowUp,
   BarChart3,
@@ -7,6 +6,7 @@ import {
   LayoutGrid,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const FEATURES = [

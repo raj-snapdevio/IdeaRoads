@@ -1,5 +1,5 @@
-import { and, eq, sql } from "drizzle-orm";
 import { createId } from "@paralleldrive/cuid2";
+import { and, eq, sql } from "drizzle-orm";
 import { boards, posts, votes } from "@/db/schema";
 import { db } from "@/lib/db";
 
@@ -39,7 +39,9 @@ export async function castVote(
     .limit(1)
     .then((r) => r[0] ?? null);
 
-  if (!post) throw new VoteNotFoundError();
+  if (!post) {
+    throw new VoteNotFoundError();
+  }
   if (post.isLocked) {
     throw new VoteBlockedError(
       "This post is locked and no longer accepting votes."
@@ -66,7 +68,9 @@ export async function castVote(
       .limit(1)
       .then((r) => r[0] ?? null);
 
-    if (existing) return existing;
+    if (existing) {
+      return existing;
+    }
 
     // De-duplicate: if user has a guest vote with same email, remove it first
     // We need to look up the user's email for this. Skip this for now — handled at a higher level.
@@ -104,7 +108,9 @@ export async function castVote(
     .limit(1)
     .then((r) => r[0] ?? null);
 
-  if (existing) return existing;
+  if (existing) {
+    return existing;
+  }
 
   return await db.transaction(async (tx) => {
     const [vote] = await tx

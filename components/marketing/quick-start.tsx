@@ -1,7 +1,7 @@
 import Link from "next/link";
+import { CopyButton } from "@/components/marketing/copy-button";
 import { Button } from "@/components/ui/button";
 import { DOCS_URL, GITHUB_REPO_URL } from "@/config/platform";
-import { CopyButton } from "@/components/marketing/copy-button";
 
 const INCLUDED_ITEMS = [
   "Feedback boards, public or private",
@@ -53,7 +53,9 @@ export function QuickStart() {
                 2. Add your configuration
               </p>
               <CodeBlock
-                command={`cp .env.example .env\n# Set your database URL, auth secret, and SMTP host`}
+                command={
+                  "cp .env.example .env\n# Set your database URL, auth secret, and SMTP host"
+                }
               />
             </div>
 
@@ -62,7 +64,9 @@ export function QuickStart() {
                 3. Start collecting feedback
               </p>
               <CodeBlock
-                command={`docker compose up -d\n# App runs at http://localhost:3000`}
+                command={
+                  "docker compose up -d\n# App runs at http://localhost:3000"
+                }
               />
             </div>
 

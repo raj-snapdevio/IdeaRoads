@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface CreateLinkFormProps {
-  workspaceId: string;
   appUrl: string;
   canCreateAdmin: boolean;
+  workspaceId: string;
 }
 
 export function CreateLinkForm({
@@ -53,7 +53,9 @@ export function CreateLinkForm({
   }
 
   async function copyUrl() {
-    if (!createdUrl) return;
+    if (!createdUrl) {
+      return;
+    }
     await navigator.clipboard.writeText(createdUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -64,7 +66,7 @@ export function CreateLinkForm({
       <h3 className="text-sm font-medium text-foreground">
         Generate invite link
       </h3>
-      <form onSubmit={onSubmit} className="flex flex-wrap gap-3">
+      <form className="flex flex-wrap gap-3" onSubmit={onSubmit}>
         {error && (
           <p className="w-full bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}

@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { WORKSPACE_MEMBER } from "@/config/platform";
 import { getCurrentSession } from "@/lib/authz";
-import { getPost } from "@/lib/posts/queries";
-import { getWorkspaceMember } from "@/lib/workspaces/queries";
 import {
   CommentBlockedError,
   CommentNotFoundError,
   createComment,
   listComments,
 } from "@/lib/comments";
+import { getPost } from "@/lib/posts/queries";
+import { getWorkspaceMember } from "@/lib/workspaces/queries";
 
 interface Params {
   params: Promise<{ postId: string }>;

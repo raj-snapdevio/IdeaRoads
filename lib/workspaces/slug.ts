@@ -14,11 +14,18 @@ export function isSlugReserved(slug: string): boolean {
 }
 
 export function validateSlugFormat(slug: string): string | null {
-  if (slug.length < SLUG_MIN) return `Must be at least ${SLUG_MIN} characters.`;
-  if (slug.length > SLUG_MAX) return `Must be ${SLUG_MAX} characters or fewer.`;
-  if (!SLUG_REGEX.test(slug))
+  if (slug.length < SLUG_MIN) {
+    return `Must be at least ${SLUG_MIN} characters.`;
+  }
+  if (slug.length > SLUG_MAX) {
+    return `Must be ${SLUG_MAX} characters or fewer.`;
+  }
+  if (!SLUG_REGEX.test(slug)) {
     return "Only lowercase letters, numbers, and hyphens. Must start and end with a letter or number.";
-  if (slug.includes("--")) return "Cannot contain consecutive hyphens.";
+  }
+  if (slug.includes("--")) {
+    return "Cannot contain consecutive hyphens.";
+  }
   return null;
 }
 

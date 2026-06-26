@@ -17,3 +17,4 @@ export * from "@/db/schema/notifications";
 export * from "@/db/schema/blocked-users";
 export * from "@/db/schema/webhooks";
 export * from "@/db/schema/api-keys";
+export * from "@/db/schema/orbit";

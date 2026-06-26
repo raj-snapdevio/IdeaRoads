@@ -9,12 +9,12 @@ import {
 import { db } from "@/lib/db";
 
 export interface CreateInviteLinkInput {
-  workspaceId: string;
   createdById: string;
-  role: "member" | "admin";
+  expiresAt?: Date;
   label?: string;
   maxUses?: number;
-  expiresAt?: Date;
+  role: "member" | "admin";
+  workspaceId: string;
 }
 
 export async function createInviteLink(
@@ -101,8 +101,12 @@ export async function joinViaLink(input: {
       .for("update")
       .limit(1);
 
-    if (!link) return { ok: false, code: "not_found" };
-    if (!link.isActive) return { ok: false, code: "inactive" };
+    if (!link) {
+      return { ok: false, code: "not_found" };
+    }
+    if (!link.isActive) {
+      return { ok: false, code: "inactive" };
+    }
     if (link.expiresAt && link.expiresAt <= new Date()) {
       return { ok: false, code: "expired" };
     }

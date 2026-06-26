@@ -1,13 +1,13 @@
+import { format } from "date-fns";
+import { ArrowLeft, Rss } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Rss } from "lucide-react";
-import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import { ChangelogLabelBadge } from "@/components/changelog/changelog-label-badge";
 import { getCurrentSession } from "@/lib/authz";
-import { env } from "@/lib/env";
 import { renderMarkdown } from "@/lib/changelog/markdown";
 import { getChangelogEntryById } from "@/lib/changelog/queries";
+import { env } from "@/lib/env";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -20,11 +20,14 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, entryId } = await params;
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) return { title: "Changelog" };
+  if (!workspace) {
+    return { title: "Changelog" };
+  }
 
   const entry = await getChangelogEntryById(entryId, workspace.id);
-  if (!entry || !entry.isPublished)
+  if (!entry || !entry.isPublished) {
     return { title: "Changelog", robots: "noindex" };
+  }
 
   const appUrl = env.NEXT_PUBLIC_APP_URL;
   const title = `${entry.title} — ${workspace.name} Changelog`;
@@ -44,17 +47,23 @@ export default async function PublicChangelogEntryPage({ params }: Props) {
   const { slug, entryId } = await params;
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const session = await getCurrentSession();
   const member = session
     ? await getWorkspaceMember(workspace.id, session.user.id)
     : null;
 
-  if (!workspace.changelogPublic && !member) notFound();
+  if (!workspace.changelogPublic && !member) {
+    notFound();
+  }
 
   const entry = await getChangelogEntryById(entryId, workspace.id);
-  if (!entry || !entry.isPublished) notFound();
+  if (!entry || !entry.isPublished) {
+    notFound();
+  }
 
   const isSignedIn = !!session;
   const renderedBody = renderMarkdown(entry.body);
@@ -66,23 +75,23 @@ export default async function PublicChangelogEntryPage({ params }: Props) {
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <Link
-              href={`/${slug}`}
               className="text-sm font-semibold text-foreground hover:text-foreground/80 transition-colors"
+              href={`/${slug}`}
             >
               {workspace.name}
             </Link>
             <nav className="hidden sm:flex items-center gap-1">
               {workspace.roadmapPublic && (
                 <Link
-                  href={`/${slug}/roadmap`}
                   className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  href={`/${slug}/roadmap`}
                 >
                   Roadmap
                 </Link>
               )}
               <Link
-                href={`/${slug}/changelog`}
                 className="px-3 py-1.5 text-sm font-medium text-foreground border-b-2 border-foreground"
+                href={`/${slug}/changelog`}
               >
                 Changelog
               </Link>
@@ -90,25 +99,25 @@ export default async function PublicChangelogEntryPage({ params }: Props) {
           </div>
           <div className="flex items-center gap-3">
             <Link
-              href={`/${slug}/changelog/feed.xml`}
-              className="text-muted-foreground hover:text-foreground transition-colors"
               aria-label="RSS feed"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              href={`/${slug}/changelog/feed.xml`}
             >
               <Rss className="size-4" />
             </Link>
-            {!isSignedIn ? (
+            {isSignedIn ? (
               <Link
-                href="/login"
                 className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                href={`/${slug}`}
               >
-                Sign in
+                Dashboard
               </Link>
             ) : (
               <Link
-                href={`/${slug}`}
                 className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                href="/login"
               >
-                Dashboard
+                Sign in
               </Link>
             )}
           </div>
@@ -119,8 +128,8 @@ export default async function PublicChangelogEntryPage({ params }: Props) {
       <div className="max-w-3xl mx-auto px-6 pt-10 pb-20">
         {/* Back link */}
         <Link
-          href={`/${slug}/changelog`}
           className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mb-8"
+          href={`/${slug}/changelog`}
         >
           <ArrowLeft className="size-3.5" />
           All updates
@@ -132,8 +141,8 @@ export default async function PublicChangelogEntryPage({ params }: Props) {
             <ChangelogLabelBadge label={entry.label} size="md" />
             {entry.publishedAt && (
               <time
-                dateTime={entry.publishedAt.toISOString()}
                 className="text-sm text-muted-foreground"
+                dateTime={entry.publishedAt.toISOString()}
               >
                 {format(entry.publishedAt, "MMMM d, yyyy")}
               </time>
@@ -160,9 +169,9 @@ export default async function PublicChangelogEntryPage({ params }: Props) {
             <div className="space-y-2">
               {entry.linkedPosts.map((post) => (
                 <Link
-                  key={post.id}
-                  href={`/${slug}/b/${post.boardSlug}/p/${post.slug}`}
                   className="flex items-center justify-between gap-4 px-4 py-3 border border-border hover:bg-muted/40 transition-colors group"
+                  href={`/${slug}/b/${post.boardSlug}/p/${post.slug}`}
+                  key={post.id}
                 >
                   <span className="text-sm font-medium text-foreground group-hover:text-foreground/80 transition-colors">
                     {post.title}

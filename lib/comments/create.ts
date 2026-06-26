@@ -3,12 +3,12 @@ import { eq, sql } from "drizzle-orm";
 import { boards, comments, posts, user, workspaces } from "@/db/schema";
 import { db } from "@/lib/db";
 import { enqueueEmail } from "@/lib/email";
-import { renderEmailTemplate } from "@/lib/email/renderer";
-import { NewCommentEmail } from "@/lib/email/components/new-comment";
 import { CommentReplyEmail } from "@/lib/email/components/comment-reply";
+import { NewCommentEmail } from "@/lib/email/components/new-comment";
+import { renderEmailTemplate } from "@/lib/email/renderer";
+import { env } from "@/lib/env";
 import { isBlocked } from "@/lib/moderation/queries";
 import { createNotification } from "@/lib/notifications/create";
-import { env } from "@/lib/env";
 
 export class CommentBlockedError extends Error {
   constructor(message: string) {
@@ -47,7 +47,9 @@ export async function createComment(
     .limit(1)
     .then((r) => r[0] ?? null);
 
-  if (!post) throw new CommentNotFoundError();
+  if (!post) {
+    throw new CommentNotFoundError();
+  }
   if (post.isLocked) {
     throw new CommentBlockedError("Comments are closed on this post.");
   }
@@ -74,7 +76,9 @@ export async function createComment(
       .limit(1)
       .then((r) => r[0] ?? null);
 
-    if (!parent) throw new CommentBlockedError("Parent comment not found.");
+    if (!parent) {
+      throw new CommentBlockedError("Parent comment not found.");
+    }
     if (parent.parentId !== null) {
       throw new CommentBlockedError("Replies to replies are not allowed.");
     }
@@ -187,7 +191,9 @@ export async function sendCommentNotifications(
     .limit(1)
     .then((r) => r[0] ?? null);
 
-  if (!workspace) return;
+  if (!workspace) {
+    return;
+  }
 
   const board = await db
     .select({ slug: boards.slug })
@@ -205,10 +211,89 @@ export async function sendCommentNotifications(
     ? `/${workspace.slug}/b/${board.slug}/p/${post.slug ?? post.id}`
     : `/${workspace.slug}`;
 
-  if (!comment.parentId) {
+  if (comment.parentId) {
+    // Reply: notify parent comment author
+    const parent = await db
+      .select({
+        authorId: comments.authorId,
+        authorEmail: comments.authorEmail,
+        authorName: comments.authorName,
+      })
+      .from(comments)
+      .where(eq(comments.id, comment.parentId))
+      .limit(1)
+      .then((r) => r[0] ?? null);
+
+    if (!parent?.authorEmail && !parent?.authorId) {
+      return;
+    }
+    if (parent.authorId && parent.authorId === comment.authorId) {
+      return;
+    }
+
+    let recipientEmail: string | null = parent.authorEmail;
+    let recipientName = parent.authorName ?? "there";
+    let recipientUserId: string | null = parent.authorId ?? null;
+
+    if (parent.authorId) {
+      const parentUserRow = await db
+        .select({ email: user.email, name: user.name })
+        .from(user)
+        .where(eq(user.id, parent.authorId))
+        .limit(1)
+        .then((r) => r[0] ?? null);
+
+      if (parentUserRow) {
+        recipientEmail = parentUserRow.email;
+        recipientName = parentUserRow.name ?? recipientName;
+        recipientUserId = parent.authorId;
+      }
+    }
+
+    if (!recipientEmail) {
+      return;
+    }
+
+    try {
+      const html = await renderEmailTemplate(
+        CommentReplyEmail({
+          parentAuthorName: recipientName,
+          postTitle: post.title,
+          postUrl,
+          replierName: commenterName,
+          replyBody: bodyPreview,
+          workspaceName: workspace.name,
+        })
+      );
+
+      await enqueueEmail({
+        to: recipientEmail,
+        subject: `${commenterName} replied to your comment on ${post.title}`,
+        html,
+      });
+    } catch (err) {
+      console.error("[comments] failed to enqueue comment-reply email", err);
+    }
+
+    // In-app notification for parent comment author
+    if (recipientUserId) {
+      createNotification({
+        userId: recipientUserId,
+        workspaceId: post.workspaceId,
+        type: "reply",
+        title: `${commenterName} replied to your comment`,
+        body: bodyPreview.slice(0, 120),
+        link: postLink,
+      }).catch(() => {});
+    }
+  } else {
     // Top-level comment: notify post author
-    if (!post.authorId || post.authorId === comment.authorId) return;
-    if (!post.authorEmail) return;
+    if (!post.authorId || post.authorId === comment.authorId) {
+      return;
+    }
+    if (!post.authorEmail) {
+      return;
+    }
 
     const postAuthorUser = await db
       .select({ name: user.name })
@@ -245,75 +330,6 @@ export async function sendCommentNotifications(
         workspaceId: post.workspaceId,
         type: "new_comment",
         title: `New comment on "${post.title}"`,
-        body: bodyPreview.slice(0, 120),
-        link: postLink,
-      }).catch(() => {});
-    }
-  } else {
-    // Reply: notify parent comment author
-    const parent = await db
-      .select({
-        authorId: comments.authorId,
-        authorEmail: comments.authorEmail,
-        authorName: comments.authorName,
-      })
-      .from(comments)
-      .where(eq(comments.id, comment.parentId))
-      .limit(1)
-      .then((r) => r[0] ?? null);
-
-    if (!parent?.authorEmail && !parent?.authorId) return;
-    if (parent.authorId && parent.authorId === comment.authorId) return;
-
-    let recipientEmail: string | null = parent.authorEmail;
-    let recipientName = parent.authorName ?? "there";
-    let recipientUserId: string | null = parent.authorId ?? null;
-
-    if (parent.authorId) {
-      const parentUserRow = await db
-        .select({ email: user.email, name: user.name })
-        .from(user)
-        .where(eq(user.id, parent.authorId))
-        .limit(1)
-        .then((r) => r[0] ?? null);
-
-      if (parentUserRow) {
-        recipientEmail = parentUserRow.email;
-        recipientName = parentUserRow.name ?? recipientName;
-        recipientUserId = parent.authorId;
-      }
-    }
-
-    if (!recipientEmail) return;
-
-    try {
-      const html = await renderEmailTemplate(
-        CommentReplyEmail({
-          parentAuthorName: recipientName,
-          postTitle: post.title,
-          postUrl,
-          replierName: commenterName,
-          replyBody: bodyPreview,
-          workspaceName: workspace.name,
-        })
-      );
-
-      await enqueueEmail({
-        to: recipientEmail,
-        subject: `${commenterName} replied to your comment on ${post.title}`,
-        html,
-      });
-    } catch (err) {
-      console.error("[comments] failed to enqueue comment-reply email", err);
-    }
-
-    // In-app notification for parent comment author
-    if (recipientUserId) {
-      createNotification({
-        userId: recipientUserId,
-        workspaceId: post.workspaceId,
-        type: "reply",
-        title: `${commenterName} replied to your comment`,
         body: bodyPreview.slice(0, 120),
         link: postLink,
       }).catch(() => {});

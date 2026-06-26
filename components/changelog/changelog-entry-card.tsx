@@ -28,8 +28,8 @@ export function ChangelogEntryCard({
         <ChangelogLabelBadge label={entry.label} />
         {entry.publishedAt && (
           <time
-            dateTime={entry.publishedAt.toISOString()}
             className="text-xs text-muted-foreground"
+            dateTime={entry.publishedAt.toISOString()}
           >
             {format(entry.publishedAt, "MMM d, yyyy")}
           </time>
@@ -38,8 +38,8 @@ export function ChangelogEntryCard({
 
       <h2 className="text-lg font-semibold text-foreground leading-snug">
         <Link
-          href={href}
           className="hover:text-foreground/70 transition-colors"
+          href={href}
         >
           {entry.title}
         </Link>
@@ -53,15 +53,15 @@ export function ChangelogEntryCard({
 
       <div className="mt-4 flex items-center gap-4">
         <Link
-          href={href}
           className="text-xs font-medium text-foreground hover:text-foreground/70 transition-colors"
+          href={href}
         >
           Read more →
         </Link>
         {entry.linkedPostCount > 0 && (
           <span className="text-xs text-muted-foreground">
             {entry.linkedPostCount} linked post
-            {entry.linkedPostCount !== 1 ? "s" : ""}
+            {entry.linkedPostCount === 1 ? "" : "s"}
           </span>
         )}
       </div>

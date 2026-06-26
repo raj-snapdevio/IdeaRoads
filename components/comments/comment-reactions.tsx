@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Smile } from "lucide-react";
+import { useState } from "react";
 import { REACTION_EMOJIS } from "@/config/platform";
 import type { ReactionGroup } from "./types";
 
@@ -21,8 +21,12 @@ export default function CommentReactions({
   const [pendingEmoji, setPendingEmoji] = useState<string | null>(null);
 
   async function handleReact(emoji: string) {
-    if (!isSignedIn) return;
-    if (pendingEmoji) return;
+    if (!isSignedIn) {
+      return;
+    }
+    if (pendingEmoji) {
+      return;
+    }
 
     setPendingEmoji(emoji);
     setShowPicker(false);
@@ -76,14 +80,14 @@ export default function CommentReactions({
     <div className="relative flex items-center gap-1 flex-wrap mt-2">
       {reactions.map((r) => (
         <button
-          key={r.emoji}
-          onClick={() => handleReact(r.emoji)}
-          disabled={!isSignedIn || !!pendingEmoji}
           className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60 ${
             r.hasReacted
               ? "border-primary/40 bg-primary/5 text-foreground"
               : "border-border bg-transparent text-foreground hover:border-muted-foreground/50"
           }`}
+          disabled={!isSignedIn || !!pendingEmoji}
+          key={r.emoji}
+          onClick={() => handleReact(r.emoji)}
         >
           <span>{r.emoji}</span>
           <span className="tabular-nums">{r.count}</span>
@@ -93,14 +97,14 @@ export default function CommentReactions({
       {isSignedIn && (
         <div className="relative">
           <button
-            onClick={() => setShowPicker((v) => !v)}
-            disabled={!!pendingEmoji}
+            aria-label="Add reaction"
             className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
               hasAnyReaction
                 ? "border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50"
                 : "border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50"
             }`}
-            aria-label="Add reaction"
+            disabled={!!pendingEmoji}
+            onClick={() => setShowPicker((v) => !v)}
           >
             <Smile className="size-3" />
           </button>
@@ -115,9 +119,9 @@ export default function CommentReactions({
               <div className="absolute left-0 bottom-full mb-1.5 z-20 flex gap-1 p-1.5 bg-background border border-border shadow-sm">
                 {REACTION_EMOJIS.map((emoji) => (
                   <button
+                    className="p-1 text-base hover:bg-muted transition-colors duration-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring leading-none"
                     key={emoji}
                     onClick={() => handleReact(emoji)}
-                    className="p-1 text-base hover:bg-muted transition-colors duration-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring leading-none"
                     title={emoji}
                   >
                     {emoji}

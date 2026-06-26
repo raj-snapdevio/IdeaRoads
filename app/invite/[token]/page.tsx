@@ -11,7 +11,9 @@ interface Props {
 
 function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
-  if (!local || !domain) return email;
+  if (!local || !domain) {
+    return email;
+  }
   return `${local.charAt(0)}${"*".repeat(Math.min(local.length - 1, 4))}@${domain}`;
 }
 
@@ -23,8 +25,8 @@ export default async function InvitePage({ params }: Props) {
     return (
       <InviteLayout>
         <InviteStateCard
-          heading="Invitation not found"
           body="This invitation link is invalid or no longer exists."
+          heading="Invitation not found"
         />
       </InviteLayout>
     );
@@ -36,8 +38,8 @@ export default async function InvitePage({ params }: Props) {
     return (
       <InviteLayout>
         <InviteStateCard
-          heading="Invitation already used"
           body={`This invitation to ${invite.workspace.name} has already been accepted.`}
+          heading="Invitation already used"
           link={{ href: `/${invite.workspace.slug}`, label: "Go to workspace" }}
         />
       </InviteLayout>
@@ -48,8 +50,8 @@ export default async function InvitePage({ params }: Props) {
     return (
       <InviteLayout>
         <InviteStateCard
-          heading="Invitation revoked"
           body="This invitation has been revoked by a workspace admin."
+          heading="Invitation revoked"
         />
       </InviteLayout>
     );
@@ -59,8 +61,8 @@ export default async function InvitePage({ params }: Props) {
     return (
       <InviteLayout>
         <InviteStateCard
-          heading="Invitation expired"
           body="This invitation has expired. Ask a workspace admin to send a new one."
+          heading="Invitation expired"
         />
       </InviteLayout>
     );
@@ -104,8 +106,8 @@ export default async function InvitePage({ params }: Props) {
     return (
       <InviteLayout>
         <InviteStateCard
-          heading="Wrong account"
           body={`This invitation was sent to ${maskEmail(invite.email)}. You're signed in as ${session.user.email}.`}
+          heading="Wrong account"
           link={{ href: "/login", label: "Sign in with a different account" }}
         />
       </InviteLayout>

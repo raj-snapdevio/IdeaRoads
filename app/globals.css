@@ -191,18 +191,18 @@ body {
 
 /* Container & toolbar borders */
 .ql-container.ql-snow {
-  border: none !important;
+  position: relative;
   font-family: inherit;
   font-size: 0.875rem;
-  position: relative;
+  border: none !important;
 }
 
 .ql-toolbar.ql-snow {
-  border: none !important;
-  border-bottom: 1px solid hsl(var(--border)) !important;
   padding: 5px 8px;
   font-family: inherit;
   line-height: 1;
+  border: none !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
 }
 
 /* Toolbar format groups */
@@ -215,18 +215,18 @@ body {
    Tailwind preflight resets display/sizing on button+svg, so we must restore them */
 .ql-snow .ql-toolbar button,
 .ql-snow.ql-toolbar button {
+  float: none !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  height: 24px !important;
   width: 26px !important;
+  height: 24px !important;
   padding: 2px !important;
+  vertical-align: middle;
   cursor: pointer;
   background: none;
   border: none !important;
   border-radius: 3px;
-  float: none !important;
-  vertical-align: middle;
   transition: background 0.1s;
 }
 
@@ -244,9 +244,9 @@ body {
 .ql-snow .ql-toolbar button svg,
 .ql-snow.ql-toolbar button svg {
   display: block !important;
+  flex-shrink: 0;
   width: 16px !important;
   height: 16px !important;
-  flex-shrink: 0;
 }
 
 /* Icon stroke/fill colors */
@@ -272,19 +272,19 @@ body {
 
 /* Picker (header / size dropdowns) */
 .ql-snow .ql-picker {
-  color: hsl(var(--muted-foreground));
   display: inline-flex;
   align-items: center;
   height: 24px;
   font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
 }
 .ql-snow .ql-picker-label {
-  color: hsl(var(--muted-foreground));
-  border: none !important;
-  padding: 0 6px;
   display: inline-flex;
   align-items: center;
+  padding: 0 6px;
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
+  border: none !important;
 }
 .ql-snow .ql-picker-label:hover {
   color: hsl(var(--foreground));
@@ -296,42 +296,42 @@ body {
   stroke: hsl(var(--foreground));
 }
 .ql-snow .ql-picker-options {
+  z-index: 100;
+  padding: 4px;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border)) !important;
   border-radius: 4px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  padding: 4px;
-  z-index: 100;
 }
 .ql-snow .ql-picker-item {
-  color: hsl(var(--foreground));
   padding: 4px 8px;
-  border-radius: 3px;
   font-size: 0.8125rem;
+  color: hsl(var(--foreground));
   cursor: pointer;
+  border-radius: 3px;
 }
 .ql-snow .ql-picker-item:hover {
-  background: hsl(var(--muted));
   color: hsl(var(--foreground));
+  background: hsl(var(--muted));
 }
 .ql-snow .ql-picker-item.ql-selected {
-  color: hsl(var(--primary));
   font-weight: 600;
+  color: hsl(var(--primary));
 }
 
 /* ── Editor area ── */
 .ql-editor {
   min-height: var(--ql-min-height, 80px);
   padding: 10px 12px;
-  color: hsl(var(--foreground));
-  line-height: 1.65;
   font-size: 0.875rem;
+  line-height: 1.65;
+  color: hsl(var(--foreground));
 }
 .ql-editor.ql-blank::before {
-  color: hsl(var(--muted-foreground));
-  font-style: normal;
-  left: 12px;
   right: 12px;
+  left: 12px;
+  font-style: normal;
+  color: hsl(var(--muted-foreground));
 }
 
 /* Editor content formatting */
@@ -354,28 +354,28 @@ body {
   text-decoration: underline;
 }
 .ql-editor blockquote {
-  border-left: 3px solid hsl(var(--border));
   padding-left: 12px;
   margin: 6px 0;
-  color: hsl(var(--muted-foreground));
   font-style: italic;
+  color: hsl(var(--muted-foreground));
+  border-left: 3px solid hsl(var(--border));
 }
 .ql-editor pre.ql-syntax {
-  background: hsl(var(--muted));
-  color: hsl(var(--foreground));
+  padding: 10px 12px;
+  margin: 6px 0;
+  overflow-x: auto;
   font-family: ui-monospace, monospace;
   font-size: 0.8125rem;
-  padding: 10px 12px;
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
   border-radius: 4px;
-  overflow-x: auto;
-  margin: 6px 0;
 }
 .ql-editor code {
-  background: hsl(var(--muted));
-  color: hsl(var(--foreground));
+  padding: 1px 4px;
   font-family: ui-monospace, monospace;
   font-size: 0.8125rem;
-  padding: 1px 4px;
+  color: hsl(var(--foreground));
+  background: hsl(var(--muted));
   border-radius: 3px;
 }
 .ql-editor ol,
@@ -395,32 +395,32 @@ body {
 
 /* ── Link tooltip popup ── */
 .ql-snow .ql-tooltip {
+  z-index: 100;
+  padding: 6px 10px;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 4px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  color: hsl(var(--foreground));
-  padding: 6px 10px;
-  white-space: nowrap;
-  z-index: 100;
 }
 .ql-snow .ql-tooltip::before {
-  content: "URL:";
-  line-height: 26px;
   margin-right: 8px;
   font-size: 0.75rem;
+  line-height: 26px;
   color: hsl(var(--muted-foreground));
+  content: "URL:";
 }
 .ql-snow .ql-tooltip input[type="text"] {
+  width: 180px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 0.8125rem;
+  color: hsl(var(--foreground));
+  outline: none;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
   border-radius: 3px;
-  color: hsl(var(--foreground));
-  font-size: 0.8125rem;
-  height: 26px;
-  padding: 0 8px;
-  outline: none;
-  width: 180px;
 }
 .ql-snow .ql-tooltip input[type="text"]:focus {
   border-color: hsl(var(--ring));
@@ -428,11 +428,11 @@ body {
 }
 .ql-snow .ql-tooltip a.ql-action,
 .ql-snow .ql-tooltip a.ql-remove {
+  margin-left: 8px;
   font-size: 0.75rem;
   color: hsl(var(--primary));
-  cursor: pointer;
   text-decoration: none;
-  margin-left: 8px;
+  cursor: pointer;
 }
 .ql-snow .ql-tooltip a.ql-action::after {
   content: "Edit";
@@ -441,9 +441,9 @@ body {
   content: "Save";
 }
 .ql-snow .ql-tooltip a.ql-remove::before {
-  content: "Remove";
   margin-left: 8px;
   color: hsl(var(--destructive));
+  content: "Remove";
 }
 .ql-snow .ql-tooltip[data-mode="link"]::before {
   content: "Link URL:";

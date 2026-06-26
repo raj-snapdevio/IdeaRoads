@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 interface NotificationBellProps {
-  workspaceSlug: string;
   initialCount?: number;
+  workspaceSlug: string;
 }
 
 export function NotificationBell({
@@ -18,10 +18,14 @@ export function NotificationBell({
 
   useEffect(() => {
     const fetchCount = async () => {
-      if (document.visibilityState === "hidden") return;
+      if (document.visibilityState === "hidden") {
+        return;
+      }
       try {
         const res = await fetch("/api/notifications/count");
-        if (!res.ok) return;
+        if (!res.ok) {
+          return;
+        }
         const data = await res.json();
         setUnreadCount(data.unreadCount ?? 0);
       } catch {
@@ -34,7 +38,9 @@ export function NotificationBell({
     document.addEventListener("visibilitychange", fetchCount);
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
       document.removeEventListener("visibilitychange", fetchCount);
     };
   }, []);
@@ -43,8 +49,8 @@ export function NotificationBell({
 
   return (
     <Link
-      href={`/${workspaceSlug}/notifications`}
       className="relative flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      href={`/${workspaceSlug}/notifications`}
     >
       <span className="relative shrink-0">
         <Bell className="size-4" />

@@ -1,24 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import type { CommentData, ReplyData } from "./types";
+import CommentForm from "./comment-form";
 import CommentItem from "./comment-item";
 import CommentReplyForm from "./comment-reply-form";
-import CommentForm from "./comment-form";
+import type { CommentData, ReplyData } from "./types";
 
 interface CommentThreadProps {
-  initialComments: CommentData[];
-  postId: string;
-  isSignedIn: boolean;
-  isLocked: boolean;
-  currentUserId: string | null;
   canModerate: boolean;
+  currentUserId: string | null;
+  initialComments: CommentData[];
+  isLocked: boolean;
+  isSignedIn: boolean;
+  postId: string;
 }
 
 interface ThreadState {
   comment: CommentData;
-  showReplyForm: boolean;
   replies: ReplyData[];
+  showReplyForm: boolean;
 }
 
 export default function CommentThread({
@@ -94,10 +94,10 @@ export default function CommentThread({
         </p>
         <div className="pt-6">
           <CommentForm
-            postId={postId}
-            isSignedIn={isSignedIn}
             isLocked={isLocked}
+            isSignedIn={isSignedIn}
             onSuccess={handleCommentAdded}
+            postId={postId}
           />
         </div>
       </div>
@@ -119,16 +119,16 @@ export default function CommentThread({
         {approvedThreads.map((thread) => (
           <div key={thread.comment.id}>
             <CommentItem
+              canModerate={canModerate}
               comment={thread.comment}
               currentUserId={currentUserId}
-              canModerate={canModerate}
+              depth={0}
               isLocked={isLocked}
               isSignedIn={isSignedIn}
-              depth={0}
-              onReply={
-                !isLocked ? () => toggleReplyForm(thread.comment.id) : undefined
-              }
               onDelete={() => handleDeleteTopLevel(thread.comment.id)}
+              onReply={
+                isLocked ? undefined : () => toggleReplyForm(thread.comment.id)
+              }
             />
 
             {/* Replies */}
@@ -138,13 +138,13 @@ export default function CommentThread({
                   .filter((r) => r.isApproved || canModerate)
                   .map((reply) => (
                     <CommentItem
-                      key={reply.id}
+                      canModerate={canModerate}
                       comment={reply}
                       currentUserId={currentUserId}
-                      canModerate={canModerate}
+                      depth={1}
                       isLocked={isLocked}
                       isSignedIn={isSignedIn}
-                      depth={1}
+                      key={reply.id}
                       onDelete={() =>
                         handleDeleteReply(thread.comment.id, reply.id)
                       }
@@ -156,14 +156,14 @@ export default function CommentThread({
             {/* Inline reply form */}
             {thread.showReplyForm && (
               <CommentReplyForm
-                key={`reply-form-${thread.comment.id}`}
-                postId={postId}
-                parentId={thread.comment.id}
                 isSignedIn={isSignedIn}
+                key={`reply-form-${thread.comment.id}`}
+                onCancel={() => toggleReplyForm(thread.comment.id)}
                 onSuccess={(reply) =>
                   handleReplyAdded(thread.comment.id, reply)
                 }
-                onCancel={() => toggleReplyForm(thread.comment.id)}
+                parentId={thread.comment.id}
+                postId={postId}
               />
             )}
           </div>
@@ -174,10 +174,10 @@ export default function CommentThread({
       {!isLocked && (
         <div className="pt-6 mt-2 border-t border-border">
           <CommentForm
-            postId={postId}
-            isSignedIn={isSignedIn}
             isLocked={isLocked}
+            isSignedIn={isSignedIn}
             onSuccess={handleCommentAdded}
+            postId={postId}
           />
         </div>
       )}

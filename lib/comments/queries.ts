@@ -3,16 +3,16 @@ import { comments } from "@/db/schema";
 import { db } from "@/lib/db";
 
 export interface CommentRow {
-  id: string;
-  postId: string;
-  parentId: string | null;
-  body: string;
-  isDeleted: boolean;
-  isApproved: boolean;
+  authorAvatar: string | null;
   authorId: string | null;
   authorName: string | null;
-  authorAvatar: string | null;
+  body: string;
   createdAt: Date;
+  id: string;
+  isApproved: boolean;
+  isDeleted: boolean;
+  parentId: string | null;
+  postId: string;
   updatedAt: Date;
 }
 
@@ -34,7 +34,9 @@ export async function listComments(
     eq(comments.postId, postId),
     isNull(comments.parentId),
   ];
-  if (approvalCondition) topLevelConditions.push(approvalCondition);
+  if (approvalCondition) {
+    topLevelConditions.push(approvalCondition);
+  }
 
   const topLevel = await db
     .select({
@@ -54,10 +56,14 @@ export async function listComments(
     .where(and(...topLevelConditions))
     .orderBy(asc(comments.createdAt));
 
-  if (topLevel.length === 0) return [];
+  if (topLevel.length === 0) {
+    return [];
+  }
 
   const replyConditions = [eq(comments.postId, postId)];
-  if (approvalCondition) replyConditions.push(approvalCondition);
+  if (approvalCondition) {
+    replyConditions.push(approvalCondition);
+  }
 
   const allReplies = await db
     .select({
@@ -84,7 +90,9 @@ export async function listComments(
 
   const repliesByParent = new Map<string, CommentRow[]>();
   for (const reply of allReplies) {
-    if (!reply.parentId) continue;
+    if (!reply.parentId) {
+      continue;
+    }
     const arr = repliesByParent.get(reply.parentId) ?? [];
     arr.push(reply);
     repliesByParent.set(reply.parentId, arr);

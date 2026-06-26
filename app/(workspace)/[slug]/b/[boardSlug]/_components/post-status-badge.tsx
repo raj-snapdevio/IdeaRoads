@@ -22,9 +22,9 @@ export const STATUS_CLASSES: Record<PostStatus, string> = {
 };
 
 interface WorkspaceStatus {
-  slug: string;
-  name: string;
   color: string;
+  name: string;
+  slug: string;
 }
 
 interface PostStatusBadgeProps {

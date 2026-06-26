@@ -5,19 +5,19 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { searchPostsForChangelogAction } from "@/app/actions/changelog";
 
 interface Post {
+  boardName: string;
+  boardSlug: string;
   id: string;
-  title: string;
   slug: string;
   status: string;
+  title: string;
   upvotes: number;
-  boardSlug: string;
-  boardName: string;
 }
 
 interface LinkedPostsSelectorProps {
-  workspaceId: string;
-  selectedPosts: Post[];
   onChange: (posts: Post[]) => void;
+  selectedPosts: Post[];
+  workspaceId: string;
 }
 
 export function LinkedPostsSelector({
@@ -36,7 +36,9 @@ export function LinkedPostsSelector({
 
   const search = useCallback(
     (q: string) => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
       debounceRef.current = setTimeout(() => {
         startTransition(async () => {
           const result = await searchPostsForChangelogAction({
@@ -53,7 +55,9 @@ export function LinkedPostsSelector({
   );
 
   useEffect(() => {
-    if (isOpen) search(query);
+    if (isOpen) {
+      search(query);
+    }
   }, [query, isOpen, search]);
 
   useEffect(() => {
@@ -70,7 +74,9 @@ export function LinkedPostsSelector({
   }, []);
 
   function addPost(post: Post) {
-    if (selectedPosts.length >= 20) return;
+    if (selectedPosts.length >= 20) {
+      return;
+    }
     onChange([...selectedPosts, post]);
     setQuery("");
     setIsOpen(false);
@@ -87,16 +93,16 @@ export function LinkedPostsSelector({
         <div className="flex flex-wrap gap-1.5">
           {selectedPosts.map((post) => (
             <span
-              key={post.id}
               className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium bg-muted text-foreground border border-border"
+              key={post.id}
               style={{ borderRadius: 2 }}
             >
               <span className="truncate max-w-[200px]">{post.title}</span>
               <button
-                type="button"
-                onClick={() => removePost(post.id)}
-                className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none"
                 aria-label={`Remove ${post.title}`}
+                className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none"
+                onClick={() => removePost(post.id)}
+                type="button"
               >
                 <X className="size-3" />
               </button>
@@ -107,19 +113,19 @@ export function LinkedPostsSelector({
 
       {/* Search input */}
       {selectedPosts.length < 20 && (
-        <div ref={containerRef} className="relative">
+        <div className="relative" ref={containerRef}>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
             <input
-              type="text"
-              value={query}
+              className="w-full border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               onChange={(e) => {
                 setQuery(e.target.value);
                 setIsOpen(true);
               }}
               onFocus={() => setIsOpen(true)}
               placeholder="Search posts to link…"
-              className="w-full border border-border bg-background py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+              type="text"
+              value={query}
             />
           </div>
 
@@ -128,10 +134,10 @@ export function LinkedPostsSelector({
             <div className="absolute z-20 mt-1 w-full bg-background border border-border shadow-md max-h-52 overflow-y-auto">
               {results.map((post) => (
                 <button
-                  key={post.id}
-                  type="button"
-                  onClick={() => addPost(post)}
                   className="w-full flex items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-muted transition-colors focus-visible:outline-none focus-visible:bg-muted"
+                  key={post.id}
+                  onClick={() => addPost(post)}
+                  type="button"
                 >
                   <span className="flex-1 min-w-0">
                     <span className="block text-sm font-medium text-foreground truncate">

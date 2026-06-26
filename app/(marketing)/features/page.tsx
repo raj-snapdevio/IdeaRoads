@@ -1,12 +1,13 @@
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PRODUCT_NAME } from "@/config/platform";
 
 export const metadata: Metadata = {
   title: "Features",
-  description: `Everything a product team needs to collect feedback, manage a roadmap, and ship with confidence. Every feature included, no per-voter fees.`,
+  description:
+    "Everything a product team needs to collect feedback, manage a roadmap, and ship with confidence. Every feature included, no per-voter fees.",
 };
 
 const MAJOR_FEATURES = [

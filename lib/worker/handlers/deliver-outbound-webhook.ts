@@ -2,9 +2,8 @@ import { createHmac } from "node:crypto";
 import { isIP } from "node:net";
 import { URL } from "node:url";
 import type { Job } from "pg-boss";
-import { decrypt, isEncryptionAvailable } from "@/lib/encrypt";
 import { audit } from "@/lib/audit";
-import type { DeliverOutboundWebhookPayload } from "@/lib/worker/job-types";
+import { decrypt, isEncryptionAvailable } from "@/lib/encrypt";
 import {
   claimDelivery,
   disableEndpoint,
@@ -14,6 +13,7 @@ import {
   markFailed,
   resetFailureCount,
 } from "@/lib/webhooks/queries";
+import type { DeliverOutboundWebhookPayload } from "@/lib/worker/job-types";
 
 // RFC 1918 + loopback + link-local CIDR ranges
 const BLOCKED_PREFIXES = [
@@ -44,7 +44,9 @@ const BLOCKED_PREFIXES = [
 
 function isPrivateAddress(hostname: string): boolean {
   // Block localhost by name
-  if (hostname === "localhost" || hostname.endsWith(".local")) return true;
+  if (hostname === "localhost" || hostname.endsWith(".local")) {
+    return true;
+  }
   // Check if it looks like an IP
   if (isIP(hostname) !== 0) {
     return BLOCKED_PREFIXES.some((prefix) => hostname.startsWith(prefix));
@@ -71,10 +73,14 @@ export async function handleDeliverOutboundWebhook(
     const { deliveryId } = job.data;
 
     const delivery = await claimDelivery(deliveryId);
-    if (!delivery) continue; // Already processed
+    if (!delivery) {
+      continue; // Already processed
+    }
 
     const endpoint = await getWebhookEndpoint(delivery.endpointId);
-    if (!endpoint || !endpoint.isEnabled) continue;
+    if (!endpoint || !endpoint.isEnabled) {
+      continue;
+    }
 
     if (!isEncryptionAvailable()) {
       await markFailed(deliveryId, null, "ENCRYPTION_KEY not configured");

@@ -22,7 +22,9 @@ export async function deleteComment(
     .limit(1)
     .then((r) => r[0] ?? null);
 
-  if (!comment) throw new CommentDeleteError("Comment not found.");
+  if (!comment) {
+    throw new CommentDeleteError("Comment not found.");
+  }
 
   const isAdminOrOwner = requesterRole !== WORKSPACE_MEMBER;
   const isAuthor = comment.authorId === requesterId;

@@ -30,6 +30,11 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: optionalString,
   GOOGLE_CLIENT_SECRET: optionalString,
   ENCRYPTION_KEY: optionalString,
+  ORBIT_SEED_EMAIL: optionalString,
+  ENABLE_IMPERSONATION: z.preprocess(
+    (v) => v === "true",
+    z.boolean().default(false)
+  ),
 });
 
 const parsed = envSchema.safeParse(process.env);

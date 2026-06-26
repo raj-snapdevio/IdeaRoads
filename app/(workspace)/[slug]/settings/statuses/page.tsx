@@ -23,19 +23,23 @@ export default async function StatusesPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) notFound();
+  if (!member) {
+    notFound();
+  }
 
   const statuses = await getWorkspaceStatuses(workspace.id);
   const canManage = member.role !== WORKSPACE_MEMBER;
 
   return (
     <StatusList
+      canManage={canManage}
       statuses={statuses}
       workspaceId={workspace.id}
-      canManage={canManage}
     />
   );
 }

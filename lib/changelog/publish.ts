@@ -19,9 +19,13 @@ export async function publishChangelogEntry(
     )
     .limit(1);
 
-  if (!entry) throw new Error("Changelog entry not found.");
+  if (!entry) {
+    throw new Error("Changelog entry not found.");
+  }
 
-  if (entry.isPublished) return entry;
+  if (entry.isPublished) {
+    return entry;
+  }
 
   const now = new Date();
 
@@ -56,7 +60,9 @@ export async function publishChangelogEntry(
 
       for (const voter of voters) {
         const email = voter.userEmail;
-        if (!email) continue;
+        if (!email) {
+          continue;
+        }
 
         await enqueueJob(JOB_NAMES.SEND_CHANGELOG_EMAIL, {
           voterEmail: email,
@@ -105,8 +111,12 @@ export async function unpublishChangelogEntry(
     )
     .limit(1);
 
-  if (!entry) throw new Error("Changelog entry not found.");
-  if (!entry.isPublished) return entry;
+  if (!entry) {
+    throw new Error("Changelog entry not found.");
+  }
+  if (!entry.isPublished) {
+    return entry;
+  }
 
   const [updated] = await db
     .update(changelogEntries)

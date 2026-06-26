@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { BarChart3, BookOpen, ChevronDown, LayoutGrid } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
 const FEATURE_LINKS = [
   {
@@ -40,8 +40,12 @@ export function NavFeaturesDropdown() {
         aria-haspopup="true"
         className="flex items-center gap-1 px-3 py-2 text-xs font-semibold uppercase tracking-ui text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
         onKeyDown={(e) => {
-          if (e.key === "Escape") setOpen(false);
-          if (e.key === "Enter" || e.key === " ") setOpen((v) => !v);
+          if (e.key === "Escape") {
+            setOpen(false);
+          }
+          if (e.key === "Enter" || e.key === " ") {
+            setOpen((v) => !v);
+          }
         }}
         type="button"
       >

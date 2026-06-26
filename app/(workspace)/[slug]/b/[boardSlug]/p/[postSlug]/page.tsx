@@ -3,17 +3,16 @@ import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CategoryChip } from "@/components/categories/category-chip";
 import CommentSection from "@/components/comments/comment-section";
 import VoteButton from "@/components/voting/vote-button";
-import { CategoryChip } from "@/components/categories/category-chip";
-import VoterListButton from "./_components/voter-list-button";
 import { WORKSPACE_MEMBER } from "@/config/platform";
 import { requireSession } from "@/lib/authz";
 import { getBoardBySlug } from "@/lib/boards/queries";
 import { getCategoryById } from "@/lib/categories/queries";
 import { getPostBySlug } from "@/lib/posts/queries";
-import { getActiveWorkspaceStatuses } from "@/lib/workspace-statuses/queries";
 import { hasUserVoted } from "@/lib/voting";
+import { getActiveWorkspaceStatuses } from "@/lib/workspace-statuses/queries";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -21,6 +20,7 @@ import {
 import DeletePostButton from "./_components/delete-post-button";
 import PinButton from "./_components/pin-button";
 import StatusSelect from "./_components/status-select";
+import VoterListButton from "./_components/voter-list-button";
 
 interface Props {
   params: Promise<{ slug: string; boardSlug: string; postSlug: string }>;
@@ -29,9 +29,13 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, boardSlug, postSlug } = await params;
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) return { title: "Post" };
+  if (!workspace) {
+    return { title: "Post" };
+  }
   const board = await getBoardBySlug(workspace.id, boardSlug);
-  if (!board) return { title: "Post" };
+  if (!board) {
+    return { title: "Post" };
+  }
   const post = await getPostBySlug(board.id, postSlug);
   return { title: post?.title ?? "Post" };
 }
@@ -42,16 +46,24 @@ export default async function PostDetailPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) notFound();
+  if (!member) {
+    notFound();
+  }
 
   const board = await getBoardBySlug(workspace.id, boardSlug);
-  if (!board) notFound();
+  if (!board) {
+    notFound();
+  }
 
   const post = await getPostBySlug(board.id, postSlug);
-  if (!post) notFound();
+  if (!post) {
+    notFound();
+  }
 
   const isAdminOrOwner = member.role !== WORKSPACE_MEMBER;
   const isAuthor = post.authorId === session.user.id;
@@ -69,8 +81,8 @@ export default async function PostDetailPage({ params }: Props) {
       {/* Back nav */}
       <div className="border-b border-border px-8 py-4">
         <Link
-          href={boardHref}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          href={boardHref}
         >
           <ArrowLeft className="size-4" />
           {board.name}
@@ -86,16 +98,16 @@ export default async function PostDetailPage({ params }: Props) {
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <StatusSelect
+                canEdit={isAdminOrOwner}
+                currentStatus={post.status}
                 postId={post.id}
                 workspaceId={workspace.id}
-                currentStatus={post.status}
-                canEdit={isAdminOrOwner}
                 workspaceStatuses={workspaceStatuses}
               />
               {postCategory && (
                 <CategoryChip
-                  name={postCategory.name}
                   color={postCategory.color}
+                  name={postCategory.name}
                   size="xs"
                 />
               )}
@@ -116,12 +128,12 @@ export default async function PostDetailPage({ params }: Props) {
           {/* Vote button + voter list */}
           <div className="shrink-0 flex flex-col items-center gap-2">
             <VoteButton
-              postId={post.id}
               initialCount={post.upvotes}
               initialHasVoted={votedByUser}
-              isSignedIn={true}
-              isLocked={post.isLocked}
               isArchived={board.isArchived}
+              isLocked={post.isLocked}
+              isSignedIn={true}
+              postId={post.id}
             />
             {isAdminOrOwner && (
               <VoterListButton postId={post.id} voteCount={post.upvotes} />
@@ -143,15 +155,15 @@ export default async function PostDetailPage({ params }: Props) {
           <div className="mt-6 flex items-center gap-4 border-t border-border pt-4">
             {isAdminOrOwner && (
               <PinButton
+                isPinned={post.isPinned}
                 postId={post.id}
                 workspaceId={workspace.id}
-                isPinned={post.isPinned}
               />
             )}
             <DeletePostButton
+              boardHref={boardHref}
               postId={post.id}
               workspaceId={workspace.id}
-              boardHref={boardHref}
             />
           </div>
         )}
@@ -159,11 +171,11 @@ export default async function PostDetailPage({ params }: Props) {
         {/* Comments */}
         <div className="mt-10 border-t border-border pt-8">
           <CommentSection
-            postId={post.id}
-            isSignedIn={true}
-            isLocked={post.isLocked}
-            currentUserId={session.user.id}
             canModerate={isAdminOrOwner}
+            currentUserId={session.user.id}
+            isLocked={post.isLocked}
+            isSignedIn={true}
+            postId={post.id}
           />
         </div>
       </div>

@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { NotificationItem } from "@/components/notifications/notification-item";
 import { NotificationEmptyState } from "@/components/notifications/notification-empty-state";
+import { NotificationItem } from "@/components/notifications/notification-item";
 import type { NotificationRow } from "@/lib/notifications/queries";
 
 interface NotificationListProps {
-  initialItems: NotificationRow[];
   hasMore: boolean;
+  initialItems: NotificationRow[];
   total: number;
   workspaceId: string;
 }
@@ -51,7 +51,9 @@ export function NotificationList({
       try {
         const nextPage = page + 1;
         const res = await fetch(`/api/notifications?page=${nextPage}&limit=30`);
-        if (!res.ok) throw new Error();
+        if (!res.ok) {
+          throw new Error();
+        }
         const data = await res.json();
         setItems((prev) => [...prev, ...data.notifications]);
         setHasMore(data.hasMore);
@@ -74,7 +76,7 @@ export function NotificationList({
           </h1>
           {total > 0 && (
             <p className="text-xs text-muted-foreground mt-0.5">
-              {total} notification{total !== 1 ? "s" : ""}
+              {total} notification{total === 1 ? "" : "s"}
               {unreadCount > 0 && (
                 <span className="ml-1.5 text-primary font-medium">
                   · {unreadCount} unread
@@ -85,10 +87,10 @@ export function NotificationList({
         </div>
         {unreadCount > 0 && (
           <button
-            type="button"
-            onClick={handleMarkAllRead}
-            disabled={isPending}
             className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+            disabled={isPending}
+            onClick={handleMarkAllRead}
+            type="button"
           >
             Mark all as read
           </button>
@@ -111,10 +113,10 @@ export function NotificationList({
           {hasMore && (
             <div className="px-5 py-4 text-center">
               <button
-                type="button"
-                onClick={handleLoadMore}
-                disabled={isPending}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                disabled={isPending}
+                onClick={handleLoadMore}
+                type="button"
               >
                 {isPending ? "Loading…" : "Load more"}
               </button>

@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { X } from "lucide-react";
+import { useState } from "react";
 
 interface GuestVoteDialogProps {
-  postId: string;
-  onVoted: (voteCount: number) => void;
-  onRemoved: (voteCount: number) => void;
   onClose: () => void;
+  onRemoved: (voteCount: number) => void;
+  onVoted: (voteCount: number) => void;
+  postId: string;
 }
 
 export default function GuestVoteDialog({
@@ -100,9 +100,9 @@ export default function GuestVoteDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
       <div
+        aria-hidden="true"
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
-        aria-hidden="true"
       />
 
       {/* Dialog */}
@@ -117,9 +117,9 @@ export default function GuestVoteDialog({
             </p>
           </div>
           <button
-            onClick={onClose}
-            className="ml-4 shrink-0 text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Close"
+            className="ml-4 shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+            onClick={onClose}
           >
             <X className="size-4" />
           </button>
@@ -133,65 +133,65 @@ export default function GuestVoteDialog({
             {error && <p className="text-xs text-destructive mb-3">{error}</p>}
             <div className="flex gap-2">
               <button
-                onClick={handleRemove}
-                disabled={isPending}
                 className="flex-1 py-2 text-sm font-medium border border-border text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+                disabled={isPending}
+                onClick={handleRemove}
               >
                 {isPending ? "Removing…" : "Remove Vote"}
               </button>
               <button
-                onClick={onClose}
                 className="flex-1 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                onClick={onClose}
               >
                 Cancel
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
             <div>
               <label
-                htmlFor="guest-email"
                 className="block text-xs font-medium text-foreground mb-1"
+                htmlFor="guest-email"
               >
                 Email <span className="text-destructive">*</span>
               </label>
               <input
+                className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 id="guest-email"
-                type="email"
-                required
                 maxLength={255}
-                value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                required
+                type="email"
+                value={email}
               />
             </div>
 
             <div>
               <label
-                htmlFor="guest-name"
                 className="block text-xs font-medium text-foreground mb-1"
+                htmlFor="guest-name"
               >
                 Name <span className="text-muted-foreground">(optional)</span>
               </label>
               <input
+                className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 id="guest-name"
-                type="text"
                 maxLength={100}
-                value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
-                className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                type="text"
+                value={name}
               />
             </div>
 
             {error && <p className="text-xs text-destructive">{error}</p>}
 
             <button
-              type="submit"
-              disabled={isPending || !email.trim()}
               className="w-full py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              disabled={isPending || !email.trim()}
+              type="submit"
             >
               {isPending ? "Casting vote…" : "Cast Vote"}
             </button>
@@ -199,8 +199,8 @@ export default function GuestVoteDialog({
             <p className="text-center text-xs text-muted-foreground">
               Have an account?{" "}
               <a
-                href="/login"
                 className="text-foreground underline underline-offset-2 hover:text-foreground/80"
+                href="/login"
               >
                 Sign in instead
               </a>

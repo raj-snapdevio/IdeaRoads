@@ -81,12 +81,13 @@ export async function createCategoryAction(input: {
   } catch (err) {
     const msg =
       err instanceof Error ? err.message : "Failed to create category.";
-    if (msg.includes("unique"))
+    if (msg.includes("unique")) {
       return {
         success: false,
         error: "A category with this name already exists.",
         field: "name",
       };
+    }
     return { success: false, error: msg };
   }
 }
@@ -149,12 +150,13 @@ export async function updateCategoryAction(input: {
   } catch (err) {
     const msg =
       err instanceof Error ? err.message : "Failed to update category.";
-    if (msg.includes("unique"))
+    if (msg.includes("unique")) {
       return {
         success: false,
         error: "A category with this name already exists.",
         field: "name",
       };
+    }
     return { success: false, error: msg };
   }
 }

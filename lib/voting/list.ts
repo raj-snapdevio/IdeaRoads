@@ -3,12 +3,12 @@ import { user, votes } from "@/db/schema";
 import { db } from "@/lib/db";
 
 export interface Voter {
-  id: string;
-  name: string | null;
   email: string | null;
+  id: string;
   image: string | null;
-  votedAt: Date;
   isGuest: boolean;
+  name: string | null;
+  votedAt: Date;
 }
 
 export async function listVoters(
@@ -58,7 +58,9 @@ export async function getVotedPostIds(
   voter: { userId?: string; userEmail?: string }
 ): Promise<string[]> {
   const { userId, userEmail } = voter;
-  if (!userId && !userEmail) return [];
+  if (!userId && !userEmail) {
+    return [];
+  }
 
   const condition = userId
     ? and(eq(votes.workspaceId, workspaceId), eq(votes.userId, userId))
@@ -77,7 +79,9 @@ export async function hasUserVoted(
   voter: { userId?: string; userEmail?: string }
 ): Promise<boolean> {
   const { userId, userEmail } = voter;
-  if (!userId && !userEmail) return false;
+  if (!userId && !userEmail) {
+    return false;
+  }
 
   const condition = userId
     ? and(eq(votes.postId, postId), eq(votes.userId, userId))
@@ -96,7 +100,9 @@ export async function getBatchVotedSet(
   postIds: string[],
   userId: string
 ): Promise<Set<string>> {
-  if (postIds.length === 0) return new Set();
+  if (postIds.length === 0) {
+    return new Set();
+  }
 
   const rows = await db
     .select({ postId: votes.postId })

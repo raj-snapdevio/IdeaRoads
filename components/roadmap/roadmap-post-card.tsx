@@ -1,13 +1,13 @@
-import Link from "next/link";
 import { MessageSquare, Pin } from "lucide-react";
-import VoteButton from "@/components/voting/vote-button";
+import Link from "next/link";
 import { CategoryChip } from "@/components/categories/category-chip";
+import VoteButton from "@/components/voting/vote-button";
 import type { RoadmapPost } from "@/lib/roadmap/queries";
 
 interface RoadmapPostCardProps {
+  isSignedIn: boolean;
   post: RoadmapPost;
   workspaceSlug: string;
-  isSignedIn: boolean;
 }
 
 export function RoadmapPostCard({
@@ -24,12 +24,12 @@ export function RoadmapPostCard({
         {/* Vote button — compact */}
         <div className="shrink-0">
           <VoteButton
-            postId={post.id}
             initialCount={post.upvotes}
             initialHasVoted={post.hasVoted}
-            isSignedIn={isSignedIn}
-            isLocked={false}
             isArchived={false}
+            isLocked={false}
+            isSignedIn={isSignedIn}
+            postId={post.id}
           />
         </div>
 
@@ -40,8 +40,8 @@ export function RoadmapPostCard({
               <Pin className="size-3 text-muted-foreground shrink-0 mt-0.5" />
             )}
             <Link
-              href={postHref}
               className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors leading-snug group-hover:underline underline-offset-2"
+              href={postHref}
             >
               {post.title}
             </Link>
@@ -50,8 +50,8 @@ export function RoadmapPostCard({
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {post.categoryName && post.categoryColor && (
               <CategoryChip
-                name={post.categoryName}
                 color={post.categoryColor}
+                name={post.categoryName}
                 size="xs"
               />
             )}
@@ -64,8 +64,8 @@ export function RoadmapPostCard({
           </div>
 
           <Link
-            href={boardHref}
             className="mt-2 inline-block text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+            href={boardHref}
           >
             {post.boardName}
           </Link>

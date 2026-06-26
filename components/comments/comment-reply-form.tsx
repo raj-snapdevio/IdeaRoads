@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import dynamic from "next/dynamic";
+import { useState } from "react";
 import type { ReplyData } from "./types";
 
 const QuillEditor = dynamic(() => import("./quill-editor"), { ssr: false });
 
 interface CommentReplyFormProps {
-  postId: string;
-  parentId: string;
   isSignedIn: boolean;
-  onSuccess: (reply: ReplyData) => void;
   onCancel: () => void;
+  onSuccess: (reply: ReplyData) => void;
+  parentId: string;
+  postId: string;
 }
 
 export default function CommentReplyForm({
@@ -35,13 +35,19 @@ export default function CommentReplyForm({
   function handleChange(newHtml: string, newText: string) {
     setHtml(newHtml);
     setText(newText);
-    if (error) setError(null);
-    if (pendingMessage) setPendingMessage(null);
+    if (error) {
+      setError(null);
+    }
+    if (pendingMessage) {
+      setPendingMessage(null);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!text.trim() || isPending) return;
+    if (!text.trim() || isPending) {
+      return;
+    }
     if (text.length > MAX) {
       setError(`Reply must be ${MAX.toLocaleString()} characters or fewer.`);
       return;
@@ -97,7 +103,7 @@ export default function CommentReplyForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 ml-10 space-y-2">
+    <form className="mt-3 ml-10 space-y-2" onSubmit={handleSubmit}>
       {!isSignedIn && (
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -105,13 +111,13 @@ export default function CommentReplyForm({
               Name <span className="text-destructive">*</span>
             </label>
             <input
-              type="text"
-              value={guestName}
+              className="w-full border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              maxLength={100}
               onChange={(e) => setGuestName(e.target.value)}
               placeholder="Your name"
-              maxLength={100}
               required
-              className="w-full border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              type="text"
+              value={guestName}
             />
           </div>
           <div>
@@ -119,25 +125,25 @@ export default function CommentReplyForm({
               Email <span className="text-destructive">*</span>
             </label>
             <input
-              type="email"
-              value={guestEmail}
+              className="w-full border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              maxLength={255}
               onChange={(e) => setGuestEmail(e.target.value)}
               placeholder="you@example.com"
-              maxLength={255}
               required
-              className="w-full border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              type="email"
+              value={guestEmail}
             />
           </div>
         </div>
       )}
 
       <QuillEditor
+        disabled={isPending}
         key={editorKey}
-        value={html}
+        minHeight={72}
         onChange={handleChange}
         placeholder="Write a reply…"
-        disabled={isPending}
-        minHeight={72}
+        value={html}
       />
 
       {error && <p className="text-xs text-destructive">{error}</p>}
@@ -149,17 +155,17 @@ export default function CommentReplyForm({
 
       <div className="flex items-center gap-2 justify-end">
         <button
-          type="button"
-          onClick={onCancel}
-          disabled={isPending}
           className="px-3 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          disabled={isPending}
+          onClick={onCancel}
+          type="button"
         >
           Cancel
         </button>
         <button
-          type="submit"
-          disabled={isPending || !text.trim()}
           className="px-3 py-1 text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+          disabled={isPending || !text.trim()}
+          type="submit"
         >
           {isPending ? "Posting…" : "Reply"}
         </button>

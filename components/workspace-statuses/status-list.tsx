@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Check, Edit2, Plus, Star, Trash2 } from "lucide-react";
+import { Archive, Edit2, Plus, Star, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -28,26 +28,26 @@ const COLOR_PRESETS = [
 ];
 
 interface WorkspaceStatus {
+  color: string;
+  displayOrder: number;
   id: string;
+  isArchived: boolean;
+  isDefault: boolean;
   name: string;
   slug: string;
-  color: string;
-  isDefault: boolean;
-  isArchived: boolean;
-  displayOrder: number;
 }
 
 interface StatusListProps {
+  canManage: boolean;
   statuses: WorkspaceStatus[];
   workspaceId: string;
-  canManage: boolean;
 }
 
 interface FormState {
-  mode: "create" | "edit";
-  statusId?: string;
-  name: string;
   color: string;
+  mode: "create" | "edit";
+  name: string;
+  statusId?: string;
 }
 
 const DEFAULT_FORM: FormState = {
@@ -89,7 +89,9 @@ export function StatusList({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form) return;
+    if (!form) {
+      return;
+    }
     const trimmedName = form.name.trim();
     if (!trimmedName) {
       setError("Name is required.");
@@ -142,7 +144,9 @@ export function StatusList({
   }
 
   function handleDelete() {
-    if (!deleteTarget) return;
+    if (!deleteTarget) {
+      return;
+    }
     startTransition(async () => {
       const result = await deleteWorkspaceStatusAction({
         statusId: deleteTarget.id,
@@ -159,7 +163,9 @@ export function StatusList({
   }
 
   function handleArchiveToggle() {
-    if (!archiveTarget) return;
+    if (!archiveTarget) {
+      return;
+    }
     startTransition(async () => {
       const result = await updateWorkspaceStatusAction({
         statusId: archiveTarget.id,
@@ -186,8 +192,8 @@ export function StatusList({
       {/* Add button */}
       {canManage && !form && (
         <button
-          onClick={openCreate}
           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={openCreate}
         >
           <Plus className="size-3.5" />
           New Status
@@ -197,8 +203,8 @@ export function StatusList({
       {/* Inline form */}
       {form && canManage && (
         <form
-          onSubmit={handleSubmit}
           className="border border-border p-4 space-y-4"
+          onSubmit={handleSubmit}
         >
           <h3 className="text-sm font-semibold text-foreground">
             {form.mode === "create" ? "New Status" : "Edit Status"}
@@ -210,14 +216,14 @@ export function StatusList({
                 Name <span className="text-destructive">*</span>
               </label>
               <input
-                type="text"
-                value={form.name}
+                className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                maxLength={48}
                 onChange={(e) =>
                   setForm((f) => f && { ...f, name: e.target.value })
                 }
                 placeholder="e.g. Needs More Info"
-                maxLength={48}
-                className="w-full px-3 py-2 text-sm border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                type="text"
+                value={form.name}
               />
             </div>
 
@@ -228,15 +234,15 @@ export function StatusList({
               <div className="flex flex-wrap gap-1.5">
                 {COLOR_PRESETS.map((c) => (
                   <button
-                    key={c}
-                    type="button"
-                    onClick={() => setForm((f) => f && { ...f, color: c })}
                     className="size-6 rounded-full border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    key={c}
+                    onClick={() => setForm((f) => f && { ...f, color: c })}
                     style={{
                       backgroundColor: c,
                       borderColor: form.color === c ? "#000" : "transparent",
                     }}
                     title={c}
+                    type="button"
                   />
                 ))}
               </div>
@@ -265,9 +271,9 @@ export function StatusList({
 
           <div className="flex items-center gap-2">
             <button
-              type="submit"
-              disabled={isPending}
               className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              disabled={isPending}
+              type="submit"
             >
               {isPending
                 ? "Saving…"
@@ -276,10 +282,10 @@ export function StatusList({
                   : "Save Changes"}
             </button>
             <button
-              type="button"
-              onClick={closeForm}
-              disabled={isPending}
               className="px-4 py-1.5 text-sm text-muted-foreground hover:text-foreground border border-border transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              disabled={isPending}
+              onClick={closeForm}
+              type="button"
             >
               Cancel
             </button>
@@ -296,7 +302,7 @@ export function StatusList({
         active.length > 0 && (
           <div className="border border-border divide-y divide-border">
             {active.map((s) => (
-              <div key={s.id} className="flex items-center gap-3 px-4 py-3">
+              <div className="flex items-center gap-3 px-4 py-3" key={s.id}>
                 <span
                   className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium shrink-0"
                   style={{
@@ -323,32 +329,32 @@ export function StatusList({
                   <div className="ml-auto flex items-center gap-1 shrink-0">
                     {!s.isDefault && (
                       <button
-                        onClick={() => handleSetDefault(s)}
-                        disabled={isPending}
                         className="p-1.5 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        disabled={isPending}
+                        onClick={() => handleSetDefault(s)}
                         title="Set as default"
                       >
                         <Star className="size-3.5" />
                       </button>
                     )}
                     <button
-                      onClick={() => openEdit(s)}
                       className="p-1.5 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => openEdit(s)}
                       title="Edit"
                     >
                       <Edit2 className="size-3.5" />
                     </button>
                     <button
-                      onClick={() => setArchiveTarget(s)}
                       className="p-1.5 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => setArchiveTarget(s)}
                       title="Archive"
                     >
                       <Archive className="size-3.5" />
                     </button>
                     {!s.isDefault && (
                       <button
-                        onClick={() => setDeleteTarget(s)}
                         className="p-1.5 text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        onClick={() => setDeleteTarget(s)}
                         title="Delete"
                       >
                         <Trash2 className="size-3.5" />
@@ -370,7 +376,7 @@ export function StatusList({
           </p>
           <div className="border border-border divide-y divide-border opacity-60">
             {archived.map((s) => (
-              <div key={s.id} className="flex items-center gap-3 px-4 py-3">
+              <div className="flex items-center gap-3 px-4 py-3" key={s.id}>
                 <span
                   className="inline-flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium shrink-0"
                   style={{
@@ -388,14 +394,14 @@ export function StatusList({
                 {canManage && (
                   <div className="ml-auto flex items-center gap-1 shrink-0">
                     <button
-                      onClick={() => setArchiveTarget(s)}
                       className="p-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none"
+                      onClick={() => setArchiveTarget(s)}
                     >
                       Restore
                     </button>
                     <button
-                      onClick={() => setDeleteTarget(s)}
                       className="p-1.5 text-muted-foreground hover:text-destructive transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onClick={() => setDeleteTarget(s)}
                     >
                       <Trash2 className="size-3.5" />
                     </button>
@@ -409,29 +415,29 @@ export function StatusList({
 
       {/* Confirm delete */}
       <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Delete Status"
-        description={`Delete "${deleteTarget?.name}"? Posts with this status will keep their status slug but it won't appear in selections. This action cannot be undone.`}
         confirmLabel="Delete"
-        onConfirm={handleDelete}
+        description={`Delete "${deleteTarget?.name}"? Posts with this status will keep their status slug but it won't appear in selections. This action cannot be undone.`}
         isPending={isPending}
+        onConfirm={handleDelete}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        open={!!deleteTarget}
+        title="Delete Status"
         variant="destructive"
       />
 
       {/* Confirm archive/restore */}
       <ConfirmDialog
-        open={!!archiveTarget}
-        onOpenChange={(open) => !open && setArchiveTarget(null)}
-        title={archiveTarget?.isArchived ? "Restore Status" : "Archive Status"}
+        confirmLabel={archiveTarget?.isArchived ? "Restore" : "Archive"}
         description={
           archiveTarget?.isArchived
             ? `Restore "${archiveTarget?.name}"? It will be available for post selections again.`
             : `Archive "${archiveTarget?.name}"? It will be hidden from post status selections.`
         }
-        confirmLabel={archiveTarget?.isArchived ? "Restore" : "Archive"}
-        onConfirm={handleArchiveToggle}
         isPending={isPending}
+        onConfirm={handleArchiveToggle}
+        onOpenChange={(open) => !open && setArchiveTarget(null)}
+        open={!!archiveTarget}
+        title={archiveTarget?.isArchived ? "Restore Status" : "Archive Status"}
         variant="default"
       />
     </div>

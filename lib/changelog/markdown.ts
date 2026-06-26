@@ -1,5 +1,5 @@
-import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
+import { marked } from "marked";
 
 marked.setOptions({ breaks: true, gfm: true });
 
@@ -26,6 +26,8 @@ export function truncateMarkdownToText(
     .replace(/\n/g, " ")
     .trim();
 
-  if (stripped.length <= maxLength) return stripped;
+  if (stripped.length <= maxLength) {
+    return stripped;
+  }
   return `${stripped.slice(0, maxLength).trimEnd()}…`;
 }

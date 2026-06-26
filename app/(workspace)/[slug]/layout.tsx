@@ -1,10 +1,11 @@
+import { eq } from "drizzle-orm";
 import {
   Bell,
   CircleDot,
   Key,
   LayoutGrid,
   LogOut,
-  Map,
+  Map as MapIcon,
   Megaphone,
   ScrollText,
   Settings,
@@ -14,15 +15,13 @@ import {
   Webhook,
 } from "lucide-react";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
+import { WorkspaceSuspendedPage } from "@/components/workspace/workspace-suspended";
+import { ADMIN_ROLE, WORKSPACE_MEMBER } from "@/config/platform";
 import { boards } from "@/db/schema";
-import { WORKSPACE_MEMBER } from "@/config/platform";
-import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
-import { getUnreadCount } from "@/lib/notifications/queries";
-import { NotificationBell } from "@/components/notifications/notification-bell";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -46,8 +45,10 @@ export default async function WorkspaceLayout({
     notFound();
   }
 
-  if (workspace.isSuspended) {
-    redirect("/onboarding?error=suspended");
+  const isOrbitAdmin = session.user.role === ADMIN_ROLE;
+
+  if (workspace.isSuspended && !isOrbitAdmin) {
+    return <WorkspaceSuspendedPage />;
   }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
@@ -64,8 +65,6 @@ export default async function WorkspaceLayout({
   const isAdminOrOwner = member.role !== WORKSPACE_MEMBER;
   const initial = workspace.name.charAt(0).toUpperCase();
   const email = session.user.email;
-  const unreadCount = await getUnreadCount(session.user.id);
-
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar */}
@@ -92,9 +91,9 @@ export default async function WorkspaceLayout({
             </p>
             {workspaceBoards.map((board) => (
               <Link
-                key={board.id}
                 className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 href={`/${workspace.slug}/b/${board.slug}`}
+                key={board.id}
               >
                 <LayoutGrid className="size-4 shrink-0" />
                 <span className="truncate">{board.name}</span>
@@ -110,7 +109,7 @@ export default async function WorkspaceLayout({
               className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               href={`/${workspace.slug}/roadmap`}
             >
-              <Map className="size-4 shrink-0" />
+              <MapIcon className="size-4 shrink-0" />
               <span className="truncate">Roadmap</span>
             </Link>
             <Link

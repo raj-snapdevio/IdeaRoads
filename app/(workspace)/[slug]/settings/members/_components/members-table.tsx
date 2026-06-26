@@ -26,30 +26,30 @@ import {
 
 interface Member {
   id: string;
-  userId: string;
-  role: "owner" | "admin" | "member";
   joinedAt: Date;
+  role: "owner" | "admin" | "member";
   user: {
     name: string | null;
     email: string;
   };
+  userId: string;
 }
 
 interface MembersTableProps {
-  members: Member[];
   actorMemberId: string;
-  actorUserId: string;
   actorRole: "owner" | "admin" | "member";
+  actorUserId: string;
+  members: Member[];
   workspaceId: string;
 }
 
 interface PendingConfirm {
-  title: string;
+  action: () => Promise<{ success: boolean; error?: string }>;
+  confirmLabel: string;
   description: string;
   memberId: string;
-  confirmLabel: string;
-  action: () => Promise<{ success: boolean; error?: string }>;
   successMessage: string;
+  title: string;
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -94,7 +94,9 @@ export function MembersTable({
   }
 
   async function handleConfirmedAction() {
-    if (!pendingConfirm) return;
+    if (!pendingConfirm) {
+      return;
+    }
     const { memberId, action, successMessage } = pendingConfirm;
     setPendingConfirm(null);
     setLoadingId(memberId);
@@ -127,8 +129,8 @@ export function MembersTable({
 
           return (
             <div
-              key={member.id}
               className="flex items-center gap-4 bg-background px-6 py-4"
+              key={member.id}
             >
               <div className="flex size-9 shrink-0 items-center justify-center bg-muted text-sm font-semibold text-muted-foreground uppercase">
                 {(member.user.name || member.user.email).charAt(0)}
@@ -169,10 +171,10 @@ export function MembersTable({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="sm"
                       className="size-8 p-0 text-muted-foreground hover:text-foreground"
                       disabled={loadingId === member.id}
+                      size="sm"
+                      variant="ghost"
                     >
                       {loadingId === member.id ? (
                         <Loader2 className="size-4 animate-spin" />
@@ -270,13 +272,13 @@ export function MembersTable({
       </div>
 
       <ConfirmDialog
-        open={!!pendingConfirm}
-        onOpenChange={(open) => !open && setPendingConfirm(null)}
-        title={pendingConfirm?.title ?? ""}
-        description={pendingConfirm?.description ?? ""}
         confirmLabel={pendingConfirm?.confirmLabel ?? "Confirm"}
+        description={pendingConfirm?.description ?? ""}
         isPending={!!loadingId}
         onConfirm={handleConfirmedAction}
+        onOpenChange={(open) => !open && setPendingConfirm(null)}
+        open={!!pendingConfirm}
+        title={pendingConfirm?.title ?? ""}
       />
     </>
   );

@@ -1,31 +1,35 @@
 "use client";
 
-import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { CornerDownRight, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import type { CommentData, ReplyData } from "./types";
 import CommentReactions from "./comment-reactions";
+import type { CommentData, ReplyData } from "./types";
 
 function getInitials(name: string | null): string {
-  if (!name) return "?";
+  if (!name) {
+    return "?";
+  }
   const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0]!.charAt(0).toUpperCase();
+  if (parts.length === 1) {
+    return parts[0]!.charAt(0).toUpperCase();
+  }
   return (
     parts[0]!.charAt(0) + parts[parts.length - 1]!.charAt(0)
   ).toUpperCase();
 }
 
 interface CommentItemProps {
+  canModerate: boolean;
   comment: CommentData | ReplyData;
   currentUserId: string | null;
-  canModerate: boolean;
+  depth?: number;
   isLocked: boolean;
   isSignedIn: boolean;
-  depth?: number;
-  onReply?: () => void;
   onDelete: (commentId: string) => void;
+  onReply?: () => void;
 }
 
 export default function CommentItem({
@@ -82,9 +86,9 @@ export default function CommentItem({
           {comment.authorAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={comment.authorAvatar}
               alt={displayName}
               className={`object-cover ${depth === 1 ? "size-6" : "size-7"}`}
+              src={comment.authorAvatar}
             />
           ) : (
             initials
@@ -116,9 +120,9 @@ export default function CommentItem({
 
           {/* Body — rendered as HTML from Quill */}
           <div
+            className="comment-body mt-1 text-sm leading-relaxed text-foreground wrap-break-word"
             // biome-ignore lint/security/noDangerouslySetInnerHtml: content from our own Quill editor
             dangerouslySetInnerHTML={{ __html: comment.body }}
-            className="comment-body mt-1 text-sm leading-relaxed text-foreground wrap-break-word"
           />
 
           {/* Reactions */}
@@ -133,8 +137,8 @@ export default function CommentItem({
             <div className="mt-2 flex items-center gap-3">
               {canReply && (
                 <button
-                  onClick={onReply}
                   className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  onClick={onReply}
                 >
                   <CornerDownRight className="size-3" />
                   Reply
@@ -142,9 +146,9 @@ export default function CommentItem({
               )}
               {canDelete && (
                 <button
-                  onClick={() => setShowDeleteDialog(true)}
                   aria-label="Delete comment"
                   className="inline-flex items-center gap-1 text-xs text-muted-foreground/40 hover:text-destructive transition-colors duration-150 focus-visible:outline-none"
+                  onClick={() => setShowDeleteDialog(true)}
                 >
                   <Trash2 className="size-3" />
                   Delete
@@ -156,13 +160,13 @@ export default function CommentItem({
       </div>
 
       <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Comment"
-        description="Are you sure you want to delete this comment? This action cannot be undone."
-        onConfirm={handleConfirmDelete}
-        isPending={isDeleting}
         confirmLabel="Delete"
+        description="Are you sure you want to delete this comment? This action cannot be undone."
+        isPending={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onOpenChange={setShowDeleteDialog}
+        open={showDeleteDialog}
+        title="Delete Comment"
       />
     </>
   );

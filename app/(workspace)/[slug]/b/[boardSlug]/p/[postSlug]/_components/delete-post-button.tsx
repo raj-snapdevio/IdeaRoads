@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { deletePostAction } from "@/app/actions/posts";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface DeletePostButtonProps {
+  boardHref: string;
   postId: string;
   workspaceId: string;
-  boardHref: string;
 }
 
 export default function DeletePostButton({
@@ -38,22 +38,22 @@ export default function DeletePostButton({
   return (
     <>
       <button
-        onClick={() => setShowDialog(true)}
-        disabled={isPending}
         className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+        disabled={isPending}
+        onClick={() => setShowDialog(true)}
       >
         <Trash2 className="size-3.5" />
         {isPending ? "Deleting…" : "Delete"}
       </button>
 
       <ConfirmDialog
-        open={showDialog}
-        onOpenChange={setShowDialog}
-        title="Delete Post"
-        description="Are you sure you want to delete this post? This action cannot be undone."
-        onConfirm={handleConfirm}
-        isPending={isPending}
         confirmLabel="Delete"
+        description="Are you sure you want to delete this post? This action cannot be undone."
+        isPending={isPending}
+        onConfirm={handleConfirm}
+        onOpenChange={setShowDialog}
+        open={showDialog}
+        title="Delete Post"
       />
     </>
   );

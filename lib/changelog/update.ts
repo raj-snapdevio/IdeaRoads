@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { changelogEntries, changelogPosts, posts } from "@/db/schema";
-import { db } from "@/lib/db";
 import { isValidLabel } from "@/lib/changelog/constants";
+import { db } from "@/lib/db";
 
 export async function updateChangelogEntry(
   entryId: string,
@@ -24,7 +24,9 @@ export async function updateChangelogEntry(
     )
     .limit(1);
 
-  if (!entry) throw new Error("Changelog entry not found.");
+  if (!entry) {
+    throw new Error("Changelog entry not found.");
+  }
 
   if (updates.label !== undefined && !isValidLabel(updates.label)) {
     throw new Error("Invalid label.");
@@ -51,9 +53,15 @@ export async function updateChangelogEntry(
 
   await db.transaction(async (tx) => {
     const entryUpdates: Record<string, unknown> = { updatedAt: new Date() };
-    if (updates.title !== undefined) entryUpdates.title = updates.title;
-    if (updates.body !== undefined) entryUpdates.body = updates.body;
-    if (updates.label !== undefined) entryUpdates.label = updates.label;
+    if (updates.title !== undefined) {
+      entryUpdates.title = updates.title;
+    }
+    if (updates.body !== undefined) {
+      entryUpdates.body = updates.body;
+    }
+    if (updates.label !== undefined) {
+      entryUpdates.label = updates.label;
+    }
 
     await tx
       .update(changelogEntries)

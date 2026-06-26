@@ -15,7 +15,9 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, boardSlug } = await params;
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) return { title: "New Post" };
+  if (!workspace) {
+    return { title: "New Post" };
+  }
   const board = await getBoardBySlug(workspace.id, boardSlug);
   return { title: `New post — ${board?.name ?? "Board"}` };
 }
@@ -25,21 +27,27 @@ export default async function NewPostPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) notFound();
+  if (!member) {
+    notFound();
+  }
 
   const board = await getBoardBySlug(workspace.id, boardSlug);
-  if (!board) notFound();
+  if (!board) {
+    notFound();
+  }
 
   return (
     <NewPostForm
       boardId={board.id}
+      boardName={board.name}
+      boardSlug={boardSlug}
       workspaceId={workspace.id}
       workspaceSlug={slug}
-      boardSlug={boardSlug}
-      boardName={board.name}
     />
   );
 }

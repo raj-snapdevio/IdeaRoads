@@ -15,14 +15,14 @@ import { enqueueJob } from "@/lib/worker/enqueue";
 import { JOB_NAMES } from "@/lib/worker/job-types";
 
 export interface CreateInviteInput {
+  appUrl: string;
+  email: string;
+  invitedById: string;
+  inviterEmail: string;
+  inviterName: string;
+  role: "member" | "admin";
   workspaceId: string;
   workspaceName: string;
-  invitedById: string;
-  inviterName: string;
-  inviterEmail: string;
-  email: string;
-  role: "member" | "admin";
-  appUrl: string;
 }
 
 export async function createInvite(
@@ -163,10 +163,18 @@ export async function acceptInvite(input: {
       .for("update")
       .limit(1);
 
-    if (!invite) return { ok: false, code: "not_found" };
-    if (invite.acceptedAt) return { ok: false, code: "already_accepted" };
-    if (invite.revokedAt) return { ok: false, code: "revoked" };
-    if (invite.expiresAt <= new Date()) return { ok: false, code: "expired" };
+    if (!invite) {
+      return { ok: false, code: "not_found" };
+    }
+    if (invite.acceptedAt) {
+      return { ok: false, code: "already_accepted" };
+    }
+    if (invite.revokedAt) {
+      return { ok: false, code: "revoked" };
+    }
+    if (invite.expiresAt <= new Date()) {
+      return { ok: false, code: "expired" };
+    }
 
     const [workspace] = await tx
       .select({
@@ -198,7 +206,9 @@ export async function acceptInvite(input: {
       )
       .limit(1);
 
-    if (existingMember) return { ok: false, code: "already_member" };
+    if (existingMember) {
+      return { ok: false, code: "already_member" };
+    }
 
     await tx.insert(workspaceMembers).values({
       workspaceId: invite.workspaceId,

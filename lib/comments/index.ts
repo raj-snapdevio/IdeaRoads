@@ -1,15 +1,15 @@
-export { listComments, getCommentById, getCommentCount } from "./queries";
-export type { CommentRow, CommentWithReplies } from "./queries";
 export {
-  createComment,
-  sendCommentNotifications,
   CommentBlockedError,
   CommentNotFoundError,
+  createComment,
+  sendCommentNotifications,
 } from "./create";
-export { deleteComment, CommentDeleteError } from "./delete";
+export { CommentDeleteError, deleteComment } from "./delete";
+export type { CommentRow, CommentWithReplies } from "./queries";
+export { getCommentById, getCommentCount, listComments } from "./queries";
+export type { ReactionEmoji, ReactionGroup } from "./reactions";
 export {
   getReactionsForComments,
-  toggleReaction,
   REACTION_EMOJIS,
+  toggleReaction,
 } from "./reactions";
-export type { ReactionGroup, ReactionEmoji } from "./reactions";

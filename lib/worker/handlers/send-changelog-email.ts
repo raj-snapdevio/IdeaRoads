@@ -1,12 +1,12 @@
 import { eq } from "drizzle-orm";
 import type { Job } from "pg-boss";
 import { changelogEntries, workspaces } from "@/db/schema";
-import { db } from "@/lib/db";
 import { truncateMarkdownToText } from "@/lib/changelog/markdown";
+import { db } from "@/lib/db";
 import { enqueueEmail } from "@/lib/email/index";
 import { changelogEmailTemplate } from "@/lib/email/templates/changelog";
-import { createNotification } from "@/lib/notifications/create";
 import { env } from "@/lib/env";
+import { createNotification } from "@/lib/notifications/create";
 import type { SendChangelogEmailPayload } from "@/lib/worker/job-types";
 
 export async function handleSendChangelogEmail(

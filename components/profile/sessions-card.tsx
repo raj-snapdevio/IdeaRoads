@@ -46,48 +46,52 @@ export function SessionsCard({ sessions }: { sessions: SessionRow[] }) {
         </div>
         {otherSessionCount > 0 && (
           <form action={signOutOtherSessionsAction}>
-            <Button type="submit" variant="secondary" size="sm">
+            <Button size="sm" type="submit" variant="secondary">
               Sign out other sessions
             </Button>
           </form>
         )}
       </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
-        <Table>
+      <CardContent className="p-0">
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>Session</TableHead>
-              <TableHead>IP</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>Expires</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead className="w-[38%]">Session</TableHead>
+              <TableHead className="w-[16%]">IP</TableHead>
+              <TableHead className="w-[18%]">Created</TableHead>
+              <TableHead className="w-[18%]">Expires</TableHead>
+              <TableHead className="w-[10%]">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {sessions.map((session) => (
               <TableRow key={session.id}>
-                <TableCell>
+                <TableCell className="max-w-0">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-semibold">
+                      <span className="font-semibold truncate">
                         {session.userAgent
                           ? describeUserAgent(session.userAgent)
                           : "Unknown device"}
                       </span>
                       {session.isCurrent && (
-                        <Badge className="text-success">Current</Badge>
+                        <Badge className="text-success shrink-0">Current</Badge>
                       )}
                     </div>
-                    <span className="max-w-md truncate text-muted-foreground text-xs">
+                    <span className="truncate text-muted-foreground text-xs">
                       {session.userAgent ?? "No user agent recorded"}
                     </span>
                   </div>
                 </TableCell>
-                <TableCell className="font-mono text-xs">
+                <TableCell className="font-mono text-xs whitespace-nowrap">
                   {session.ipAddress ?? "-"}
                 </TableCell>
-                <TableCell>{formatDateTime(session.createdAt)}</TableCell>
-                <TableCell>{formatDateTime(session.expiresAt)}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {formatDateTime(session.createdAt)}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {formatDateTime(session.expiresAt)}
+                </TableCell>
                 <TableCell>
                   {session.isCurrent ? (
                     <span className="text-muted-foreground text-sm">
@@ -100,7 +104,7 @@ export function SessionsCard({ sessions }: { sessions: SessionRow[] }) {
                         type="hidden"
                         value={session.id}
                       />
-                      <Button type="submit" variant="secondary" size="sm">
+                      <Button size="sm" type="submit" variant="secondary">
                         Revoke
                       </Button>
                     </form>

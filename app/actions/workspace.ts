@@ -92,10 +92,14 @@ export async function createWorkspaceAction(formData: {
 export async function checkSlugAction(
   slug: string
 ): Promise<{ available: boolean; error?: string }> {
-  if (!slug) return { available: false };
+  if (!slug) {
+    return { available: false };
+  }
 
   const slugError = validateSlugFormat(slug);
-  if (slugError) return { available: false, error: slugError };
+  if (slugError) {
+    return { available: false, error: slugError };
+  }
 
   if ((RESERVED_SLUGS as readonly string[]).includes(slug)) {
     return { available: false, error: "This URL is reserved." };

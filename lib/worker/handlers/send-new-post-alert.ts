@@ -1,8 +1,8 @@
 import type { Job } from "pg-boss";
 import { enqueueEmail } from "@/lib/email/index";
 import { newPostAlertEmailTemplate } from "@/lib/email/templates/new-post-alert";
-import { createNotification } from "@/lib/notifications/create";
 import { env } from "@/lib/env";
+import { createNotification } from "@/lib/notifications/create";
 import type { SendNewPostAlertPayload } from "@/lib/worker/job-types";
 
 export async function handleSendNewPostAlert(
@@ -30,7 +30,9 @@ async function processSendNewPostAlert(job: Job<SendNewPostAlertPayload>) {
   } = job.data;
 
   // Self-notification suppression: don't alert the admin who authored the post
-  if (authorId === adminUserId) return;
+  if (authorId === adminUserId) {
+    return;
+  }
 
   const postUrl = `${env.NEXT_PUBLIC_APP_URL}/${workspaceSlug}/b/${boardSlug}/p/${postSlug}`;
 

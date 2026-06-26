@@ -42,11 +42,11 @@ export function Footer() {
               href="/"
             >
               <Image
-                src={LOGO_PATH}
                 alt={PRODUCT_NAME}
-                width={500}
-                height={164}
                 className="h-9 w-auto"
+                height={164}
+                src={LOGO_PATH}
+                width={500}
               />
             </Link>
             <p className="mt-3 text-sm text-muted-foreground">

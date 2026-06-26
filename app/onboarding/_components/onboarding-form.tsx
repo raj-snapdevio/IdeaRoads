@@ -76,7 +76,9 @@ export function OnboardingForm({ appHost }: OnboardingFormProps) {
     if (!slugLocked) {
       const generated = slugify(name);
       setSlug(generated);
-      if (slugCheckTimeout.current) clearTimeout(slugCheckTimeout.current);
+      if (slugCheckTimeout.current) {
+        clearTimeout(slugCheckTimeout.current);
+      }
       if (generated.length >= 2) {
         setSlugState("checking");
         slugCheckTimeout.current = setTimeout(() => {
@@ -88,7 +90,9 @@ export function OnboardingForm({ appHost }: OnboardingFormProps) {
       }
     }
     return () => {
-      if (slugCheckTimeout.current) clearTimeout(slugCheckTimeout.current);
+      if (slugCheckTimeout.current) {
+        clearTimeout(slugCheckTimeout.current);
+      }
     };
   }, [name, slugLocked, checkSlug]);
 
@@ -96,7 +100,9 @@ export function OnboardingForm({ appHost }: OnboardingFormProps) {
     const sanitized = value.toLowerCase().replace(/[^a-z0-9-]/g, "");
     setSlug(sanitized);
     setSlugLocked(true);
-    if (slugCheckTimeout.current) clearTimeout(slugCheckTimeout.current);
+    if (slugCheckTimeout.current) {
+      clearTimeout(slugCheckTimeout.current);
+    }
     if (sanitized.length >= 2) {
       setSlugState("checking");
       slugCheckTimeout.current = setTimeout(() => {

@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { createPostAction } from "@/app/actions/posts";
 
 interface Props {
   boardId: string;
+  boardName: string;
+  boardSlug: string;
   workspaceId: string;
   workspaceSlug: string;
-  boardSlug: string;
-  boardName: string;
 }
 
 export default function NewPostForm({
@@ -29,7 +29,7 @@ export default function NewPostForm({
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   const boardHref = `/${workspaceSlug}/b/${boardSlug}`;
-  const bodyRemaining = 10000 - body.length;
+  const bodyRemaining = 10_000 - body.length;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -67,8 +67,8 @@ export default function NewPostForm({
       {/* Back nav */}
       <div className="border-b border-border px-8 py-4">
         <Link
-          href={boardHref}
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          href={boardHref}
         >
           <ArrowLeft className="size-4" />
           {boardName}
@@ -80,30 +80,32 @@ export default function NewPostForm({
           Submit feedback
         </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form className="space-y-5" onSubmit={handleSubmit}>
           {/* Title */}
           <div>
             <label
-              htmlFor="post-title"
               className="block text-sm font-medium text-foreground mb-1.5"
+              htmlFor="post-title"
             >
               Title <span className="text-destructive">*</span>
             </label>
             <input
-              id="post-title"
-              type="text"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (titleError) setTitleError(null);
-              }}
-              placeholder="Short, descriptive title for your idea or request"
-              maxLength={150}
-              required
-              disabled={isPending}
               className={`w-full px-3 py-2.5 text-sm bg-background border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50 ${
                 titleError ? "border-destructive" : "border-input"
               }`}
+              disabled={isPending}
+              id="post-title"
+              maxLength={150}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (titleError) {
+                  setTitleError(null);
+                }
+              }}
+              placeholder="Short, descriptive title for your idea or request"
+              required
+              type="text"
+              value={title}
             />
             <div className="flex items-start justify-between mt-1">
               {titleError ? (
@@ -120,8 +122,8 @@ export default function NewPostForm({
           {/* Body */}
           <div>
             <label
-              htmlFor="post-body"
               className="block text-sm font-medium text-foreground mb-1.5"
+              htmlFor="post-body"
             >
               Description{" "}
               <span className="text-muted-foreground font-normal text-xs">
@@ -129,14 +131,14 @@ export default function NewPostForm({
               </span>
             </label>
             <textarea
+              className="w-full resize-none px-3 py-2.5 text-sm bg-background border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              disabled={isPending}
               id="post-body"
-              value={body}
+              maxLength={10_000}
               onChange={(e) => setBody(e.target.value)}
               placeholder="Add more context — what problem does this solve? What would the ideal solution look like?"
-              maxLength={10000}
               rows={7}
-              disabled={isPending}
-              className="w-full resize-none px-3 py-2.5 text-sm bg-background border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+              value={body}
             />
             <p className="mt-1 text-xs text-muted-foreground text-right">
               {bodyRemaining.toLocaleString()} characters remaining
@@ -150,15 +152,15 @@ export default function NewPostForm({
           {/* Actions */}
           <div className="flex items-center gap-3 pt-1">
             <button
-              type="submit"
-              disabled={isPending || title.trim().length < 3}
               className="px-5 py-2.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              disabled={isPending || title.trim().length < 3}
+              type="submit"
             >
               {isPending ? "Submitting…" : "Submit feedback"}
             </button>
             <Link
-              href={boardHref}
               className="px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={boardHref}
             >
               Cancel
             </Link>

@@ -1,34 +1,34 @@
 export interface ReactionGroup {
-  emoji: string;
   count: number;
+  emoji: string;
   hasReacted: boolean;
 }
 
 export interface ReplyData {
-  id: string;
-  postId: string;
-  parentId: string | null;
-  body: string;
-  isDeleted: boolean;
-  isApproved: boolean;
-  authorName: string | null;
   authorAvatar: string | null;
-  isGuest: boolean;
+  authorName: string | null;
+  body: string;
   createdAt: string;
+  id: string;
+  isApproved: boolean;
+  isDeleted: boolean;
+  isGuest: boolean;
+  parentId: string | null;
+  postId: string;
   reactions: ReactionGroup[];
 }
 
 export interface CommentData {
-  id: string;
-  postId: string;
-  parentId: string | null;
-  body: string;
-  isDeleted: boolean;
-  isApproved: boolean;
-  authorName: string | null;
   authorAvatar: string | null;
-  isGuest: boolean;
+  authorName: string | null;
+  body: string;
   createdAt: string;
+  id: string;
+  isApproved: boolean;
+  isDeleted: boolean;
+  isGuest: boolean;
+  parentId: string | null;
+  postId: string;
   reactions: ReactionGroup[];
   replies: ReplyData[];
 }

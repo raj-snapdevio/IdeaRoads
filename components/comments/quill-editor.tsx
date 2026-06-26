@@ -4,11 +4,11 @@ import "quill/dist/quill.snow.css";
 import { useEffect, useRef } from "react";
 
 interface QuillEditorProps {
-  value: string;
-  onChange: (html: string, text: string) => void;
-  placeholder?: string;
   disabled?: boolean;
   minHeight?: number;
+  onChange: (html: string, text: string) => void;
+  placeholder?: string;
+  value: string;
 }
 
 export default function QuillEditor({
@@ -27,7 +27,9 @@ export default function QuillEditor({
 
   useEffect(() => {
     const wrapper = wrapperRef.current;
-    if (!wrapper) return;
+    if (!wrapper) {
+      return;
+    }
 
     // Create a fresh inner div each time so Strict Mode's double-mount
     // can't re-use a div that already has Quill's DOM structure on it.
@@ -37,7 +39,9 @@ export default function QuillEditor({
     import("quill").then(({ default: Quill }) => {
       // If cleanup already ran (editorDiv removed from DOM), abort.
       // Also abort if another instance already registered.
-      if (!document.contains(editorDiv) || quillRef.current) return;
+      if (!document.contains(editorDiv) || quillRef.current) {
+        return;
+      }
 
       const quill = new Quill(editorDiv, {
         theme: "snow",
@@ -66,7 +70,9 @@ export default function QuillEditor({
         onChangeRef.current(html === "<p><br></p>" ? "" : html, text);
       });
 
-      if (disabled) quill.disable();
+      if (disabled) {
+        quill.disable();
+      }
     });
 
     return () => {
@@ -79,9 +85,14 @@ export default function QuillEditor({
 
   // Sync disabled state after init
   useEffect(() => {
-    if (!quillRef.current) return;
-    if (disabled) quillRef.current.disable();
-    else quillRef.current.enable();
+    if (!quillRef.current) {
+      return;
+    }
+    if (disabled) {
+      quillRef.current.disable();
+    } else {
+      quillRef.current.enable();
+    }
   }, [disabled]);
 
   return (
@@ -90,8 +101,8 @@ export default function QuillEditor({
       style={{ ["--ql-min-height" as string]: `${minHeight}px` }}
     >
       <div
-        ref={wrapperRef}
         className={disabled ? "opacity-50 pointer-events-none" : ""}
+        ref={wrapperRef}
       />
     </div>
   );

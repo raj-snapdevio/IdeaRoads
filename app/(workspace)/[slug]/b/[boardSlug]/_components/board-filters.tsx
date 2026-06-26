@@ -1,31 +1,31 @@
 "use client";
 
+import { Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useRef, useTransition } from "react";
-import { Search, X } from "lucide-react";
 
 interface WorkspaceStatus {
-  slug: string;
-  name: string;
   color: string;
+  name: string;
+  slug: string;
 }
 
 interface Category {
-  id: string;
-  name: string;
   color: string;
+  id: string;
   isArchived: boolean;
+  name: string;
 }
 
 interface BoardFiltersProps {
-  activeSort: "newest" | "top";
-  activeStatus: string;
   activeCategoryId: string;
   activeSearch: string;
+  activeSort: "newest" | "top";
+  activeStatus: string;
+  categories: Category[];
   myVotesActive: boolean;
   showMyVotes: boolean;
   workspaceStatuses: WorkspaceStatus[];
-  categories: Category[];
 }
 
 const SORT_TABS = [
@@ -69,7 +69,9 @@ export default function BoardFilters({
 
   function handleSearch(e: React.ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
     debounceRef.current = setTimeout(() => {
       updateParam({ q: value || null });
     }, 300);
@@ -89,13 +91,13 @@ export default function BoardFilters({
         <div className="flex">
           {SORT_TABS.map((tab) => (
             <button
-              key={tab.value}
-              onClick={() => updateParam({ sort: tab.value })}
               className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors duration-150 focus-visible:outline-none ${
                 activeSort === tab.value
                   ? "border-foreground text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
+              key={tab.value}
+              onClick={() => updateParam({ sort: tab.value })}
             >
               {tab.label}
             </button>
@@ -106,12 +108,12 @@ export default function BoardFilters({
         <div className="flex items-center gap-3">
           {showMyVotes && (
             <button
-              onClick={toggleMyVotes}
               className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium border transition-colors duration-150 focus-visible:outline-none ${
                 myVotesActive
                   ? "border-primary/40 bg-primary/5 text-primary"
                   : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
               }`}
+              onClick={toggleMyVotes}
             >
               My Votes
               {myVotesActive && <X className="size-2.5" />}
@@ -121,11 +123,11 @@ export default function BoardFilters({
           {/* Category filter */}
           {activeCategories.length > 0 && (
             <select
-              value={activeCategoryId}
+              className="text-xs border-0 bg-transparent text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer py-1 pr-6 pl-1"
               onChange={(e) =>
                 updateParam({ category: e.target.value || null })
               }
-              className="text-xs border-0 bg-transparent text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer py-1 pr-6 pl-1"
+              value={activeCategoryId}
             >
               <option value="">All categories</option>
               {activeCategories.map((c) => (
@@ -138,9 +140,9 @@ export default function BoardFilters({
 
           {/* Status filter */}
           <select
-            value={activeStatus}
-            onChange={(e) => updateParam({ status: e.target.value || null })}
             className="text-xs border-0 bg-transparent text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer py-1 pr-6 pl-1"
+            onChange={(e) => updateParam({ status: e.target.value || null })}
+            value={activeStatus}
           >
             <option value="">All statuses</option>
             {workspaceStatuses.map((s) => (
@@ -156,16 +158,16 @@ export default function BoardFilters({
       <div className="relative border-b border-border">
         <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
         <input
-          type="search"
+          className="w-full bg-transparent py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           defaultValue={activeSearch}
           onChange={handleSearch}
           placeholder="Search posts…"
-          className="w-full bg-transparent py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+          type="search"
         />
         {activeSearch && (
           <button
-            onClick={() => updateParam({ q: null })}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            onClick={() => updateParam({ q: null })}
           >
             <X className="size-3.5" />
           </button>

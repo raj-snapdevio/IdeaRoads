@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import dynamic from "next/dynamic";
+import { useState } from "react";
 import type { CommentData } from "./types";
 
 const QuillEditor = dynamic(() => import("./quill-editor"), { ssr: false });
 
 interface CommentFormProps {
-  postId: string;
-  isSignedIn: boolean;
   isLocked: boolean;
+  isSignedIn: boolean;
   onSuccess: (comment: CommentData) => void;
+  postId: string;
 }
 
 export default function CommentForm({
@@ -33,13 +33,19 @@ export default function CommentForm({
   function handleChange(newHtml: string, newText: string) {
     setHtml(newHtml);
     setText(newText);
-    if (error) setError(null);
-    if (pendingMessage) setPendingMessage(null);
+    if (error) {
+      setError(null);
+    }
+    if (pendingMessage) {
+      setPendingMessage(null);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!text.trim() || isPending) return;
+    if (!text.trim() || isPending) {
+      return;
+    }
     if (text.length > MAX) {
       setError(`Comment must be ${MAX.toLocaleString()} characters or fewer.`);
       return;
@@ -103,7 +109,7 @@ export default function CommentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
+    <form className="space-y-3" onSubmit={handleSubmit}>
       {!isSignedIn && (
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -111,13 +117,13 @@ export default function CommentForm({
               Name <span className="text-destructive">*</span>
             </label>
             <input
-              type="text"
-              value={guestName}
+              className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              maxLength={100}
               onChange={(e) => setGuestName(e.target.value)}
               placeholder="Your name"
-              maxLength={100}
               required
-              className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              type="text"
+              value={guestName}
             />
           </div>
           <div>
@@ -125,25 +131,25 @@ export default function CommentForm({
               Email <span className="text-destructive">*</span>
             </label>
             <input
-              type="email"
-              value={guestEmail}
+              className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              maxLength={255}
               onChange={(e) => setGuestEmail(e.target.value)}
               placeholder="you@example.com"
-              maxLength={255}
               required
-              className="w-full border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              type="email"
+              value={guestEmail}
             />
           </div>
         </div>
       )}
 
       <QuillEditor
+        disabled={isPending}
         key={editorKey}
-        value={html}
+        minHeight={100}
         onChange={handleChange}
         placeholder="Leave a comment…"
-        disabled={isPending}
-        minHeight={100}
+        value={html}
       />
 
       {error && <p className="text-xs text-destructive">{error}</p>}
@@ -160,9 +166,9 @@ export default function CommentForm({
             : ""}
         </span>
         <button
-          type="submit"
-          disabled={isPending || !text.trim()}
           className="px-4 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+          disabled={isPending || !text.trim()}
+          type="submit"
         >
           {isPending ? "Posting…" : "Post comment"}
         </button>

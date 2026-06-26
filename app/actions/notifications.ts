@@ -1,11 +1,11 @@
 "use server";
 
 import { requireSession } from "@/lib/authz";
+import type { NotificationPreferencesRow } from "@/lib/notifications/queries";
 import {
   getNotificationPreferences,
   upsertNotificationPreferences,
 } from "@/lib/notifications/queries";
-import type { NotificationPreferencesRow } from "@/lib/notifications/queries";
 
 type ActionResult<T = undefined> =
   | { success: true; data: T }

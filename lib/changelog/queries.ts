@@ -105,7 +105,9 @@ export async function getChangelogEntryById(
     )
     .limit(1);
 
-  if (!entry) return null;
+  if (!entry) {
+    return null;
+  }
 
   const linkedPosts = await getLinkedPosts(entryId);
 

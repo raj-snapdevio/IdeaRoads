@@ -1,9 +1,9 @@
 export { castVote, VoteBlockedError, VoteNotFoundError } from "./cast";
-export { removeVote } from "./remove";
+export type { Voter } from "./list";
 export {
-  listVoters,
+  getBatchVotedSet,
   getVotedPostIds,
   hasUserVoted,
-  getBatchVotedSet,
+  listVoters,
 } from "./list";
-export type { Voter } from "./list";
+export { removeVote } from "./remove";

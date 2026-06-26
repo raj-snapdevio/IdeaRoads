@@ -1,22 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { X, UserRound } from "lucide-react";
+import { UserRound, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface Voter {
-  id: string;
-  name: string | null;
   email: string | null;
+  id: string;
   image: string | null;
-  votedAt: string;
   isGuest: boolean;
+  name: string | null;
+  votedAt: string;
 }
 
 interface VoterListModalProps {
+  onClose: () => void;
   postId: string;
   voteCount: number;
-  onClose: () => void;
 }
 
 export default function VoterListModal({
@@ -66,9 +66,9 @@ export default function VoterListModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
+        aria-hidden="true"
         className="absolute inset-0 bg-black/40"
         onClick={onClose}
-        aria-hidden="true"
       />
 
       <div className="relative z-10 w-full max-w-md bg-background border border-border shadow-lg mx-4 flex flex-col max-h-[80vh]">
@@ -81,9 +81,9 @@ export default function VoterListModal({
             </p>
           </div>
           <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground transition-colors"
             aria-label="Close"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            onClick={onClose}
           >
             <X className="size-4" />
           </button>
@@ -107,17 +107,17 @@ export default function VoterListModal({
             <ul className="divide-y divide-border">
               {voters.map((voter) => (
                 <li
-                  key={voter.id}
                   className="flex items-center gap-3 px-5 py-3"
+                  key={voter.id}
                 >
                   {/* Avatar */}
                   <div className="size-7 shrink-0 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                     {voter.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={voter.image}
                         alt={voter.name ?? ""}
                         className="size-full object-cover"
+                        src={voter.image}
                       />
                     ) : (
                       <UserRound className="size-3.5 text-muted-foreground" />
@@ -157,9 +157,9 @@ export default function VoterListModal({
           {hasMore && (
             <div className="px-5 py-3 border-t border-border">
               <button
-                onClick={loadMore}
-                disabled={isLoading}
                 className="w-full py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                disabled={isLoading}
+                onClick={loadMore}
               >
                 {isLoading ? "Loading…" : "Load more"}
               </button>

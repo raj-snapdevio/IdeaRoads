@@ -3,9 +3,9 @@ import { RoadmapColumn } from "./roadmap-column";
 
 interface RoadmapBoardProps {
   data: RoadmapData;
-  workspaceSlug: string;
-  isSignedIn: boolean;
   isAdmin?: boolean;
+  isSignedIn: boolean;
+  workspaceSlug: string;
 }
 
 export function RoadmapBoard({
@@ -26,22 +26,22 @@ export function RoadmapBoard({
       {/* Three-column kanban */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <RoadmapColumn
-          status="planned"
+          isSignedIn={isSignedIn}
           posts={data.planned}
+          status="planned"
           workspaceSlug={workspaceSlug}
-          isSignedIn={isSignedIn}
         />
         <RoadmapColumn
-          status="in_progress"
+          isSignedIn={isSignedIn}
           posts={data.in_progress}
+          status="in_progress"
           workspaceSlug={workspaceSlug}
-          isSignedIn={isSignedIn}
         />
         <RoadmapColumn
-          status="completed"
-          posts={data.completed}
-          workspaceSlug={workspaceSlug}
           isSignedIn={isSignedIn}
+          posts={data.completed}
+          status="completed"
+          workspaceSlug={workspaceSlug}
         />
       </div>
     </div>

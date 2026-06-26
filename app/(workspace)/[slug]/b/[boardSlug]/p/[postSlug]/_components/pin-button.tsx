@@ -1,14 +1,14 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Pin, PinOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { pinPostAction } from "@/app/actions/posts";
 
 interface PinButtonProps {
+  isPinned: boolean;
   postId: string;
   workspaceId: string;
-  isPinned: boolean;
 }
 
 export default function PinButton({
@@ -28,9 +28,9 @@ export default function PinButton({
 
   return (
     <button
-      onClick={handleToggle}
-      disabled={isPending}
       className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+      disabled={isPending}
+      onClick={handleToggle}
     >
       {isPinned ? (
         <>

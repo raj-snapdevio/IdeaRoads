@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
 import { eq, sql } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
 import { WORKSPACE_MEMBER } from "@/config/platform";
-import { getCurrentSession } from "@/lib/authz";
+import { comments, posts } from "@/db/schema";
 import { audit } from "@/lib/audit";
+import { getCurrentSession } from "@/lib/authz";
 import { getCommentById, sendCommentNotifications } from "@/lib/comments";
+import { db } from "@/lib/db";
 import { getPost } from "@/lib/posts/queries";
 import { getWorkspaceMember } from "@/lib/workspaces/queries";
-import { comments, posts } from "@/db/schema";
-import { db } from "@/lib/db";
 
 interface Params {
   params: Promise<{ commentId: string }>;

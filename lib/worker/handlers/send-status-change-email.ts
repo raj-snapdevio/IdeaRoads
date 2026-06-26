@@ -1,12 +1,11 @@
 import { eq } from "drizzle-orm";
 import type { Job } from "pg-boss";
 import { notificationPreferences } from "@/db/schema/notifications";
-import { workspaces } from "@/db/schema";
 import { db } from "@/lib/db";
 import { enqueueEmail } from "@/lib/email/index";
 import { statusChangeEmailTemplate } from "@/lib/email/templates/status-change";
-import { createNotification } from "@/lib/notifications/create";
 import { env } from "@/lib/env";
+import { createNotification } from "@/lib/notifications/create";
 import type { SendStatusChangeEmailPayload } from "@/lib/worker/job-types";
 
 export async function handleSendStatusChangeEmail(
@@ -37,7 +36,9 @@ async function processSendStatusChangeEmail(
   } = job.data;
 
   // Self-notification suppression
-  if (voterUserId && voterUserId === changedById) return;
+  if (voterUserId && voterUserId === changedById) {
+    return;
+  }
 
   const postUrl = `${env.NEXT_PUBLIC_APP_URL}/${workspaceSlug}/b/${boardSlug}/p/${postSlug}`;
 

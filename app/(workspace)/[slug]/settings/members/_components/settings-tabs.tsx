@@ -22,13 +22,13 @@ export function SettingsTabs({ slug }: { slug: string }) {
             : pathname === membersHref || !pathname.startsWith(invitesHref);
         return (
           <Link
-            key={tab.href}
-            href={tab.href}
             className={`-mb-px border-b-2 px-4 py-2.5 text-sm font-medium transition-colors duration-150 ${
               isActive
                 ? "border-foreground text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
+            href={tab.href}
+            key={tab.href}
           >
             {tab.label}
           </Link>

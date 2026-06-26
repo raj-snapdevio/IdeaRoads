@@ -3,31 +3,29 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
-import { ChangelogLabelBadge } from "@/components/changelog/changelog-label-badge";
-import { LinkedPostsSelector } from "@/components/changelog/linked-posts-selector";
 import {
   createChangelogEntryAction,
   publishChangelogEntryAction,
   updateChangelogEntryAction,
 } from "@/app/actions/changelog";
+import { ChangelogLabelBadge } from "@/components/changelog/changelog-label-badge";
+import { LinkedPostsSelector } from "@/components/changelog/linked-posts-selector";
 import {
   CHANGELOG_LABEL_VALUES,
   getLabelInfo,
 } from "@/lib/changelog/constants";
 
 interface LinkedPost {
+  boardName: string;
+  boardSlug: string;
   id: string;
-  title: string;
   slug: string;
   status: string;
+  title: string;
   upvotes: number;
-  boardSlug: string;
-  boardName: string;
 }
 
 interface ChangelogEditorProps {
-  workspaceId: string;
-  workspaceSlug: string;
   initialEntry?: {
     id: string;
     title: string;
@@ -36,6 +34,8 @@ interface ChangelogEditorProps {
     isPublished: boolean;
     linkedPosts: LinkedPost[];
   };
+  workspaceId: string;
+  workspaceSlug: string;
 }
 
 type EditorTab = "write" | "preview";
@@ -69,7 +69,9 @@ export function ChangelogEditor({
   const pendingAutoSave = useRef(false);
 
   const doAutoSave = useCallback(async () => {
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      return;
+    }
     setSaveStatus("saving");
     try {
       if (entryId) {
@@ -89,7 +91,9 @@ export function ChangelogEditor({
           label,
           postIds: linkedPosts.map((p) => p.id),
         });
-        if (result.success) setEntryId(result.data.id);
+        if (result.success) {
+          setEntryId(result.data.id);
+        }
       }
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2000);
@@ -100,9 +104,13 @@ export function ChangelogEditor({
 
   // Schedule auto-save whenever content changes
   useEffect(() => {
-    if (!title.trim()) return;
+    if (!title.trim()) {
+      return;
+    }
     pendingAutoSave.current = true;
-    if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+    if (autoSaveRef.current) {
+      clearTimeout(autoSaveRef.current);
+    }
     autoSaveRef.current = setTimeout(() => {
       if (pendingAutoSave.current) {
         pendingAutoSave.current = false;
@@ -110,13 +118,17 @@ export function ChangelogEditor({
       }
     }, 30_000);
     return () => {
-      if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+      if (autoSaveRef.current) {
+        clearTimeout(autoSaveRef.current);
+      }
     };
   }, [title, body, label, linkedPosts, doAutoSave]);
 
   // Load preview HTML when switching to preview tab
   useEffect(() => {
-    if (tab !== "preview") return;
+    if (tab !== "preview") {
+      return;
+    }
     import("@/lib/changelog/markdown").then(({ renderMarkdown }) => {
       setPreviewHtml(renderMarkdown(body));
     });
@@ -128,7 +140,9 @@ export function ChangelogEditor({
       return;
     }
     startTransition(async () => {
-      if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+      if (autoSaveRef.current) {
+        clearTimeout(autoSaveRef.current);
+      }
       if (entryId) {
         const result = await updateChangelogEntryAction({
           entryId,
@@ -169,10 +183,25 @@ export function ChangelogEditor({
       return;
     }
     startTransition(async () => {
-      if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+      if (autoSaveRef.current) {
+        clearTimeout(autoSaveRef.current);
+      }
 
       let id = entryId;
-      if (!id) {
+      if (id) {
+        const result = await updateChangelogEntryAction({
+          entryId: id,
+          workspaceId,
+          title: title.trim(),
+          body,
+          label,
+          postIds: linkedPosts.map((p) => p.id),
+        });
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+      } else {
         const result = await createChangelogEntryAction({
           workspaceId,
           title: title.trim(),
@@ -186,19 +215,6 @@ export function ChangelogEditor({
         }
         id = result.data.id;
         setEntryId(id);
-      } else {
-        const result = await updateChangelogEntryAction({
-          entryId: id,
-          workspaceId,
-          title: title.trim(),
-          body,
-          label,
-          postIds: linkedPosts.map((p) => p.id),
-        });
-        if (!result.success) {
-          toast.error(result.error);
-          return;
-        }
       }
 
       const publishResult = await publishChangelogEntryAction({
@@ -216,9 +232,13 @@ export function ChangelogEditor({
   }
 
   function handleUpdate() {
-    if (!entryId || !title.trim()) return;
+    if (!entryId || !title.trim()) {
+      return;
+    }
     startTransition(async () => {
-      if (autoSaveRef.current) clearTimeout(autoSaveRef.current);
+      if (autoSaveRef.current) {
+        clearTimeout(autoSaveRef.current);
+      }
       const result = await updateChangelogEntryAction({
         entryId,
         workspaceId,
@@ -248,13 +268,13 @@ export function ChangelogEditor({
         </label>
         <div className="relative">
           <input
+            className="w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
             id="title"
-            type="text"
-            value={title}
+            maxLength={200}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="What shipped?"
-            maxLength={200}
-            className="w-full border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+            type="text"
+            value={title}
           />
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
             {title.length}/200
@@ -276,14 +296,13 @@ export function ChangelogEditor({
             const isActive = label === l;
             return (
               <button
-                key={l}
-                type="button"
-                onClick={() => setLabel(l)}
                 className={`px-3 py-1.5 text-xs font-semibold border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   isActive
                     ? "border-current"
                     : "border-border text-muted-foreground hover:border-muted-foreground/50"
                 }`}
+                key={l}
+                onClick={() => setLabel(l)}
                 style={
                   isActive
                     ? {
@@ -293,6 +312,7 @@ export function ChangelogEditor({
                       }
                     : {}
                 }
+                type="button"
               >
                 {info.label}
               </button>
@@ -312,24 +332,24 @@ export function ChangelogEditor({
           </label>
           <div className="flex">
             <button
-              type="button"
-              onClick={() => setTab("write")}
               className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors focus-visible:outline-none ${
                 tab === "write"
                   ? "border-foreground text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
+              onClick={() => setTab("write")}
+              type="button"
             >
               Write
             </button>
             <button
-              type="button"
-              onClick={() => setTab("preview")}
               className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors focus-visible:outline-none ${
                 tab === "preview"
                   ? "border-foreground text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
+              onClick={() => setTab("preview")}
+              type="button"
             >
               Preview
             </button>
@@ -338,12 +358,12 @@ export function ChangelogEditor({
 
         {tab === "write" ? (
           <textarea
-            value={body}
+            className="w-full border border-border bg-background px-3 py-2.5 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-y"
+            maxLength={50_000}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Write your changelog in Markdown…&#10;&#10;## What's new&#10;&#10;- Feature A&#10;- Feature B"
             rows={18}
-            maxLength={50000}
-            className="w-full border border-border bg-background px-3 py-2.5 text-sm font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring resize-y"
+            value={body}
           />
         ) : (
           <div
@@ -375,9 +395,9 @@ export function ChangelogEditor({
           notified on first publish.
         </p>
         <LinkedPostsSelector
-          workspaceId={workspaceId}
-          selectedPosts={linkedPosts}
           onChange={setLinkedPosts}
+          selectedPosts={linkedPosts}
+          workspaceId={workspaceId}
         />
       </div>
 
@@ -397,10 +417,10 @@ export function ChangelogEditor({
         <div className="flex items-center gap-3">
           {!isPublished && (
             <button
-              type="button"
-              onClick={handleSaveDraft}
-              disabled={isPending || !title.trim()}
               className="px-4 py-2 text-sm font-medium border border-border text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              disabled={isPending || !title.trim()}
+              onClick={handleSaveDraft}
+              type="button"
             >
               Save Draft
             </button>
@@ -408,19 +428,19 @@ export function ChangelogEditor({
 
           {isPublished ? (
             <button
-              type="button"
-              onClick={handleUpdate}
-              disabled={isPending || !title.trim()}
               className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              disabled={isPending || !title.trim()}
+              onClick={handleUpdate}
+              type="button"
             >
               {isPending ? "Saving…" : "Update"}
             </button>
           ) : (
             <button
-              type="button"
-              onClick={handlePublish}
-              disabled={isPending || !title.trim()}
               className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              disabled={isPending || !title.trim()}
+              onClick={handlePublish}
+              type="button"
             >
               {isPending ? "Publishing…" : "Publish →"}
             </button>

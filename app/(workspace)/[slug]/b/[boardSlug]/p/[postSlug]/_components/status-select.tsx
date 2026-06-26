@@ -1,23 +1,23 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { updatePostStatusAction } from "@/app/actions/posts";
 
 interface WorkspaceStatus {
-  id: string;
-  slug: string;
-  name: string;
   color: string;
+  id: string;
   isArchived: boolean;
+  name: string;
+  slug: string;
 }
 
 interface StatusSelectProps {
+  canEdit: boolean;
+  currentStatus: string;
   postId: string;
   workspaceId: string;
-  currentStatus: string;
-  canEdit: boolean;
   workspaceStatuses: WorkspaceStatus[];
 }
 
@@ -36,7 +36,9 @@ export default function StatusSelect({
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const status = e.target.value;
-    if (status === currentStatus) return;
+    if (status === currentStatus) {
+      return;
+    }
 
     startTransition(async () => {
       await updatePostStatusAction({ postId, workspaceId, status });
@@ -69,15 +71,15 @@ export default function StatusSelect({
   return (
     <div className="relative inline-flex items-center">
       <select
-        value={currentStatus}
-        onChange={handleChange}
-        disabled={isPending}
         className="appearance-none pl-6 pr-7 py-1 text-xs font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        disabled={isPending}
+        onChange={handleChange}
         style={{
           backgroundColor: `${displayColor}18`,
           color: displayColor,
           borderRadius: 2,
         }}
+        value={currentStatus}
       >
         {activeStatuses.map((s) => (
           <option key={s.slug} value={s.slug}>

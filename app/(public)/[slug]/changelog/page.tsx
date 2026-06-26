@@ -1,13 +1,13 @@
+import { Plus, Rss } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Plus, Rss } from "lucide-react";
 import { notFound } from "next/navigation";
 import { ChangelogAdminCard } from "@/components/changelog/changelog-admin-card";
 import { ChangelogEntryCard } from "@/components/changelog/changelog-entry-card";
-import { getCurrentSession } from "@/lib/authz";
-import { env } from "@/lib/env";
-import { listChangelogEntries } from "@/lib/changelog/queries";
 import { WORKSPACE_MEMBER } from "@/config/platform";
+import { getCurrentSession } from "@/lib/authz";
+import { listChangelogEntries } from "@/lib/changelog/queries";
+import { env } from "@/lib/env";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -46,14 +46,18 @@ export default async function PublicChangelogPage({ params }: Props) {
   const { slug } = await params;
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const session = await getCurrentSession();
   const member = session
     ? await getWorkspaceMember(workspace.id, session.user.id)
     : null;
 
-  if (!workspace.changelogPublic && !member) notFound();
+  if (!workspace.changelogPublic && !member) {
+    notFound();
+  }
 
   const isAdmin = member ? member.role !== WORKSPACE_MEMBER : false;
   const isSignedIn = !!session;
@@ -73,23 +77,23 @@ export default async function PublicChangelogPage({ params }: Props) {
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <Link
-              href={`/${slug}`}
               className="text-sm font-semibold text-foreground hover:text-foreground/80 transition-colors"
+              href={`/${slug}`}
             >
               {workspace.name}
             </Link>
             <nav className="hidden sm:flex items-center gap-1">
               {workspace.roadmapPublic && (
                 <Link
-                  href={`/${slug}/roadmap`}
                   className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  href={`/${slug}/roadmap`}
                 >
                   Roadmap
                 </Link>
               )}
               <Link
-                href={`/${slug}/changelog`}
                 className="px-3 py-1.5 text-sm font-medium text-foreground border-b-2 border-foreground"
+                href={`/${slug}/changelog`}
               >
                 Changelog
               </Link>
@@ -97,25 +101,25 @@ export default async function PublicChangelogPage({ params }: Props) {
           </div>
           <div className="flex items-center gap-3">
             <Link
-              href={`/${slug}/changelog/feed.xml`}
-              className="text-muted-foreground hover:text-foreground transition-colors"
               aria-label="RSS feed"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              href={`/${slug}/changelog/feed.xml`}
             >
               <Rss className="size-4" />
             </Link>
-            {!isSignedIn ? (
+            {isSignedIn ? (
               <Link
-                href="/login"
                 className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                href={`/${slug}`}
               >
-                Sign in
+                Dashboard
               </Link>
             ) : (
               <Link
-                href={`/${slug}`}
                 className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                href="/login"
               >
-                Dashboard
+                Sign in
               </Link>
             )}
           </div>
@@ -130,8 +134,8 @@ export default async function PublicChangelogPage({ params }: Props) {
               Admin view — drafts visible only to you
             </p>
             <Link
-              href={`/${slug}/changelog/new`}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              href={`/${slug}/changelog/new`}
             >
               <Plus className="size-3" />
               New Entry
@@ -149,8 +153,8 @@ export default async function PublicChangelogPage({ params }: Props) {
           {published.length === 0 && drafts.length === 0
             ? "No updates published yet."
             : isAdmin
-              ? `${published.length} published · ${drafts.length} draft${drafts.length !== 1 ? "s" : ""}`
-              : `${total} update${total !== 1 ? "s" : ""} published`}
+              ? `${published.length} published · ${drafts.length} draft${drafts.length === 1 ? "" : "s"}`
+              : `${total} update${total === 1 ? "" : "s"} published`}
         </p>
       </div>
 
@@ -165,8 +169,8 @@ export default async function PublicChangelogPage({ params }: Props) {
             <div className="space-y-3">
               {drafts.map((entry) => (
                 <ChangelogAdminCard
-                  key={entry.id}
                   entry={entry}
+                  key={entry.id}
                   workspaceId={workspace.id}
                   workspaceSlug={slug}
                 />
@@ -186,8 +190,8 @@ export default async function PublicChangelogPage({ params }: Props) {
             </p>
             {isAdmin && (
               <Link
-                href={`/${slug}/changelog/new`}
                 className="mt-4 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                href={`/${slug}/changelog/new`}
               >
                 Create your first entry
               </Link>
@@ -204,8 +208,8 @@ export default async function PublicChangelogPage({ params }: Props) {
               <div className="space-y-3">
                 {published.map((entry) => (
                   <ChangelogAdminCard
-                    key={entry.id}
                     entry={entry}
+                    key={entry.id}
                     workspaceId={workspace.id}
                     workspaceSlug={slug}
                   />
@@ -215,8 +219,8 @@ export default async function PublicChangelogPage({ params }: Props) {
               <div>
                 {published.map((entry) => (
                   <ChangelogEntryCard
-                    key={entry.id}
                     entry={entry}
+                    key={entry.id}
                     workspaceSlug={slug}
                   />
                 ))}

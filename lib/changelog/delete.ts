@@ -17,7 +17,9 @@ export async function deleteChangelogEntry(
     )
     .limit(1);
 
-  if (!entry) throw new Error("Changelog entry not found.");
+  if (!entry) {
+    throw new Error("Changelog entry not found.");
+  }
 
   // changelog_posts deleted via CASCADE
   await db.delete(changelogEntries).where(eq(changelogEntries.id, entryId));

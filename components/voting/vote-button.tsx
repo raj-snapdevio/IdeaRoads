@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { ChevronUp } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import GuestVoteDialog from "./guest-vote-dialog";
 
 interface VoteButtonProps {
-  postId: string;
   initialCount: number;
   initialHasVoted: boolean;
-  isSignedIn: boolean;
-  isLocked?: boolean;
   isArchived?: boolean;
+  isLocked?: boolean;
+  isSignedIn: boolean;
+  postId: string;
 }
 
 export default function VoteButton({
@@ -35,7 +35,9 @@ export default function VoteButton({
       : undefined;
 
   async function handleClick() {
-    if (disabled) return;
+    if (disabled) {
+      return;
+    }
 
     if (!isSignedIn) {
       setShowGuestDialog(true);
@@ -80,11 +82,8 @@ export default function VoteButton({
   return (
     <>
       <button
-        onClick={handleClick}
-        disabled={disabled}
-        title={tooltip}
-        aria-pressed={hasVoted}
         aria-label={hasVoted ? "Remove vote" : "Vote for this post"}
+        aria-pressed={hasVoted}
         className={`flex flex-col items-center gap-1 border px-4 py-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
           disabled && !isPending
             ? "cursor-not-allowed opacity-50 border-border text-muted-foreground"
@@ -92,6 +91,9 @@ export default function VoteButton({
               ? "border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 cursor-pointer"
               : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground cursor-pointer"
         } ${isPending ? "opacity-70" : ""}`}
+        disabled={disabled}
+        onClick={handleClick}
+        title={tooltip}
       >
         <ChevronUp className="size-4" />
         <span className="text-sm font-semibold tabular-nums">{count}</span>
@@ -102,16 +104,16 @@ export default function VoteButton({
 
       {showGuestDialog && (
         <GuestVoteDialog
-          postId={postId}
-          onVoted={(voteCount) => {
-            setHasVoted(true);
-            setCount(voteCount);
-          }}
+          onClose={() => setShowGuestDialog(false)}
           onRemoved={(voteCount) => {
             setHasVoted(false);
             setCount(voteCount);
           }}
-          onClose={() => setShowGuestDialog(false)}
+          onVoted={(voteCount) => {
+            setHasVoted(true);
+            setCount(voteCount);
+          }}
+          postId={postId}
         />
       )}
     </>

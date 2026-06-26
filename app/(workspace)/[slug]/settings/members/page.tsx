@@ -22,10 +22,14 @@ export default async function MembersPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const actorMember = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!actorMember) notFound();
+  if (!actorMember) {
+    notFound();
+  }
 
   const members = await listMembers(workspace.id);
 
@@ -35,10 +39,10 @@ export default async function MembersPage({ params }: Props) {
         {members.length} {members.length === 1 ? "member" : "members"}
       </p>
       <MembersTable
-        members={members}
         actorMemberId={actorMember.id}
-        actorUserId={session.user.id}
         actorRole={actorMember.role}
+        actorUserId={session.user.id}
+        members={members}
         workspaceId={workspace.id}
       />
     </div>

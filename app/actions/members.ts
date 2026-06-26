@@ -14,6 +14,13 @@ import { audit } from "@/lib/audit";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
 import {
+  createInviteLink,
+  getInviteLinkById,
+  joinViaLink,
+  listActiveInviteLinks,
+  revokeInviteLink,
+} from "@/lib/workspaces/invite-links";
+import {
   acceptInvite,
   checkDuplicateInvite,
   createInvite,
@@ -21,13 +28,6 @@ import {
   listPendingInvites,
   revokeInvite,
 } from "@/lib/workspaces/invites";
-import {
-  createInviteLink,
-  getInviteLinkById,
-  joinViaLink,
-  listActiveInviteLinks,
-  revokeInviteLink,
-} from "@/lib/workspaces/invite-links";
 import {
   changeRole,
   getMember,
@@ -642,4 +642,4 @@ export async function leaveWorkspaceAction(input: {
 
 // ─── Re-exported queries for pages ───────────────────────────────────────────
 
-export { listMembers, listPendingInvites, listActiveInviteLinks };
+export { listActiveInviteLinks, listMembers, listPendingInvites };
