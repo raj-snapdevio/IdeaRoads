@@ -41,6 +41,7 @@ export const posts = pgTable(
     commentCount: integer("comment_count").notNull().default(0),
     isPinned: boolean("is_pinned").notNull().default(false),
     isLocked: boolean("is_locked").notNull().default(false),
+    isApproved: boolean("is_approved").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

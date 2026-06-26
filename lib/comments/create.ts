@@ -6,6 +6,7 @@ import { enqueueEmail } from "@/lib/email";
 import { renderEmailTemplate } from "@/lib/email/renderer";
 import { NewCommentEmail } from "@/lib/email/components/new-comment";
 import { CommentReplyEmail } from "@/lib/email/components/comment-reply";
+import { isBlocked } from "@/lib/moderation/queries";
 import { createNotification } from "@/lib/notifications/create";
 import { env } from "@/lib/env";
 
@@ -49,6 +50,19 @@ export async function createComment(
   if (!post) throw new CommentNotFoundError();
   if (post.isLocked) {
     throw new CommentBlockedError("Comments are closed on this post.");
+  }
+
+  // Block check
+  if (authorId || input.authorEmail) {
+    const blocked = await isBlocked(workspaceId, {
+      userId: authorId ?? undefined,
+      userEmail: input.authorEmail ?? undefined,
+    });
+    if (blocked) {
+      throw new CommentBlockedError(
+        "You are not allowed to comment in this workspace."
+      );
+    }
   }
 
   // Validate parent if provided

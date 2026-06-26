@@ -7,7 +7,9 @@ import { boards, votes, workspaceMembers, workspaces } from "@/db/schema";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { requireSession } from "@/lib/authz";
+import { isBlocked } from "@/lib/moderation/queries";
 import {
+  approvePost,
   createPost,
   deletePost,
   generatePostSlug,
@@ -44,7 +46,7 @@ export async function createPostAction(input: {
   workspaceId: string;
   title: string;
   body?: string;
-}): Promise<ActionResult<{ postSlug: string }>> {
+}): Promise<ActionResult<{ postSlug: string; isPending: boolean }>> {
   const session = await requireSession();
 
   const parsed = createPostSchema.safeParse(input);
@@ -65,6 +67,44 @@ export async function createPostAction(input: {
     return { success: false, error: "You are not a member of this workspace." };
   }
 
+  // Block check
+  const blocked = await isBlocked(parsed.data.workspaceId, {
+    userId: session.user.id,
+    userEmail: session.user.email,
+  });
+  if (blocked) {
+    return {
+      success: false,
+      error: "You are not allowed to post in this workspace.",
+      code: "BLOCKED",
+    };
+  }
+
+  // Fetch workspace moderation settings
+  const [workspaceRow] = await db
+    .select({
+      moderationMode: workspaces.moderationMode,
+      spamKeywords: workspaces.spamKeywords,
+    })
+    .from(workspaces)
+    .where(eq(workspaces.id, parsed.data.workspaceId))
+    .limit(1);
+
+  // Spam keyword check
+  const spamKeywords = workspaceRow?.spamKeywords ?? [];
+  const titleLower = parsed.data.title.toLowerCase();
+  const bodyLower = (parsed.data.body ?? "").toLowerCase();
+  const isSpam = spamKeywords.some(
+    (kw) => titleLower.includes(kw) || bodyLower.includes(kw)
+  );
+
+  // Determine approval status
+  const moderationMode = workspaceRow?.moderationMode ?? "off";
+  const isApproved =
+    !isSpam &&
+    moderationMode !== "manual" &&
+    (moderationMode !== "auto" || !isSpam);
+
   const slug = await generatePostSlug(parsed.data.boardId, parsed.data.title);
 
   const post = await createPost({
@@ -76,12 +116,15 @@ export async function createPostAction(input: {
     authorId: session.user.id,
     authorName: session.user.name ?? null,
     authorEmail: session.user.email,
+    isApproved,
   });
 
   audit({
+    workspaceId: parsed.data.workspaceId,
     action: "post.created",
     actorId: session.user.id,
     actorEmail: session.user.email,
+    actorName: session.user.name ?? null,
     entityType: "post",
     entityId: post.id,
     description: `Created post: ${parsed.data.title}`,
@@ -90,24 +133,30 @@ export async function createPostAction(input: {
       workspaceId: parsed.data.workspaceId,
       title: parsed.data.title,
       slug,
+      isApproved,
     },
   });
 
-  // Notify workspace admins/owners (fire-and-forget)
-  enqueueNewPostAlerts({
-    postId: post.id,
-    postTitle: parsed.data.title,
-    postBody: parsed.data.body ?? null,
-    postSlug: slug,
-    boardId: parsed.data.boardId,
-    workspaceId: parsed.data.workspaceId,
-    authorId: session.user.id,
-    authorName: session.user.name ?? session.user.email,
-  }).catch((err) =>
-    console.error("[posts] failed to enqueue new-post alerts", err)
-  );
+  // Only notify admins when post is immediately visible
+  if (post.isApproved) {
+    enqueueNewPostAlerts({
+      postId: post.id,
+      postTitle: parsed.data.title,
+      postBody: parsed.data.body ?? null,
+      postSlug: slug,
+      boardId: parsed.data.boardId,
+      workspaceId: parsed.data.workspaceId,
+      authorId: session.user.id,
+      authorName: session.user.name ?? session.user.email,
+    }).catch((err) =>
+      console.error("[posts] failed to enqueue new-post alerts", err)
+    );
+  }
 
-  return { success: true, data: { postSlug: post.slug } };
+  return {
+    success: true,
+    data: { postSlug: post.slug, isPending: !post.isApproved },
+  };
 }
 
 // ─── Update Post Status ───────────────────────────────────────────────────────
@@ -301,6 +350,69 @@ export async function updatePostCategoryAction(input: {
   }
 
   await updatePostCategory(input.postId, input.categoryId);
+  return { success: true, data: undefined };
+}
+
+// ─── Approve Post (moderation queue) ─────────────────────────────────────────
+
+export async function approvePostAction(input: {
+  postId: string;
+  workspaceId: string;
+}): Promise<ActionResult<undefined>> {
+  const session = await requireSession();
+
+  const actorMember = await getWorkspaceMember(
+    input.workspaceId,
+    session.user.id
+  );
+  if (!actorMember || actorMember.role === WORKSPACE_MEMBER) {
+    return {
+      success: false,
+      error: "Only admins and owners can approve posts.",
+    };
+  }
+
+  const post = await getPost(input.postId);
+  if (!post || post.workspaceId !== input.workspaceId) {
+    return { success: false, error: "Post not found." };
+  }
+
+  if (post.isApproved) {
+    return { success: true, data: undefined };
+  }
+
+  await approvePost(input.postId);
+
+  audit({
+    workspaceId: input.workspaceId,
+    action: "post.approved",
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    actorName: session.user.name ?? null,
+    entityType: "post",
+    entityId: input.postId,
+    entityName: post.title,
+    description: `Approved post: ${post.title}`,
+    metadata: { workspaceId: input.workspaceId },
+  });
+
+  // Now that it's visible, notify admins
+  enqueueNewPostAlerts({
+    postId: post.id,
+    postTitle: post.title,
+    postBody: post.body ?? null,
+    postSlug: post.slug,
+    boardId: post.boardId,
+    workspaceId: input.workspaceId,
+    authorId: post.authorId ?? "",
+    authorName: post.authorName ?? post.authorEmail ?? "Someone",
+  }).catch((err) =>
+    console.error(
+      "[posts] failed to enqueue new-post alerts after approval",
+      err
+    )
+  );
+
   return { success: true, data: undefined };
 }
 

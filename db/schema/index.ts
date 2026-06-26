@@ -14,3 +14,6 @@ export * from "@/db/schema/comments";
 export * from "@/db/schema/comment-reactions";
 export * from "@/db/schema/changelog";
 export * from "@/db/schema/notifications";
+export * from "@/db/schema/blocked-users";
+export * from "@/db/schema/webhooks";
+export * from "@/db/schema/api-keys";
