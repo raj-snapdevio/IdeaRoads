@@ -195,6 +195,7 @@ export async function createPost(input: {
   authorId: string;
   authorName: string | null;
   authorEmail: string;
+  isApproved?: boolean;
 }) {
   const [post] = await db
     .insert(posts)
@@ -207,9 +208,40 @@ export async function createPost(input: {
       authorId: input.authorId,
       authorName: input.authorName,
       authorEmail: input.authorEmail,
+      isApproved: input.isApproved ?? true,
     })
-    .returning({ id: posts.id, slug: posts.slug });
+    .returning({
+      id: posts.id,
+      slug: posts.slug,
+      isApproved: posts.isApproved,
+    });
   return post!;
+}
+
+export async function approvePost(postId: string): Promise<void> {
+  await db
+    .update(posts)
+    .set({ isApproved: true, updatedAt: new Date() })
+    .where(eq(posts.id, postId));
+}
+
+export async function getPendingPosts(workspaceId: string) {
+  return db
+    .select({
+      id: posts.id,
+      title: posts.title,
+      slug: posts.slug,
+      body: posts.body,
+      boardId: posts.boardId,
+      workspaceId: posts.workspaceId,
+      authorId: posts.authorId,
+      authorName: posts.authorName,
+      authorEmail: posts.authorEmail,
+      createdAt: posts.createdAt,
+    })
+    .from(posts)
+    .where(and(eq(posts.workspaceId, workspaceId), eq(posts.isApproved, false)))
+    .orderBy(desc(posts.createdAt));
 }
 
 export async function updatePostStatus(postId: string, status: string) {

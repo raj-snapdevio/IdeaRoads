@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { WORKSPACE_MEMBER } from "@/config/platform";
+import { WORKSPACE_MEMBER, WORKSPACE_OWNER } from "@/config/platform";
 import { requireSession } from "@/lib/authz";
 import {
   getWorkspaceBySlug,
@@ -22,20 +22,29 @@ export default async function GeneralSettingsPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) notFound();
+  if (!member) {
+    notFound();
+  }
 
   const canManage = member.role !== WORKSPACE_MEMBER;
+  const isOwner = member.role === WORKSPACE_OWNER;
 
   return (
     <GeneralSettingsForm
-      workspaceId={workspace.id}
-      workspaceSlug={workspace.slug}
-      roadmapPublic={workspace.roadmapPublic}
-      changelogPublic={workspace.changelogPublic}
       canManage={canManage}
+      changelogPublic={workspace.changelogPublic}
+      isOwner={isOwner}
+      roadmapPublic={workspace.roadmapPublic}
+      workspaceDescription={workspace.description ?? ""}
+      workspaceId={workspace.id}
+      workspaceLogoUrl={workspace.logoUrl ?? ""}
+      workspaceName={workspace.name}
+      workspaceSlug={workspace.slug}
     />
   );
 }

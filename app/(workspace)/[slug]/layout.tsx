@@ -1,18 +1,23 @@
 import {
   Bell,
   CircleDot,
+  Key,
   LayoutGrid,
   LogOut,
   Map,
   Megaphone,
+  ScrollText,
   Settings,
+  Shield,
   Sliders,
   Tag,
+  Webhook,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
 import { boards } from "@/db/schema";
+import { WORKSPACE_MEMBER } from "@/config/platform";
 import { eq } from "drizzle-orm";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
@@ -56,6 +61,7 @@ export default async function WorkspaceLayout({
     .where(eq(boards.workspaceId, workspace.id))
     .orderBy(boards.displayOrder);
 
+  const isAdminOrOwner = member.role !== WORKSPACE_MEMBER;
   const initial = workspace.name.charAt(0).toUpperCase();
   const email = session.user.email;
   const unreadCount = await getUnreadCount(session.user.id);
@@ -81,7 +87,7 @@ export default async function WorkspaceLayout({
         {/* Navigation */}
         <nav className="flex flex-1 flex-col overflow-y-auto p-2">
           <div className="space-y-0.5">
-            <p className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
+            <p className="px-2 pb-1 pt-2 text-2xs font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
               Feedback
             </p>
             {workspaceBoards.map((board) => (
@@ -97,7 +103,7 @@ export default async function WorkspaceLayout({
           </div>
 
           <div className="mt-4 space-y-0.5">
-            <p className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
+            <p className="px-2 pb-1 pt-2 text-2xs font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
               Publish
             </p>
             <Link
@@ -116,57 +122,90 @@ export default async function WorkspaceLayout({
             </Link>
           </div>
 
-          <div className="mt-4 space-y-0.5">
+          {/* <div className="mt-4 space-y-0.5">
             <NotificationBell
               workspaceSlug={workspace.slug}
               initialCount={unreadCount}
             />
+          </div> */}
+
+          {/* Settings */}
+          <div className="border-t border-sidebar-border space-y-0.5">
+            <p className="px-2 pb-1 pt-1.5 text-2xs font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
+              Settings
+            </p>
+            <Link
+              className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/${workspace.slug}/settings/general`}
+            >
+              <Sliders className="size-4 shrink-0" />
+              <span className="truncate">General</span>
+            </Link>
+            <Link
+              className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/${workspace.slug}/settings/members`}
+            >
+              <Settings className="size-4 shrink-0" />
+              <span className="truncate">Members</span>
+            </Link>
+            <Link
+              className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/${workspace.slug}/settings/categories`}
+            >
+              <Tag className="size-4 shrink-0" />
+              <span className="truncate">Categories</span>
+            </Link>
+            <Link
+              className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/${workspace.slug}/settings/statuses`}
+            >
+              <CircleDot className="size-4 shrink-0" />
+              <span className="truncate">Statuses</span>
+            </Link>
+            <Link
+              className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/${workspace.slug}/settings/notifications`}
+            >
+              <Bell className="size-4 shrink-0" />
+              <span className="truncate">Notifications</span>
+            </Link>
+            {isAdminOrOwner && (
+              <>
+                <Link
+                  className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  href={`/${workspace.slug}/settings/moderation`}
+                >
+                  <Shield className="size-4 shrink-0" />
+                  <span className="truncate">Moderation</span>
+                </Link>
+                <Link
+                  className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  href={`/${workspace.slug}/settings/webhooks`}
+                >
+                  <Webhook className="size-4 shrink-0" />
+                  <span className="truncate">Webhooks</span>
+                </Link>
+                <Link
+                  className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  href={`/${workspace.slug}/settings/api-keys`}
+                >
+                  <Key className="size-4 shrink-0" />
+                  <span className="truncate">API Keys</span>
+                </Link>
+                <Link
+                  className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  href={`/${workspace.slug}/settings/audit-log`}
+                >
+                  <ScrollText className="size-4 shrink-0" />
+                  <span className="truncate">Audit Log</span>
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
-        {/* Settings */}
-        <div className="border-t border-sidebar-border p-2 space-y-0.5">
-          <p className="px-2 pb-1 pt-1.5 text-[10px] font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
-            Settings
-          </p>
-          <Link
-            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/${workspace.slug}/settings/general`}
-          >
-            <Sliders className="size-4 shrink-0" />
-            <span className="truncate">General</span>
-          </Link>
-          <Link
-            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/${workspace.slug}/settings/members`}
-          >
-            <Settings className="size-4 shrink-0" />
-            <span className="truncate">Members</span>
-          </Link>
-          <Link
-            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/${workspace.slug}/settings/categories`}
-          >
-            <Tag className="size-4 shrink-0" />
-            <span className="truncate">Categories</span>
-          </Link>
-          <Link
-            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/${workspace.slug}/settings/statuses`}
-          >
-            <CircleDot className="size-4 shrink-0" />
-            <span className="truncate">Statuses</span>
-          </Link>
-          <Link
-            className="flex items-center gap-2 px-2 py-1.5 text-sm text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/${workspace.slug}/settings/notifications`}
-          >
-            <Bell className="size-4 shrink-0" />
-            <span className="truncate">Notifications</span>
-          </Link>
-        </div>
-
         {/* User bar */}
+        <hr />
         <div className="border-t border-sidebar-border p-3">
           <div className="flex items-center gap-2">
             <div className="flex size-7 shrink-0 items-center justify-center bg-sidebar-accent text-sidebar-foreground text-xs font-semibold">

@@ -1,4 +1,5 @@
 import { createId } from "@paralleldrive/cuid2";
+import { sql } from "drizzle-orm";
 import {
   boolean,
   index,
@@ -39,6 +40,10 @@ export const workspaces = pgTable(
     changelogPublic: boolean("changelog_public").notNull().default(false),
     moderationMode: moderationMode("moderation_mode").notNull().default("off"),
     commentModeration: boolean("comment_moderation").notNull().default(false),
+    spamKeywords: text("spam_keywords")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     isSuspended: boolean("is_suspended").notNull().default(false),
     suspendedAt: timestamp("suspended_at", { withTimezone: true }),
     suspendedBy: text("suspended_by"),
