@@ -32,7 +32,7 @@ export async function requireAdmin() {
     .limit(1);
 
   if (!freshUser || freshUser.banned || freshUser.role !== ADMIN_ROLE) {
-    redirect("/dashboard");
+    redirect("/post-auth");
   }
 
   return {

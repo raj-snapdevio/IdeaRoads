@@ -20,9 +20,9 @@ export function WorkspaceSuspendedPage() {
         <div className="mt-8">
           <Link
             className="text-xs font-semibold uppercase tracking-ui text-muted-foreground hover:text-foreground transition-colors duration-150"
-            href="/dashboard"
+            href="/post-auth"
           >
-            ← Back to Dashboard
+            ← Back
           </Link>
         </div>
       </div>

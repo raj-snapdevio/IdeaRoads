@@ -28,7 +28,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <ImpersonateBanner />
         {children}
-        <Toaster position="bottom-right" />
+        <Toaster position="top-right" />
       </body>
     </html>
   );

@@ -157,7 +157,7 @@ export function ChangelogEditor({
           return;
         }
         toast.success("Draft saved");
-        router.refresh();
+        router.push(`/${workspaceSlug}/changelog`);
       } else {
         const result = await createChangelogEntryAction({
           workspaceId,
@@ -170,9 +170,8 @@ export function ChangelogEditor({
           toast.error(result.error);
           return;
         }
-        setEntryId(result.data.id);
         toast.success("Draft saved");
-        router.push(`/${workspaceSlug}/changelog/${result.data.id}/edit`);
+        router.push(`/${workspaceSlug}/changelog`);
       }
     });
   }
@@ -296,7 +295,7 @@ export function ChangelogEditor({
             const isActive = label === l;
             return (
               <button
-                className={`px-3 py-1.5 text-xs font-semibold border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                className={`px-3 py-1.5 text-xs font-semibold border transition-all focus-visible:outline-none focus-visible:ring-2 cursor-pointer focus-visible:ring-ring ${
                   isActive
                     ? "border-current"
                     : "border-border text-muted-foreground hover:border-muted-foreground/50"
@@ -332,7 +331,7 @@ export function ChangelogEditor({
           </label>
           <div className="flex">
             <button
-              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors focus-visible:outline-none ${
+              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors cursor-pointer focus-visible:outline-none ${
                 tab === "write"
                   ? "border-foreground text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -343,7 +342,7 @@ export function ChangelogEditor({
               Write
             </button>
             <button
-              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors focus-visible:outline-none ${
+              className={`px-3 py-1 text-xs font-medium border-b-2 transition-colors cursor-pointer focus-visible:outline-none ${
                 tab === "preview"
                   ? "border-foreground text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -367,7 +366,7 @@ export function ChangelogEditor({
           />
         ) : (
           <div
-            className="min-h-[300px] border border-border bg-muted/20 px-4 py-3 prose prose-sm max-w-none text-foreground"
+            className="min-h-75 border border-border bg-muted/20 px-4 py-3 prose prose-sm max-w-none text-foreground"
             // biome-ignore lint/security/noDangerouslySetInnerHtml: server-side sanitized via DOMPurify
             dangerouslySetInnerHTML={{
               __html:
@@ -417,7 +416,7 @@ export function ChangelogEditor({
         <div className="flex items-center gap-3">
           {!isPublished && (
             <button
-              className="px-4 py-2 text-sm font-medium border border-border text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium border border-border text-foreground hover:bg-muted transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
               disabled={isPending || !title.trim()}
               onClick={handleSaveDraft}
               type="button"
@@ -428,7 +427,7 @@ export function ChangelogEditor({
 
           {isPublished ? (
             <button
-              className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
               disabled={isPending || !title.trim()}
               onClick={handleUpdate}
               type="button"
@@ -437,7 +436,7 @@ export function ChangelogEditor({
             </button>
           ) : (
             <button
-              className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
               disabled={isPending || !title.trim()}
               onClick={handlePublish}
               type="button"

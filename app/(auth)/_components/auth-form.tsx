@@ -81,7 +81,12 @@ function AuthFormInner({ googleEnabled }: AuthFormProps) {
       "Something went wrong. Please try again.")
     : null;
 
-  const callbackURL = searchParams.get("next") ?? "/post-auth";
+  const rawNext = searchParams.get("next") ?? "/post-auth";
+  // Prevent open redirect: only allow relative paths (not protocol-relative // or absolute URLs)
+  const callbackURL =
+    rawNext.startsWith("/") && !rawNext.startsWith("//")
+      ? rawNext
+      : "/post-auth";
 
   useEffect(() => {
     if (session) {

@@ -202,7 +202,7 @@ function EmailMockup() {
             Subject
           </span>
           <span className="text-2xs font-semibold text-foreground">
-            Dark mode just shipped — you asked for this
+            Dark mode just shipped you asked for this
           </span>
         </div>
       </div>

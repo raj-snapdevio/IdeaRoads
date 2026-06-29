@@ -41,7 +41,7 @@ const ROADMAP_COLUMNS = [
 const BENEFITS = [
   {
     heading: "Always up to date.",
-    body: "The roadmap is connected directly to your feedback board statuses. Change a status and the roadmap reflects it immediately — no separate update needed.",
+    body: "The roadmap is connected directly to your feedback board statuses. Change a status and the roadmap reflects it immediately no separate update needed.",
   },
   {
     heading: "Users can follow progress.",
