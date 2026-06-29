@@ -101,7 +101,7 @@ Both link to the same route. Better Auth handles new vs. returning users.
 - Same sticky behavior. Same `h-16` height.
 
 ### Edge Cases
-- Authenticated user visits `/`: nav shows **Dashboard** instead of **Get Started** / **Sign In**. Dashboard links to `/dashboard` (post-auth redirect handles workspace resolution).
+- Authenticated user visits `/`: redirected to `/post-auth` which routes them to their workspace (`/{slug}`), Orbit (if admin), or onboarding.
 - GitHub star count takes >0ms to fetch: show nothing in that slot rather than a spinner. The nav must not jank.
 
 ---
@@ -627,7 +627,7 @@ PRODUCT_DESCRIPTION — update from scaffold description to:
 
 ```
 app/
-├── page.tsx                    → if authenticated: redirect("/dashboard")
+├── page.tsx                    → if authenticated: redirect("/post-auth")
 │                                 if not: render landing page sections inline
 │                                 OR: redirect to (marketing)/page.tsx
 └── (marketing)/
@@ -678,7 +678,7 @@ Implemented via `generateMetadata()` in `app/(marketing)/page.tsx` or `app/layou
 ## Acceptance Criteria
 
 - [ ] Page renders at `/` without authentication
-- [ ] Authenticated user is redirected to `/dashboard` on visiting `/`
+- [ ] Authenticated user is redirected to `/post-auth` on visiting `/` (routes to workspace, Orbit, or onboarding)
 - [ ] Page renders correctly with JavaScript disabled (full SSR)
 - [ ] All nav links are functional: wordmark, Docs, GitHub, Sign In, Get Started
 - [ ] GitHub star count renders when fetch succeeds; "GitHub" renders without count when fetch fails

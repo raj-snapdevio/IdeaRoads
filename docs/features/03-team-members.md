@@ -549,7 +549,7 @@ await boss.schedule("CLEANUP_EXPIRED_INVITES", "0 2 * * *")
 2. LeaveWorkspaceDialog: "Are you sure you want to leave {workspace}?"
 3. Confirm → DELETE /api/workspaces/[slug]/members/me
 4. Server: deletes member row
-5. Redirect to /dashboard (or /onboarding if no remaining workspaces)
+5. Redirect to /post-auth (routes to next workspace or /onboarding if none remain)
 ```
 
 ### Transfer Ownership

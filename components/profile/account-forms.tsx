@@ -1,5 +1,6 @@
 "use client";
 
+import { TriangleAlert } from "lucide-react";
 import { useActionState } from "react";
 import {
   type ActionState,
@@ -8,13 +9,6 @@ import {
   updateNameAction,
 } from "@/app/actions/profile";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 const initialState: ActionState = {};
@@ -22,14 +16,14 @@ const initialState: ActionState = {};
 function ActionMessage({ state }: { state: ActionState }) {
   if (state.error) {
     return (
-      <p className="rounded-none bg-destructive/10 p-3 text-destructive text-sm">
+      <p className="bg-destructive/10 p-3 text-destructive text-sm">
         {state.error}
       </p>
     );
   }
   if (state.success) {
     return (
-      <p className="rounded-none bg-success-subtle p-3 text-success-foreground text-sm">
+      <p className="bg-success-subtle p-3 text-success-foreground text-sm">
         {state.success}
       </p>
     );
@@ -54,63 +48,50 @@ export function AccountIdentityForms({
   );
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Display Name</CardTitle>
-          <CardDescription>
-            The name shown in navigation, audit logs, and admin views.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={nameAction} className="space-y-4">
-            <label className="block" htmlFor="name">
-              <span className="mb-2 block font-semibold text-foreground text-sm">
-                Name
-              </span>
-              <Input
-                defaultValue={name}
-                id="name"
-                maxLength={100}
-                name="name"
-              />
-            </label>
+    <div className="border border-border divide-y divide-border">
+      {/* Display name */}
+      <div className="px-5 py-4">
+        <div className="flex items-start gap-6">
+          <div className="w-40 shrink-0 pt-0.5">
+            <p className="text-sm font-medium text-foreground">Display name</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Shown in audit logs and admin views.
+            </p>
+          </div>
+          <form action={nameAction} className="flex-1 min-w-0 space-y-3">
+            <Input defaultValue={name} id="name" maxLength={100} name="name" />
             <ActionMessage state={nameState} />
-            <Button disabled={namePending} type="submit">
-              {namePending ? "Saving..." : "Save name"}
+            <Button disabled={namePending} size="sm" type="submit">
+              {namePending ? "Saving…" : "Save name"}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Email Address</CardTitle>
-          <CardDescription>
-            Magic-link authentication uses this email as the account identity.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form action={emailAction} className="space-y-4">
-            <label className="block" htmlFor="email">
-              <span className="mb-2 block font-semibold text-foreground text-sm">
-                Email
-              </span>
-              <Input
-                defaultValue={email}
-                id="email"
-                name="email"
-                required
-                type="email"
-              />
-            </label>
+      {/* Email address */}
+      <div className="px-5 py-4">
+        <div className="flex items-start gap-6">
+          <div className="w-40 shrink-0 pt-0.5">
+            <p className="text-sm font-medium text-foreground">Email address</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Used for magic-link sign-in.
+            </p>
+          </div>
+          <form action={emailAction} className="flex-1 min-w-0 space-y-3">
+            <Input
+              defaultValue={email}
+              id="email"
+              name="email"
+              required
+              type="email"
+            />
             <ActionMessage state={emailState} />
-            <Button disabled={emailPending} type="submit">
-              {emailPending ? "Saving..." : "Update email"}
+            <Button disabled={emailPending} size="sm" type="submit">
+              {emailPending ? "Saving…" : "Update email"}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -122,33 +103,59 @@ export function DeleteAccountForm({ email }: { email: string }) {
   );
 
   return (
-    <Card className="border-destructive/30">
-      <CardHeader>
-        <CardTitle className="text-destructive">Delete Account</CardTitle>
-        <CardDescription>
-          Permanently delete your user, sessions, and linked auth accounts.
-          Audit records remain for operator history.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form action={action} className="space-y-4">
-          <label className="block" htmlFor="confirmEmail">
-            <span className="mb-2 block font-semibold text-foreground text-sm">
-              Type your email to confirm
-            </span>
+    <section>
+      <div className="mb-4">
+        <h2 className="text-sm font-semibold text-foreground">Danger zone</h2>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Irreversible and destructive actions.
+        </p>
+      </div>
+
+      <div className="border border-destructive/30 p-5">
+        <div className="flex items-start gap-3 mb-5">
+          <div className="flex size-8 shrink-0 items-center justify-center bg-destructive/10">
+            <TriangleAlert className="size-4 text-destructive" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">
+              Delete your account
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              This permanently deletes your profile, all active sessions, and
+              linked authentication accounts. Audit records are kept for
+              operator history. This action cannot be undone.
+            </p>
+          </div>
+        </div>
+
+        <form action={action} className="space-y-3">
+          <div>
+            <label
+              className="mb-1.5 block text-xs font-medium text-foreground"
+              htmlFor="confirmEmail"
+            >
+              Type <span className="font-mono text-foreground/70">{email}</span>{" "}
+              to confirm
+            </label>
             <Input
               autoComplete="off"
               id="confirmEmail"
               name="confirmEmail"
               placeholder={email}
             />
-          </label>
+          </div>
           <ActionMessage state={state} />
-          <Button disabled={pending} type="submit" variant="destructive">
-            {pending ? "Deleting..." : "Delete my account"}
+          <Button
+            className="border-destructive/40 text-destructive hover:bg-destructive hover:text-white"
+            disabled={pending}
+            size="sm"
+            type="submit"
+            variant="outline"
+          >
+            {pending ? "Deleting…" : "Delete my account"}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

@@ -15,7 +15,7 @@ const MAJOR_FEATURES = [
     title: "Feedback Boards",
     tagline: "One place for every feature request.",
     description:
-      "Users submit ideas, vote on what matters most, and leave comments. You get a ranked, organized list of exactly what to build next — not what the loudest voice asked for.",
+      "Users submit ideas, vote on what matters most, and leave comments. You get a ranked, organized list of exactly what to build next not what the loudest voice asked for.",
     included: [
       "Public & private boards",
       "Voting & upvoting",
@@ -62,7 +62,7 @@ const ALL_FEATURES = [
       "Custom categories & tags",
       "Post moderation queue",
       "Sort by votes, recent, or trending",
-      "Guest voting — no signup needed",
+      "Guest voting no signup needed",
       "Board search & filtering",
     ],
   },
@@ -97,7 +97,6 @@ const ALL_FEATURES = [
       "Email notifications",
       "REST API & webhooks",
       "Self-hosted option",
-      "Open source — MIT license",
     ],
   },
 ] as const;

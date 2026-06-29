@@ -171,7 +171,7 @@ export function MembersTable({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      className="size-8 p-0 text-muted-foreground hover:text-foreground"
+                      className="size-8 p-0 text-muted-foreground hover:text-foreground cursor-pointer"
                       disabled={loadingId === member.id}
                       size="sm"
                       variant="ghost"
@@ -188,6 +188,7 @@ export function MembersTable({
                       <>
                         {member.role === WORKSPACE_MEMBER && (
                           <DropdownMenuItem
+                            className="cursor-pointer"
                             onClick={() =>
                               handleAction(member.id, () =>
                                 changeRoleAction({
@@ -203,6 +204,7 @@ export function MembersTable({
                         )}
                         {member.role === WORKSPACE_ADMIN && (
                           <DropdownMenuItem
+                            className="cursor-pointer"
                             onClick={() =>
                               handleAction(member.id, () =>
                                 changeRoleAction({
@@ -220,6 +222,7 @@ export function MembersTable({
                     )}
                     {canTransfer && (
                       <DropdownMenuItem
+                        className="cursor-pointer"
                         onClick={() =>
                           setPendingConfirm({
                             title: "Transfer Ownership",
@@ -244,7 +247,7 @@ export function MembersTable({
                     )}
                     {canRemove && (
                       <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
+                        className="text-destructive focus:text-destructive cursor-pointer"
                         onClick={() =>
                           setPendingConfirm({
                             title: "Remove Member",

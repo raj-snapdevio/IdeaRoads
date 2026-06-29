@@ -91,7 +91,7 @@ export default function BoardFilters({
         <div className="flex">
           {SORT_TABS.map((tab) => (
             <button
-              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors duration-150 focus-visible:outline-none ${
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors cursor-pointer duration-150 focus-visible:outline-none ${
                 activeSort === tab.value
                   ? "border-foreground text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -108,7 +108,7 @@ export default function BoardFilters({
         <div className="flex items-center gap-3">
           {showMyVotes && (
             <button
-              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium border transition-colors duration-150 focus-visible:outline-none ${
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium border transition-colors cursor-pointer duration-150 focus-visible:outline-none ${
                 myVotesActive
                   ? "border-primary/40 bg-primary/5 text-primary"
                   : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"

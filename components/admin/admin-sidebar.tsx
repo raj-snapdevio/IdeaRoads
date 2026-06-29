@@ -9,14 +9,14 @@ import {
   Gauge,
   Scroll,
   SignOut,
+  UserCircle,
   Users,
   Wrench,
 } from "@phosphor-icons/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { logoutAction } from "@/app/actions/auth";
-import { Button } from "@/components/ui/button";
+import { usePathname, useRouter } from "next/navigation";
 import { PRODUCT_NAME } from "@/config/platform";
+import { signOut } from "@/lib/auth-client";
 
 const navItems = [
   { href: "/orbit", label: "Overview", icon: ChartBar, exact: true },
@@ -37,10 +37,25 @@ const navItems = [
   { href: "/orbit/jobs", label: "Job Queue", icon: Gauge, exact: false },
   { href: "/orbit/audit-log", label: "Audit Log", icon: Scroll, exact: false },
   { href: "/orbit/email", label: "Email", icon: Envelope, exact: false },
+  { href: "/orbit/account", label: "Account", icon: UserCircle, exact: true },
 ];
 
-export function AdminSidebar({ email }: { email: string }) {
+const navLinkClass = (isActive: boolean) =>
+  `flex cursor-pointer items-center gap-3 border-l-2 px-3 py-2.5 text-xs font-semibold uppercase tracking-ui transition-colors ${
+    isActive
+      ? "border-sidebar-foreground bg-sidebar-accent text-sidebar-foreground"
+      : "border-transparent text-sidebar-foreground/50 hover:border-sidebar-foreground/20 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+  }`;
+
+export function AdminSidebar({
+  email,
+  workspaceSlug,
+}: {
+  email: string;
+  workspaceSlug?: string;
+}) {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
@@ -68,15 +83,7 @@ export function AdminSidebar({ email }: { email: string }) {
               ? pathname === href
               : pathname.startsWith(href);
             return (
-              <Link
-                className={`flex items-center gap-3 border-l-2 px-3 py-2.5 text-xs font-semibold uppercase tracking-ui transition-colors ${
-                  isActive
-                    ? "border-sidebar-foreground bg-sidebar-accent text-sidebar-foreground"
-                    : "border-transparent text-sidebar-foreground/50 hover:border-sidebar-foreground/20 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                }`}
-                href={href}
-                key={href}
-              >
+              <Link className={navLinkClass(isActive)} href={href} key={href}>
                 <Icon size={15} weight={isActive ? "fill" : "regular"} />
                 {label}
               </Link>
@@ -86,32 +93,45 @@ export function AdminSidebar({ email }: { email: string }) {
       </nav>
 
       {/* Footer */}
-      <div className="space-y-2 border-t border-sidebar-border p-4">
-        <p className="truncate px-1 text-2xs font-semibold uppercase tracking-ui text-sidebar-foreground/30">
-          {email}
-        </p>
-        <Button
-          asChild
-          className="w-full justify-start gap-2"
-          size="sm"
-          variant="secondary"
-        >
-          <Link href="/dashboard">
-            <ArrowLeft size={14} />
-            Dashboard
-          </Link>
-        </Button>
-        <form action={logoutAction}>
-          <Button
-            className="w-full justify-start gap-2"
-            size="sm"
-            type="submit"
-            variant="secondary"
-          >
-            <SignOut size={14} />
-            Sign out
-          </Button>
-        </form>
+      <div className="border-t border-sidebar-border">
+        {/* My Workspace quick link */}
+        {workspaceSlug && (
+          <div className="border-b border-sidebar-border px-2 py-1.5">
+            <Link
+              className="flex cursor-pointer items-center gap-2 px-2 py-1.5 text-xs font-semibold text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href={`/${workspaceSlug}`}
+            >
+              <ArrowLeft className="size-3.5 shrink-0" size={13} />
+              <span>My Workspace</span>
+            </Link>
+          </div>
+        )}
+
+        {/* Compact user bar */}
+        <div className="p-3">
+          <div className="flex items-center gap-2">
+            <div className="flex size-7 shrink-0 items-center justify-center bg-sidebar-accent text-xs font-semibold text-sidebar-foreground">
+              {email.charAt(0).toUpperCase()}
+            </div>
+            <span
+              className="flex-1 truncate text-xs text-sidebar-foreground/60"
+              title={email}
+            >
+              {email}
+            </span>
+            <button
+              className="flex cursor-pointer items-center justify-center text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              onClick={async () => {
+                await signOut();
+                router.push("/login");
+              }}
+              title="Sign out"
+              type="button"
+            >
+              <SignOut size={14} />
+            </button>
+          </div>
+        </div>
       </div>
     </aside>
   );

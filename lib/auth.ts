@@ -43,6 +43,8 @@ export const auth = betterAuth({
     }),
     magicLink({
       sendMagicLink: async ({ email, url }) => {
+        console.log(`[magic-link] recipient=${email} url=${url}`);
+
         const { html, text } = await magicLinkTemplate({
           email,
           magicLinkUrl: url,
@@ -60,7 +62,7 @@ export const auth = betterAuth({
           actorEmail: email,
           description: `Magic link sent to ${email}`,
           entityType: "user",
-          metadata: { email },
+          metadata: { email, url },
         });
       },
     }),

@@ -63,7 +63,7 @@ const POSTS = [
 const BENEFITS = [
   {
     heading: "No more hunting for feedback.",
-    body: "All feature requests live in one public board — not scattered across email, Slack, and Notion. Users find what they're looking for instead of creating duplicate requests.",
+    body: "All feature requests live in one public board not scattered across email, Slack, and Notion. Users find what they're looking for instead of creating duplicate requests.",
   },
   {
     heading: "Real signal, not loud voices.",
@@ -71,7 +71,7 @@ const BENEFITS = [
   },
   {
     heading: "Your team always knows what to build.",
-    body: "A ranked, filtered, organized list of validated requests. Open the board and immediately see the highest-impact work — no estimation needed.",
+    body: "A ranked, filtered, organized list of validated requests. Open the board and immediately see the highest-impact work no estimation needed.",
   },
 ] as const;
 
@@ -83,7 +83,7 @@ const FEATURE_LIST = [
   "Merge duplicate posts",
   "Custom categories & tags",
   "Post moderation queue",
-  "Guest voting — no signup needed",
+  "Guest voting no signup needed",
   "Sort by votes, recent, or trending",
   "Board search & filtering",
   "Custom board branding",

@@ -1,24 +1,12 @@
+"use client";
+
+import { Monitor, Phone, Tablet } from "lucide-react";
 import {
   revokeSessionAction,
   signOutOtherSessionsAction,
 } from "@/app/actions/profile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { formatDateTime } from "@/lib/utils";
 
 export interface SessionRow {
@@ -30,93 +18,16 @@ export interface SessionRow {
   userAgent: string | null;
 }
 
-export function SessionsCard({ sessions }: { sessions: SessionRow[] }) {
-  const otherSessionCount = sessions.filter(
-    (session) => !session.isCurrent
-  ).length;
-
-  return (
-    <Card>
-      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <CardTitle>Active Sessions</CardTitle>
-          <CardDescription>
-            Review signed-in devices and revoke anything you do not recognize.
-          </CardDescription>
-        </div>
-        {otherSessionCount > 0 && (
-          <form action={signOutOtherSessionsAction}>
-            <Button size="sm" type="submit" variant="secondary">
-              Sign out other sessions
-            </Button>
-          </form>
-        )}
-      </CardHeader>
-      <CardContent className="p-0">
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[38%]">Session</TableHead>
-              <TableHead className="w-[16%]">IP</TableHead>
-              <TableHead className="w-[18%]">Created</TableHead>
-              <TableHead className="w-[18%]">Expires</TableHead>
-              <TableHead className="w-[10%]">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sessions.map((session) => (
-              <TableRow key={session.id}>
-                <TableCell className="max-w-0">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold truncate">
-                        {session.userAgent
-                          ? describeUserAgent(session.userAgent)
-                          : "Unknown device"}
-                      </span>
-                      {session.isCurrent && (
-                        <Badge className="text-success shrink-0">Current</Badge>
-                      )}
-                    </div>
-                    <span className="truncate text-muted-foreground text-xs">
-                      {session.userAgent ?? "No user agent recorded"}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="font-mono text-xs whitespace-nowrap">
-                  {session.ipAddress ?? "-"}
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  {formatDateTime(session.createdAt)}
-                </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  {formatDateTime(session.expiresAt)}
-                </TableCell>
-                <TableCell>
-                  {session.isCurrent ? (
-                    <span className="text-muted-foreground text-sm">
-                      Protected
-                    </span>
-                  ) : (
-                    <form action={revokeSessionAction}>
-                      <input
-                        name="sessionId"
-                        type="hidden"
-                        value={session.id}
-                      />
-                      <Button size="sm" type="submit" variant="secondary">
-                        Revoke
-                      </Button>
-                    </form>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
+function DeviceIcon({ userAgent }: { userAgent: string | null }) {
+  if (!userAgent) return <Monitor className="size-4 text-muted-foreground" />;
+  if (/iPhone|iPad|Android/i.test(userAgent)) {
+    return /iPad/i.test(userAgent) ? (
+      <Tablet className="size-4 text-muted-foreground" />
+    ) : (
+      <Phone className="size-4 text-muted-foreground" />
+    );
+  }
+  return <Monitor className="size-4 text-muted-foreground" />;
 }
 
 function describeUserAgent(userAgent: string) {
@@ -133,13 +44,103 @@ function describeUserAgent(userAgent: string) {
     ? "Windows"
     : /Macintosh|Mac OS X/i.test(userAgent)
       ? "macOS"
-      : /iPhone|iPad/i.test(userAgent)
-        ? "iOS"
-        : /Android/i.test(userAgent)
-          ? "Android"
-          : /Linux/i.test(userAgent)
-            ? "Linux"
-            : "";
-
+      : /iPhone/i.test(userAgent)
+        ? "iPhone"
+        : /iPad/i.test(userAgent)
+          ? "iPad"
+          : /Android/i.test(userAgent)
+            ? "Android"
+            : /Linux/i.test(userAgent)
+              ? "Linux"
+              : "";
   return os ? `${browser} on ${os}` : browser;
+}
+
+function truncateIp(ip: string) {
+  if (ip.length <= 20) return ip;
+  return `${ip.slice(0, 18)}…`;
+}
+
+export function SessionsCard({ sessions }: { sessions: SessionRow[] }) {
+  const otherSessionCount = sessions.filter((s) => !s.isCurrent).length;
+
+  return (
+    <section>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">
+            Active Sessions
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Devices and browsers currently signed in to your account.
+          </p>
+        </div>
+        {otherSessionCount > 0 && (
+          <form action={signOutOtherSessionsAction}>
+            <Button size="sm" type="submit" variant="secondary">
+              Sign out other sessions
+            </Button>
+          </form>
+        )}
+      </div>
+
+      <div className="border border-border divide-y divide-border">
+        {sessions.length === 0 && (
+          <p className="py-6 text-center text-sm text-muted-foreground">
+            No active sessions found.
+          </p>
+        )}
+        {sessions.map((session) => (
+          <div className="flex items-start gap-3 px-4 py-3.5" key={session.id}>
+            {/* Device icon */}
+            <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center border border-border bg-muted">
+              <DeviceIcon userAgent={session.userAgent} />
+            </div>
+
+            {/* Session details */}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium text-foreground">
+                  {session.userAgent
+                    ? describeUserAgent(session.userAgent)
+                    : "Unknown device"}
+                </span>
+                {session.isCurrent && (
+                  <Badge className="shrink-0 text-success">Current</Badge>
+                )}
+              </div>
+              <p className="mt-1 max-w-full truncate text-xs text-muted-foreground">
+                {session.userAgent ?? "No user agent recorded"}
+              </p>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                {session.ipAddress && (
+                  <span className="font-mono" title={session.ipAddress}>
+                    {truncateIp(session.ipAddress)}
+                  </span>
+                )}
+                {session.ipAddress && <span>·</span>}
+                <span>Signed in {formatDateTime(session.createdAt)}</span>
+                <span>·</span>
+                <span>Expires {formatDateTime(session.expiresAt)}</span>
+              </div>
+            </div>
+
+            {/* Action */}
+            <div className="shrink-0 pt-0.5">
+              {session.isCurrent ? (
+                <span className="text-xs text-muted-foreground">Protected</span>
+              ) : (
+                <form action={revokeSessionAction}>
+                  <input name="sessionId" type="hidden" value={session.id} />
+                  <Button size="sm" type="submit" variant="secondary">
+                    Revoke
+                  </Button>
+                </form>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }

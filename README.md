@@ -50,14 +50,9 @@ Without `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASS` set, the worker logs emails to
 - Magic link sign-in (no passwords)
 - Google OAuth
 - Secure cookie sessions with IP and User-Agent tracking
-- Post-auth redirect: users go to `/dashboard`, superadmins go to `/orbit`
+- Post-auth redirect: users go to their workspace (`/{slug}`), admins go to `/orbit`
 
-### User Dashboard (`/dashboard`)
-
-- Overview of session and account status
-- Recent email and audit log activity
-
-### Profile Settings (`/dashboard/profile`)
+### Account Settings (`/account/profile`)
 
 - Edit name and email
 - View and revoke active sessions
@@ -123,8 +118,8 @@ app/
 ├── page.tsx                     Landing / sign-in prompt
 ├── (auth)/login/                Magic link + Google OAuth sign-in
 ├── post-auth/                   Role-based redirect after sign-in
-├── dashboard/                   User dashboard and profile settings
-├── (orbit)/orbit/               Superadmin panel (users, email, queues)
+├── account/                     Account settings (profile, sessions, export)
+├── (orbit)/orbit/               Admin panel (workspaces, users, feature flags, settings)
 └── api/                         Auth handler, account export, email webhook
 
 lib/

@@ -136,7 +136,7 @@ export default function NewPostForm({
               id="post-body"
               maxLength={10_000}
               onChange={(e) => setBody(e.target.value)}
-              placeholder="Add more context — what problem does this solve? What would the ideal solution look like?"
+              placeholder="Add more context what problem does this solve? What would the ideal solution look like?"
               rows={7}
               value={body}
             />

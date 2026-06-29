@@ -16,7 +16,7 @@ const BENEFITS = [
   },
   {
     heading: "Build trust with your users.",
-    body: "Users who feel heard come back. Showing them you shipped their request — and notifying them directly — turns feedback into loyalty.",
+    body: "Users who feel heard come back. Showing them you shipped their request and notifying them directly turns feedback into loyalty.",
   },
   {
     heading: "Your changelog is a product feature.",
@@ -78,7 +78,7 @@ function ChangelogMockup() {
         </h4>
         <p className="mt-2 text-sm leading-5 text-muted-foreground">
           After 67 votes and months of work, dark mode is now available for all
-          workspaces. Toggle it in your profile settings — it remembers your
+          workspaces. Toggle it in your profile settings it remembers your
           preference per device.
         </p>
 
@@ -109,7 +109,7 @@ function ChangelogMockup() {
             <span className="font-semibold text-foreground">
               67 voters notified
             </span>{" "}
-            — email sent automatically on publish
+            email sent automatically on publish
           </p>
         </div>
       </div>

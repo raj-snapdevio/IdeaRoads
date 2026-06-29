@@ -18,6 +18,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/orbit/:path*",
+    "/account/:path*",
     "/onboarding/:path*",
     "/post-auth/:path*",
     "/join/:path*",

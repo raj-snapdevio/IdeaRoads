@@ -42,8 +42,7 @@ export async function updateNameAction(
     metadata: { name },
   });
 
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/profile");
+  revalidatePath("/", "layout");
   return { success: "Name updated." };
 }
 
@@ -89,8 +88,7 @@ export async function changeEmailAction(
     metadata: { newEmail, oldEmail: current.user.email },
   });
 
-  revalidatePath("/dashboard");
-  revalidatePath("/dashboard/profile");
+  revalidatePath("/", "layout");
   return { success: "Email updated. Use the new email for future sign-ins." };
 }
 
@@ -125,7 +123,7 @@ export async function revokeSessionAction(formData: FormData): Promise<void> {
     entityType: "session",
   });
 
-  revalidatePath("/dashboard/profile");
+  revalidatePath("/", "layout");
 }
 
 export async function signOutOtherSessionsAction(): Promise<void> {
@@ -155,7 +153,7 @@ export async function signOutOtherSessionsAction(): Promise<void> {
     metadata: { revokedCount: ids.length },
   });
 
-  revalidatePath("/dashboard/profile");
+  revalidatePath("/", "layout");
 }
 
 export async function deleteAccountAction(

@@ -236,7 +236,7 @@ export function GeneralSettingsForm({
     "w-full h-8 border border-border bg-background px-2.5 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed";
 
   const btnPrimary =
-    "px-3.5 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed";
+    "cursor-pointer px-3.5 py-1.5 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
     <div className="px-8 py-6 max-w-2xl space-y-10">
@@ -374,7 +374,7 @@ export function GeneralSettingsForm({
                 </p>
               </div>
               <button
-                className="shrink-0 px-3.5 py-1.5 text-sm font-medium text-destructive border border-destructive/40 hover:bg-destructive hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="shrink-0 px-3.5 py-1.5 text-sm font-medium text-destructive border border-destructive/40 hover:bg-destructive hover:text-white transition-colors cursor-pointer duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => setShowDeleteDialog(true)}
                 type="button"
               >
