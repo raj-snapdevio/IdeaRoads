@@ -1,78 +1,44 @@
 # Landing Page
 
+> Product specification for the IdeaRoads landing page. For technical reference (rendering, components, SEO, config) see [`../implementation/features/00-landing-page.md`](../implementation/features/00-landing-page.md).
+
 ## Goal
 
-Communicate IdeaRoads's value proposition to developers, indie makers, and product teams — and convert them into self-hosters or GitHub stars. The page lives at `/` and is the public face of the IdeaRoads product itself (not a workspace). It must load fast, be fully SSR, and work without JavaScript for SEO.
+Communicate IdeaRoads's value proposition to developers, indie makers, and product teams — the prospective Brand Admins who will run a feedback operation on IdeaRoads — and convert them into self-hosters or GitHub stargazers.
+
+The landing page lives at the site root and is the public face of the IdeaRoads product itself (not any single brand's workspace). It is a **Public** page: its audience is anyone, with no sign-in required (see [PLATFORM § Public vs Private Pages](../PLATFORM.md#7-public-vs-private-pages)). It is fast and mobile-responsive.
 
 ---
 
-## Existing Scope
+## Scope
 
-- Public marketing homepage at `/`
-- No authentication required
-- Fully server-side rendered (Next.js App Router, `app/(marketing)/page.tsx`)
-- Static or near-static content — no real-time data
-- Links out to GitHub, docs, and the sign-in / get-started flow
-- No pricing page in MVP (self-hosted, free)
-- No blog, no changelog for IdeaRoads itself (separate from the app's changelog feature)
-
----
-
-## User Flow
-
-### New Visitor (Developer / Indie Maker)
-
-1. Lands on `/` from GitHub, a tweet, or a search result
-2. Reads headline + subheadline — understands what IdeaRoads is in 5 seconds
-3. Sees the closed loop diagram — understands the product is end-to-end, not just a board
-4. Scrolls through feature highlights — confirms it covers their use case
-5. Reads the "Open source & self-hosted" section — understands the pricing model and data ownership promise
-6. Clicks **"Get Started"** → `/signin` or GitHub repo depending on entry point
-7. Optionally scrolls to quick-start instructions and copies the Docker Compose command
-
-### Returning Visitor
-
-1. Lands on `/`
-2. Clicks **"Sign In"** in nav → `/signin`
+- A public marketing homepage at the site root.
+- No sign-in required — open to anyone.
+- Static, near-static content — no real-time data.
+- Links out to GitHub, the documentation, and the sign-in / get-started flow.
+- No pricing page in MVP (self-hosted, free).
+- No blog, and no changelog for IdeaRoads itself (separate from the in-app Changelog feature each brand publishes).
 
 ---
 
-## Technical Design
+## Visitor Flow
 
-- Route group: `app/(marketing)/page.tsx` — isolated from the workspace and auth route groups
-- Layout: `app/(marketing)/layout.tsx` — contains `<Nav>` and `<Footer>` only; no sidebar, no workspace context
-- Rendering: fully SSR (`export const dynamic = 'force-static'`) — no `useClient` on the page itself
-- SEO: `generateMetadata()` returns title, description, og:image, twitter:card
-- No authentication check — this page is always public
-- Nav links: Logo, Docs, GitHub, Sign In (right-aligned)
-- All CTAs link to `/signin` or the GitHub repo URL from `config/platform.ts`
+The landing page is for anonymous visitors — no one needs to sign in to read it.
 
----
+### New visitor (developer / indie maker / product team)
 
-## Folder Mapping
+1. Arrives from GitHub, a social post, or a search result.
+2. Reads the headline and subheadline — understands what IdeaRoads is within a few seconds.
+3. Sees the closed-loop diagram — understands the product is end-to-end, not just a feedback board.
+4. Scrolls through the feature highlights — confirms it covers their use case.
+5. Reads the "Open source & self-hosted" section — understands the pricing model and the data-ownership promise.
+6. Clicks **Get Started** to begin sign-up, or **View on GitHub** to explore the repository.
+7. Optionally scrolls to the quick-start instructions to see how fast they can self-host.
 
-```
-app/
-└── (marketing)/
-    ├── layout.tsx                  # Nav + Footer only, no auth context
-    └── page.tsx                    # Landing page — force-static SSR
+### Returning visitor
 
-components/
-└── marketing/
-    ├── nav.tsx                     # Top navigation bar
-    ├── hero.tsx                    # Hero section
-    ├── loop-diagram.tsx            # Collect → Vote → Plan → Ship → Announce → Notify
-    ├── features-grid.tsx           # Six feature highlight cards
-    ├── who-its-for.tsx             # Three ICP cards
-    ├── open-source-section.tsx     # OSS / self-hosting pitch
-    ├── comparison-table.tsx        # IdeaRoads vs Canny vs Upvoty
-    ├── quick-start.tsx             # Docker Compose command + steps
-    ├── footer.tsx                  # Footer with links
-    └── cta-button.tsx              # Shared CTA button component
-
-config/
-└── platform.ts                    # GITHUB_REPO_URL, DOCS_URL, PRODUCT_NAME = "IdeaRoads"
-```
+1. Arrives at the landing page.
+2. Clicks **Sign In** in the navigation to reach the sign-in flow.
 
 ---
 
@@ -80,15 +46,15 @@ config/
 
 ### 1. Navigation Bar
 
-| Element     | Detail                                                             |
-| ----------- | ------------------------------------------------------------------ |
-| Logo        | IdeaRoads wordmark — links to `/`                                  |
-| Docs        | Links to GitHub docs or `/docs`                                    |
-| GitHub      | Links to GitHub repo — shows star count (static, updated at build) |
-| Sign In     | Links to `/signin` — right-aligned, outlined button               |
-| Get Started | Links to `/signin` — right-aligned, filled primary button         |
+| Element     | Purpose                                                              |
+| ----------- | ------------------------------------------------------------------- |
+| Logo        | IdeaRoads wordmark — returns to the landing page                    |
+| Docs        | Opens the documentation                                             |
+| GitHub      | Opens the GitHub repository — shows the project's star count        |
+| Sign In     | Goes to the sign-in flow — right-aligned, outlined button           |
+| Get Started | Goes to the sign-up / sign-in flow — right-aligned, filled primary button |
 
-Sticky on scroll. No hamburger menu at MVP — collapses to icon-only on mobile.
+The bar is sticky on scroll and collapses to an icon-only layout on mobile.
 
 ---
 
@@ -102,21 +68,18 @@ Sticky on scroll. No hamburger menu at MVP — collapses to icon-only on mobile.
 
 > Collect feedback, vote on what matters, plan a roadmap, ship it, and notify your users — all in one self-hosted platform.
 
-**CTA Buttons:**
+**Calls to action:**
 
-- Primary: **"Get Started Free"** → `/signin`
-- Secondary: **"View on GitHub"** → GitHub repo URL
+- Primary: **Get Started Free** — begins the sign-up flow.
+- Secondary: **View on GitHub** — opens the GitHub repository.
 
-**Visual:**
+**Visual:** A browser mockup showing the public board view — a post list with vote counts and status badges — presenting the core product in a single frame. Alternatively, a clean illustration of the closed-loop diagram.
 
-- A browser mockup or screenshot showing the public board view with a post list, vote counts, and status badges — the core product in one frame
-- Alternatively: a clean illustration of the closed loop diagram
+**Trust signals (below the CTAs):**
 
-**Trust signals (below CTA):**
-
-- MIT License badge
-- "Self-hosted — you own your data"
-- "Voters always free"
+- MIT-licensed.
+- "Self-hosted — you own your data."
+- "Voters always free."
 
 ---
 
@@ -124,7 +87,7 @@ Sticky on scroll. No hamburger menu at MVP — collapses to icon-only on mobile.
 
 **Section title:** The product in one loop
 
-**Visual:** Horizontal flow diagram with icons for each step:
+A horizontal flow diagram with an icon for each step:
 
 ```
 Collect → Vote → Plan → Ship → Announce → Notify
@@ -139,7 +102,7 @@ Collect → Vote → Plan → Ship → Announce → Notify
 | Collect  | Users submit feature requests and bug reports to your public boards          |
 | Vote     | Votes surface what matters most — one per user, no gaming                    |
 | Plan     | Voted posts auto-populate your public roadmap by status                      |
-| Ship     | Admin changes post status to Completed when it's done                        |
+| Ship     | The team marks a post Completed when it's done                               |
 | Announce | Write a changelog entry linked to the shipped feedback                       |
 | Notify   | Every voter automatically gets an email when you ship                        |
 
@@ -151,28 +114,28 @@ Collect → Vote → Plan → Ship → Announce → Notify
 
 ### 4. Features Grid
 
-Six cards — one per core feature group. Each card: icon + feature name + one-line description.
+Six cards — one per core feature group. Each card has an icon, a feature name, and a one-line description.
 
-| Feature             | Icon           | Description                                                                            |
-| ------------------- | -------------- | -------------------------------------------------------------------------------------- |
-| Feedback Boards     | Board icon     | Multiple boards per workspace. Public by default. Up to 10 active boards.              |
-| Voting              | Upvote icon    | One vote per signed-in user. Guests can vote with email. Vote counts drive sort order. |
-| Public Roadmap      | Kanban icon    | Auto-generated from post statuses. No manual curation. Four columns.                   |
-| Changelog           | Megaphone icon | Write release notes, link shipped posts, notify all voters on publish.                 |
-| Team Roles          | People icon    | Owner, Admin, Member, Guest. Full permission matrix. Invite by email or link.          |
-| Email Notifications | Bell icon      | Four trigger events. Per-workspace preferences. One-click unsubscribe.                 |
+| Feature             | Description                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| Feedback Boards     | Multiple boards per workspace. Public by default. Up to 10 active boards.                |
+| Voting              | One vote per signed-in User. Vote counts drive sort order.                               |
+| Public Roadmap      | Auto-generated from post statuses. No manual curation. Three columns.                    |
+| Changelog           | Write release notes, link shipped posts, and notify all voters on publish.               |
+| Team Roles          | Brand Admin (manages the workspace), Team Member (helps manage feedback), User (votes and comments). |
+| Email Notifications | Four trigger events. Per-workspace preferences. One-click unsubscribe.                   |
 
 ---
 
 ### 5. Who It's For
 
-Three cards with persona, description, and pain-point it solves.
+Three cards, each with a persona, a description, and the pain it solves.
 
 | Persona                 | Description                                        | Pain it solves                                                             |
 | ----------------------- | -------------------------------------------------- | -------------------------------------------------------------------------- |
 | **Startups**            | Building your first structured feedback channel    | Feedback scattered across email, Notion, and DMs                           |
 | **Indie Makers**        | Solo or small OSS projects with active communities | No affordable way to manage community requests without a SaaS subscription |
-| **Small Product Teams** | 2–25 people replacing ad-hoc boards                | Feature request tracking in Trello is manual; Canny charges per voter      |
+| **Small Product Teams** | 2–25 people replacing ad-hoc boards                | Feature-request tracking in Trello is manual; Canny charges per voter      |
 
 ---
 
@@ -185,14 +148,14 @@ Three pillars:
 | Pillar      | Headline                    | Body                                                                            |
 | ----------- | --------------------------- | ------------------------------------------------------------------------------- |
 | Open Source | MIT Licensed                | Read the code, fork it, contribute to it. No black boxes.                       |
-| Self-Hosted | One `docker compose up`     | Runs on your own server. Your data never leaves your infrastructure.            |
+| Self-Hosted | One command to deploy       | Runs on your own server. Your data never leaves your infrastructure.            |
 | Free Voters | Voters don't cost you money | Pricing (post-MVP cloud tier) is per team seat only. End users are always free. |
 
 ---
 
 ### 7. Comparison Table
 
-Simple feature comparison — IdeaRoads vs Canny vs Upvoty. Focused on the three differentiators.
+A simple feature comparison — IdeaRoads vs Canny vs Upvoty — focused on the three differentiators.
 
 |                                    | IdeaRoads | Canny                 | Upvoty        |
 | ---------------------------------- | --------- | --------------------- | ------------- |
@@ -205,7 +168,7 @@ Simple feature comparison — IdeaRoads vs Canny vs Upvoty. Focused on the three
 | One-click self-host                | ✓         | —                     | —             |
 | Pricing                            | Free      | Paid per seat + voter | Paid per seat |
 
-**Footnote:** Canny and Upvoty comparison is based on their publicly documented plans. IdeaRoads is not affiliated with either.
+**Footnote:** The Canny and Upvoty comparison is based on their publicly documented plans. IdeaRoads is not affiliated with either.
 
 ---
 
@@ -213,33 +176,20 @@ Simple feature comparison — IdeaRoads vs Canny vs Upvoty. Focused on the three
 
 **Section title:** Up and running in under 5 minutes
 
-Three numbered steps:
+A short, three-step walkthrough that shows how quickly a visitor can self-host IdeaRoads: clone the repository, configure the environment, and start the stack. The exact commands are shown in a copyable code block.
 
-```
-1.  Clone the repo
-    git clone https://github.com/[org]/idearoads.git
-
-2.  Configure your environment
-    cp .env.example .env
-    # Fill in DATABASE_URL, BETTER_AUTH_SECRET, SMTP_HOST
-
-3.  Start the stack
-    docker compose up -d
-    # App runs at http://localhost:3000
-```
-
-**CTA below:** "Full self-hosting guide →" links to docs.
+**Call to action below:** "Full self-hosting guide →" links to the documentation.
 
 ---
 
 ### 9. Footer
 
-| Column     | Links                                                             |
+| Column     | Links                                                              |
 | ---------- | ----------------------------------------------------------------- |
-| Product    | Features, Roadmap (IdeaRoads's own), Changelog (IdeaRoads's own) |
+| Product    | Features, Roadmap (IdeaRoads's own), Changelog (IdeaRoads's own)  |
 | Developers | Documentation, GitHub, Contributing                               |
 | Legal      | MIT License, Privacy Policy (post-MVP)                            |
-| Social     | GitHub stars count, Twitter/X (post-MVP)                          |
+| Social     | GitHub star count, Twitter/X (post-MVP)                           |
 
 **Bottom bar:**
 
@@ -247,79 +197,28 @@ Three numbered steps:
 
 ---
 
-## API
-
-None. The landing page is fully static — no API calls. GitHub star count is fetched at build time via `generateStaticParams` or a build-time `fetch` with `next: { revalidate: 3600 }`.
-
----
-
-## Database
-
-None. The landing page reads no database. All content is hardcoded in components or sourced from `config/platform.ts`.
-
----
-
-## Events
-
-None. The landing page emits no domain events and subscribes to none.
-
----
-
-## Background Jobs
-
-None.
-
----
-
-## Dependencies
-
-| Dependency                   | Reason                                                      |
-| ---------------------------- | ----------------------------------------------------------- |
-| `config/platform.ts`         | `PRODUCT_NAME`, `GITHUB_REPO_URL`, `DOCS_URL` constants     |
-| `app/(marketing)/layout.tsx` | Isolated layout — no workspace context, no auth context     |
-| `/signin` route              | Primary CTA destination                                     |
-| GitHub API (build-time only) | Optional: fetch star count at build time with `revalidate`  |
-
----
-
 ## Edge Cases
 
-| Case                                     | Handling                                                                                                             |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| User is already signed in and visits `/` | Nav shows "Dashboard" instead of "Sign In"; clicking it goes to `/onboarding` or their last workspace               |
-| GitHub star count fetch fails at build   | Show no badge rather than crash — `try/catch` the build-time fetch                                                   |
-| Visitor has JavaScript disabled          | Page is fully SSR — all content renders without JS; only interactive elements (mobile nav toggle) degrade gracefully |
-| Dark mode                                | Landing page respects system `prefers-color-scheme` via Tailwind's `dark:` variant                                   |
-| Slow connection                          | Hero image / mockup is lazy-loaded or replaced with a pure CSS/HTML diagram at MVP                                   |
+| Case                                     | Behaviour                                                                                                 |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| A signed-in person visits the landing page | The navigation shows "Dashboard" instead of "Sign In"; clicking it goes to onboarding or their last workspace |
+| The GitHub star count is unavailable     | No star badge is shown — the page never breaks because the count is missing                               |
+| A visitor has JavaScript disabled        | All content is still readable; only interactive niceties (such as the mobile nav toggle) degrade gracefully |
+| Dark mode                                | The landing page follows the visitor's system colour-scheme preference                                    |
+| Slow connection                          | The hero visual loads progressively and the page remains usable                                           |
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Landing page loads at `/` without authentication
-- [ ] Page renders correctly with JavaScript disabled (SSR check)
-- [ ] All six navigation links are functional (Logo, Docs, GitHub, Sign In, Get Started)
-- [ ] "Get Started Free" CTA links to `/signin`
-- [ ] "View on GitHub" links to the correct GitHub repo URL from `config/platform.ts`
-- [ ] Closed loop diagram is visible without scrolling on 1280px viewport
-- [ ] Comparison table renders on mobile without horizontal scroll
-- [ ] Quick-start code block is copyable
-- [ ] `<title>` and `<meta description>` are set via `generateMetadata()`
-- [ ] `og:image` is set for social sharing previews
-- [ ] Page scores 90+ on Lighthouse Performance (desktop)
-- [ ] No broken links in footer
-
----
-
-## Implementation Notes
-
-- Route group `(marketing)` isolates the landing page from `(workspace)` and `(auth)` — no accidental auth middleware leaking in
-- Use `export const dynamic = 'force-static'` on `app/(marketing)/page.tsx` to ensure static generation at build time
-- GitHub repo URL and all product-level constants live in `config/platform.ts` — never hardcoded in components
-- The comparison table data (Canny, Upvoty) is hardcoded in the component — it does not come from a CMS or DB
-- Do NOT use `<LocalDate />` (a client component) anywhere on this page — no dynamic timestamps on the landing page
-- Hero mockup or screenshot: use a static image (`public/screenshots/board-view.png`) — do not embed a live iframe of the app
-- Tailwind `dark:` variants handle dark mode — no JS theme toggle needed at MVP
-- `components/marketing/` is a separate directory from `components/ui/` and `components/boards/` — keeps landing page components isolated from app components
-- All imports use `@/` path alias — never relative paths
-- Quick start step 2 references `BETTER_AUTH_SECRET` (not `APP_SECRET`) — consistent with `.env.example`
+- [ ] The landing page is reachable without signing in.
+- [ ] The page is fully readable with JavaScript disabled.
+- [ ] Every navigation link works (Logo, Docs, GitHub, Sign In, Get Started).
+- [ ] The "Get Started Free" call to action begins the sign-up flow.
+- [ ] The "View on GitHub" call to action opens the correct GitHub repository.
+- [ ] The closed-loop diagram is visible without scrolling on a standard desktop viewport.
+- [ ] The comparison table is readable on mobile with no horizontal scrolling.
+- [ ] The quick-start commands are copyable.
+- [ ] The page has a descriptive title and meta description, and a social-sharing preview image.
+- [ ] The page is fast (90+ Lighthouse Performance on desktop).
+- [ ] No footer link is broken.

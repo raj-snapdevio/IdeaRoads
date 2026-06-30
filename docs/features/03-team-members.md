@@ -1,502 +1,70 @@
 # Feature 03 — Team Members
 
+> Product behaviour for team management. For schema, services, routes, jobs, and engineering notes see [implementation reference](../implementation/features/03-team-members.md).
+
 ## Overview
 
-Team Members controls who has internal access to a workspace. The Owner can invite people by email or share a link. Invited users join with a role — **Admin** or **Member**. The Owner can change roles, remove members, and transfer ownership. Members can leave at any time. Invites expire after 7 days and are cleaned up nightly by a pg-boss cron job.
+Team Members controls who has internal access to a workspace. A **Brand Admin** can bring people in two ways: by sending an email invite, or by sharing an invite link. When inviting, the Brand Admin chooses which **role** the new person joins as — **Brand Admin** or **Team Member**. This is a role choice, not a per-person permission setting: each role's permissions are fixed and defined in [PLATFORM.md](../PLATFORM.md), and every Team Member receives exactly the same fixed set of permissions.
 
-This feature is entirely internal (workspace team) and is separate from the public-facing users who vote and comment on boards.
+This feature is entirely internal to a workspace and is separate from the public-facing **Users** who vote and comment on boards.
+
+The four product roles are defined in [PLATFORM.md](../PLATFORM.md). Within team management, the relevant roles are:
+
+- **Brand Admin** — a paying customer who manages the team, settings, boards, moderation, and everything inside the workspace.
+- **Team Member** — an invited helper who handles feedback (triage, replies, status changes) but never accesses workspace settings or the team page. Every Team Member has the same fixed permissions.
+
+Workspace ownership is an attribute of one Brand Admin — the Brand Admin who created the workspace. Ownership matters only for ownership-specific actions: transferring the workspace or deleting it. (When billing is introduced in a future release, it will belong to that owning Brand Admin; billing is not part of the MVP.)
 
 ---
 
 ## Core Behaviour
 
-- Two invite methods: **email invite** (sends a token link) and **shareable invite link** (one link for anyone)
-- Roles: `owner`, `admin`, `member` (defined in Feature 02 roles section)
-- Only **Owner** and **Admin** can invite members
-- Only **Owner** can transfer ownership or delete the workspace
-- **Owner** cannot be removed — must transfer ownership first
-- **Owner** cannot leave workspace — must transfer ownership first or delete it
-- Any member (except Owner) can leave the workspace
-- Invite tokens are single-use and expire in **7 days**
-- Shareable invite links are reusable (multi-use) until manually revoked or expired
-- Nightly cron job cleans up expired invites at 2am
-- Member count has no hard limit in MVP
+- Two ways to add people:
+  - **Email invite** — sent to a specific address; the recipient gets a private link to accept.
+  - **Shareable invite link** — a single link anyone can use to join.
+- Only a **Brand Admin** can invite people.
+- When inviting, the Brand Admin chooses the new person's **role** — **Brand Admin** or **Team Member**. This is a single role choice, not an adjustable list of permissions; each role's permissions are fixed.
+- Only the **Brand Admin who owns the workspace** can transfer ownership or delete the workspace.
+- The **Brand Admin who owns the workspace** cannot be removed and cannot leave — they must transfer ownership first (or delete the workspace).
+- Any **Team Member**, and any **Brand Admin** who does not own the workspace, can leave the workspace.
+- Email invites are single-use and expire after **7 days**.
+- Shareable invite links are reusable until they are revoked or expire.
+- Expired invites are cleaned up automatically.
+- There is no hard limit on team size in the MVP.
 
 ---
 
-## Dependencies
+## Who Can Do What
 
-```
-@paralleldrive/cuid2    — generate invite tokens
-pg-boss                 — job queue for emails + cron cleanup
-nodemailer              — deliver invite and removal emails
-```
+| Action | Owning Brand Admin | Other Brand Admin | Team Member |
+|---|:---:|:---:|:---:|
+| View the team | ✅ | ✅ | ❌ |
+| Invite by email | ✅ | ✅ | ❌ |
+| Create / share an invite link | ✅ | ✅ | ❌ |
+| Revoke a pending invite | ✅ | ✅ | ❌ |
+| Promote a Team Member to Brand Admin | ✅ | ❌ | ❌ |
+| Change another Brand Admin back to Team Member | ✅ | ❌ | ❌ |
+| Remove another Brand Admin | ✅ | ❌ | ❌ |
+| Remove a Team Member | ✅ | ✅ | ❌ |
+| Leave the workspace | ❌ | ✅ | ✅ |
+| Transfer ownership | ✅ | ❌ | ❌ |
+| Delete the workspace | ✅ | ❌ | ❌ |
 
----
-
-## Environment Variables
-
-No new variables beyond Feature 01. Uses:
-
-```env
-DATABASE_URL
-SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / EMAIL_FROM
-NEXT_PUBLIC_APP_URL
-NEXT_PUBLIC_APP_NAME
-```
+The owning Brand Admin is the single Brand Admin who created the workspace. "Other Brand Admin" is anyone they have elevated to Brand Admin. **Users** (the brand's public customers) never appear here — they have no internal access.
 
 ---
 
-## Database Schema
+## Pages
 
-### `workspace_members`
+| Page | URL | Audience |
+|---|---|---|
+| Members settings | `/{ws-slug}/settings/members` | Brand Admin only |
+| Email invite acceptance | `/invite/[token]` | The invited person |
+| Shareable link acceptance | `/invite/link/[linkToken]` | Anyone with the link |
 
-```ts
-id            text        PK  (cuid2)
-workspace_id  text        NOT NULL  → workspaces.id (CASCADE DELETE)
-user_id       text        NOT NULL  → user.id (CASCADE DELETE)
-role          text        NOT NULL  -- 'owner' | 'admin' | 'member'
-joined_at     timestamp   NOT NULL  DEFAULT now()
-```
+The members settings page shows the current team (name, email, role, joined date), lets a Brand Admin invite by email or by link, and exposes per-person actions (change role, remove, or — for the current person — leave). The owning Brand Admin also sees a Transfer Ownership action.
 
-**Indexes:**
-- `UNIQUE` on `(workspace_id, user_id)` — one membership per user per workspace
-- Index on `workspace_id`
-- Index on `user_id`
-
----
-
-### `workspace_invites`
-
-```ts
-id              text        PK  (cuid2)
-workspace_id    text        NOT NULL  → workspaces.id (CASCADE DELETE)
-invited_by      text        NOT NULL  → user.id
-email           text                  -- NULL for shareable invite links
-role            text        NOT NULL  -- 'admin' | 'member'
-token           text        NOT NULL  UNIQUE
-is_invite_link  boolean     NOT NULL  DEFAULT false
-expires_at      timestamp   NOT NULL
-accepted_at     timestamp             -- NULL until accepted
-created_at      timestamp   NOT NULL  DEFAULT now()
-```
-
-**Indexes:**
-- `UNIQUE` on `token`
-- Index on `workspace_id`
-- Index on `email`
-
-**Rules:**
-- Email invites: `email` is set, `is_invite_link = false`, single-use (accepted_at set on use)
-- Shareable links: `email = NULL`, `is_invite_link = true`, reusable (accepted_at not set)
-
----
-
-## File Structure
-
-```
-app/
-├── invite/
-│   ├── [token]/
-│   │   └── page.tsx                    Email invite accept page
-│   └── link/
-│       └── [linkToken]/
-│           └── page.tsx                Shareable link accept page
-├── (workspace)/
-│   └── [ws-slug]/
-│       └── settings/
-│           └── members/
-│               └── page.tsx            Members settings page
-└── api/
-    └── workspaces/
-        └── [slug]/
-            ├── members/
-            │   ├── route.ts            GET list / POST invite by email
-            │   ├── me/
-            │   │   └── route.ts        DELETE (leave workspace)
-            │   └── [memberId]/
-            │       └── route.ts        PATCH (change role) / DELETE (remove)
-            └── invites/
-                ├── route.ts            GET pending invites / POST create invite link
-                └── [inviteId]/
-                    └── route.ts        DELETE (revoke invite)
-
-components/
-└── members/
-    ├── members-table.tsx               Full member list with role, avatar, actions
-    ├── invite-by-email-form.tsx        Email + role selector + send button
-    ├── invite-link-box.tsx             Copy invite link + revoke button
-    ├── change-role-dropdown.tsx        Inline role change select
-    ├── remove-member-dialog.tsx        AlertDialog confirm removal
-    ├── leave-workspace-dialog.tsx      AlertDialog confirm leave
-    └── transfer-ownership-dialog.tsx   Select new owner + confirm
-
-lib/
-└── workspaces/
-    ├── members.ts                      Member service functions
-    └── invites.ts                      Invite service functions
-
-lib/worker/handlers/
-├── send-workspace-invite-email.ts
-├── send-member-removed-email.ts
-└── cleanup-expired-invites.ts
-
-lib/email/templates/
-├── workspace-invite.ts                 Email HTML template
-└── member-removed.ts                   Email HTML template
-```
-
----
-
-## Implementation Details
-
-### `lib/workspaces/members.ts` — Service Layer
-
-```ts
-getMembers(workspaceId)
-  → returns workspace_members joined with user (id, name, email, avatar, role, joined_at)
-  → sorted by: owner first, then admin, then member, then by joined_at asc
-
-getMember(workspaceId, userId)
-  → returns single member record or null
-
-addMember(workspaceId, userId, role)
-  → checks user not already a member
-  → inserts workspace_members row
-  → returns new member
-
-changeRole(workspaceId, memberId, newRole, requesterId)
-  → uses pg_advisory_xact_lock(hashtext(workspaceId)::bigint) inside db.transaction()
-  → verifies requester is owner or admin
-  → verifies target is not the owner (owner role cannot be reassigned this way)
-  → verifies requester is not demoting themselves if they are the only admin
-  → updates role
-  → returns updated member
-
-removeMember(workspaceId, memberId, requesterId)
-  → uses pg_advisory_xact_lock inside db.transaction()
-  → verifies requester is owner or admin
-  → verifies target is not the owner
-  → fetches target user info (name, email) before deletion (needed for email)
-  → deletes workspace_members row
-  → enqueues SEND_MEMBER_REMOVED_EMAIL job
-  → returns void
-
-leaveWorkspace(workspaceId, userId)
-  → verifies user is a member
-  → verifies user is NOT the owner (owners cannot leave)
-  → deletes workspace_members row
-  → returns void
-
-transferOwnership(workspaceId, currentOwnerId, newOwnerId)
-  → uses pg_advisory_xact_lock inside db.transaction()
-  → verifies currentOwnerId is the owner
-  → verifies newOwnerId is a member of the workspace
-  → sets newOwnerId role to 'owner'
-  → sets currentOwnerId role to 'admin'
-  → updates workspaces.owner_id to newOwnerId
-  → returns void
-```
-
----
-
-### `lib/workspaces/invites.ts` — Service Layer
-
-```ts
-createEmailInvite(workspaceId, invitedBy, email, role)
-  → checks no active pending invite exists for this email in this workspace
-  → generates cuid2 token
-  → sets expires_at = now() + 7 days
-  → inserts workspace_invites row
-  → enqueues SEND_WORKSPACE_INVITE_EMAIL job
-  → returns invite
-
-createInviteLink(workspaceId, invitedBy, role)
-  → generates cuid2 token
-  → sets is_invite_link = true, email = null
-  → sets expires_at = now() + 30 days (longer TTL for shareable links)
-  → upserts (revoke old link for same workspace + role, create new one)
-  → returns invite with token
-
-getInviteByToken(token)
-  → returns invite joined with workspace (name, slug) or null
-
-getPendingInvites(workspaceId)
-  → returns all invites where accepted_at IS NULL and expires_at > now()
-
-revokeInvite(inviteId, requesterId, workspaceId)
-  → verifies requester is admin or owner of the workspace
-  → deletes invite row
-
-acceptEmailInvite(token, userId)
-  → fetches invite by token
-  → verifies invite is not expired (expires_at > now())
-  → verifies invite is not already accepted (accepted_at IS NULL)
-  → verifies user email matches invite email
-  → checks user not already a member
-  → in db.transaction():
-      → inserts workspace_members row (role from invite)
-      → sets invite.accepted_at = now()
-  → returns workspace
-
-acceptInviteLink(token, userId)
-  → fetches invite by token (is_invite_link = true)
-  → verifies invite is not expired
-  → checks user not already a member
-  → inserts workspace_members row (role from invite)
-  → returns workspace
-  (does NOT set accepted_at — invite link is reusable)
-```
-
----
-
-### `app/api/workspaces/[slug]/members/route.ts`
-
-**GET** — List members
-```
-Auth: requireWorkspaceMember
-Returns: member[] (id, userId, name, email, avatar, role, joinedAt)
-```
-
-**POST** — Invite member by email
-```
-Auth: requireRole(['owner', 'admin'])
-Body: { email: string, role: 'admin' | 'member' }
-Validates:
-  - Valid email format
-  - Role must be 'admin' or 'member' (cannot invite as 'owner')
-  - No existing active invite for this email in this workspace
-  - User not already a member
-Calls: createEmailInvite(...)
-Returns: 201 + invite (without token — token is only in the email)
-```
-
----
-
-### `app/api/workspaces/[slug]/members/[memberId]/route.ts`
-
-**PATCH** — Change member role
-```
-Auth: requireRole(['owner', 'admin'])
-Body: { role: 'admin' | 'member' }
-Validates: cannot change owner's role via this endpoint
-Calls: changeRole(...)
-Returns: updated member
-```
-
-**DELETE** — Remove member
-```
-Auth: requireRole(['owner', 'admin'])
-Validates: cannot remove workspace owner
-Calls: removeMember(...)
-Returns: 204
-```
-
----
-
-### `app/api/workspaces/[slug]/members/me/route.ts`
-
-**DELETE** — Leave workspace
-```
-Auth: requireSession + requireWorkspaceMember
-Validates: user is not the owner
-Calls: leaveWorkspace(...)
-Returns: 204
-```
-
----
-
-### `app/api/workspaces/[slug]/invites/route.ts`
-
-**GET** — List pending invites
-```
-Auth: requireRole(['owner', 'admin'])
-Returns: pending invite[] (id, email, role, createdAt, expiresAt, isInviteLink)
-Note: token is never returned in API responses
-```
-
-**POST** — Create shareable invite link
-```
-Auth: requireRole(['owner', 'admin'])
-Body: { role: 'admin' | 'member' }
-Calls: createInviteLink(...)
-Returns: 201 + { inviteUrl: string }
-```
-
----
-
-### `app/api/workspaces/[slug]/invites/[inviteId]/route.ts`
-
-**DELETE** — Revoke invite
-```
-Auth: requireRole(['owner', 'admin'])
-Calls: revokeInvite(...)
-Returns: 204
-```
-
----
-
-### `app/invite/[token]/page.tsx` — Email Invite Accept
-
-Server component flow:
-```
-1. Fetch invite by token (getInviteByToken)
-2. If not found → show "Invalid invite link" error page
-3. If expired → show "This invite has expired" error page
-4. If already accepted → show "Already accepted" with link to workspace
-5. Get current session
-   → If not signed in: store token in cookie, redirect /signin?redirect=/invite/[token]
-   → If signed in: proceed to accept
-6. Verify user email matches invite email
-   → If mismatch: show "This invite was sent to a different email address"
-7. Call acceptEmailInvite(token, session.user.id)
-8. Redirect to /{ws-slug}?welcome=1
-```
-
----
-
-### `app/invite/link/[linkToken]/page.tsx` — Shareable Link Accept
-
-Server component flow:
-```
-1. Fetch invite by token (is_invite_link = true)
-2. If not found or expired → show error
-3. Get current session
-   → If not signed in: store token in cookie, redirect /signin?redirect=/invite/link/[token]
-4. Check user not already a member
-   → If already member: redirect to /{ws-slug} (silent, no error)
-5. Call acceptInviteLink(token, session.user.id)
-6. Redirect to /{ws-slug}?welcome=1
-```
-
----
-
-### `app/(workspace)/[ws-slug]/settings/members/page.tsx`
-
-- Server component
-- Fetches members list + pending invites in parallel
-- Renders `<MembersTable />` + `<InviteByEmailForm />` + `<InviteLinkBox />`
-- Only visible to Owner and Admin (layout guards + API guards)
-
----
-
-### `components/members/members-table.tsx`
-
-- Columns: Avatar + Name, Email, Role, Joined Date, Actions
-- Search input (client-side filter by name/email)
-- Role filter dropdown (All / Owner / Admin / Member)
-- Per-row actions:
-  - `<ChangeRoleDropdown />` — Owner can change any role; Admin can change Member roles only
-  - Remove button → opens `<RemoveMemberDialog />`
-- Owner row: no remove button, no role change dropdown (role is locked)
-- Current user row: shows "Leave" instead of "Remove" → opens `<LeaveWorkspaceDialog />`
-- Transfer Ownership button: shown only to Owner, opens `<TransferOwnershipDialog />`
-
----
-
-### `components/members/invite-by-email-form.tsx`
-
-- Fields: email input + role select (Admin / Member, default: Member)
-- Submit → POST `/api/workspaces/[slug]/members`
-- On success: toast "Invite sent to {email}", clear form, refresh pending invites list
-- On duplicate error (already invited): toast "This email already has a pending invite"
-- On already member error: toast "This user is already a member"
-
----
-
-### `components/members/invite-link-box.tsx`
-
-- Shows the shareable invite URL in a read-only input
-- "Copy link" button (copies to clipboard, shows "Copied!" feedback)
-- Role selector: choose what role link-joiners get (Admin / Member)
-- Changing role creates a new link (old one is revoked)
-- "Revoke link" button → DELETE invite → link disappears, "Generate new link" button appears
-- If no link exists: shows "Generate invite link" button
-
----
-
-## Background Jobs
-
-### `SEND_WORKSPACE_INVITE_EMAIL`
-
-**Trigger:** `createEmailInvite()` — after invite row is inserted
-
-**Payload:**
-```ts
-{
-  inviteId: string
-  email: string
-  workspaceName: string
-  inviterName: string
-  role: string
-  inviteUrl: string       // NEXT_PUBLIC_APP_URL + /invite/ + token
-  expiresAt: string       // ISO date string
-}
-```
-
-**Handler:** `lib/worker/handlers/send-workspace-invite-email.ts`
-- Sends email via Nodemailer
-- Subject: `"{inviterName} invited you to {workspaceName} on IdeaRoads"`
-- Body: workspace name, role, invite button/link, expiry date
-
----
-
-### `SEND_MEMBER_REMOVED_EMAIL`
-
-**Trigger:** `removeMember()` — after member row is deleted
-
-**Payload:**
-```ts
-{
-  removedUserEmail: string
-  removedUserName: string
-  workspaceName: string
-  removedByName: string
-}
-```
-
-**Handler:** `lib/worker/handlers/send-member-removed-email.ts`
-- Sends email via Nodemailer
-- Subject: `"You've been removed from {workspaceName}"`
-- Body: workspace name, removed-by name, note that they can contact the workspace owner
-
----
-
-### `CLEANUP_EXPIRED_INVITES`
-
-**Schedule:** Nightly cron at 2:00 AM (registered via pg-boss)
-
-**Logic:**
-```ts
-DELETE FROM workspace_invites
-WHERE expires_at < now()
-AND accepted_at IS NULL
-```
-
-**Handler:** `lib/worker/handlers/cleanup-expired-invites.ts`
-
-**Registration** in `lib/worker/scheduler.ts`:
-```ts
-await boss.schedule("CLEANUP_EXPIRED_INVITES", "0 2 * * *")
-```
-
----
-
-## Role Permission Matrix
-
-| Action | Owner | Admin | Member |
-|---|---|---|---|
-| View members list | ✓ | ✓ | ✗ |
-| Invite by email | ✓ | ✓ | ✗ |
-| Generate invite link | ✓ | ✓ | ✗ |
-| Revoke invite | ✓ | ✓ | ✗ |
-| Change member → admin | ✓ | ✗ | ✗ |
-| Change admin → member | ✓ | ✗ | ✗ |
-| Remove admin | ✓ | ✗ | ✗ |
-| Remove member | ✓ | ✓ | ✗ |
-| Leave workspace | ✗ | ✓ | ✓ |
-| Transfer ownership | ✓ | ✗ | ✗ |
-| Delete workspace | ✓ | ✗ | ✗ |
+The team list supports searching by name or email and filtering by role.
 
 ---
 
@@ -505,156 +73,105 @@ await boss.schedule("CLEANUP_EXPIRED_INVITES", "0 2 * * *")
 ### Invite by Email
 
 ```
-1. Admin/Owner goes to /{ws-slug}/settings/members
-2. Fills InviteByEmailForm: email + role (default: Member)
-3. Submit → POST /api/workspaces/[slug]/members
-4. Server: creates invite record + enqueues SEND_WORKSPACE_INVITE_EMAIL
-5. Invite appears in pending invites table
-6. Invitee receives email with magic button linking to /invite/[token]
-7. Invitee clicks link → page validates token
-8. If not signed in → redirect /signin (token saved in cookie)
-9. After sign-in → redirected back to /invite/[token]
-10. Email verified → member record created → redirect /{ws-slug}?welcome=1
+1. A Brand Admin opens the members settings page.
+2. They enter an email address and choose the role (Brand Admin or Team Member; default Team Member).
+3. The invite is created and appears in the pending invites list.
+4. The invited person receives an email with a link to accept.
+5. They open the link.
+   → If not signed in, they are sent to sign in, then returned to the invite.
+6. The invited email must match the address the invite was sent to.
+7. On acceptance, they join the workspace with the chosen role and land on the workspace welcome view.
 ```
 
 ### Invite via Shareable Link
 
 ```
-1. Admin/Owner goes to /{ws-slug}/settings/members
-2. Clicks "Generate invite link" (or copies existing link)
-3. Shares link externally (Slack, email, Twitter, etc.)
-4. Anyone with the link visits /invite/link/[linkToken]
-5. If not signed in → redirect /signin
-6. After sign-in → member record created → redirect /{ws-slug}?welcome=1
-7. Link remains valid for 30 days and is reusable
+1. A Brand Admin opens the members settings page.
+2. They generate (or copy an existing) shareable invite link and choose the role link-joiners receive.
+3. They share the link wherever they like.
+4. Anyone who opens the link can join.
+   → If not signed in, they are sent to sign in first, then returned to the invite.
+5. On acceptance, they join with the link's role and land on the workspace welcome view.
+6. The link stays valid and reusable until it is revoked or expires.
 ```
 
-### Remove a Member
+### Remove a Team Member
 
 ```
-1. Owner or Admin clicks Remove on a member row
-2. RemoveMemberDialog opens: "Remove {name} from {workspace}?"
-3. Confirm → DELETE /api/workspaces/[slug]/members/[memberId]
-4. Server: deletes member row + enqueues SEND_MEMBER_REMOVED_EMAIL
-5. Member disappears from table
-6. Removed user's next request to any /{ws-slug}/* route returns 403
-7. Removed user receives email notification
+1. A Brand Admin selects Remove on a person's row and confirms.
+2. The person is removed from the workspace immediately.
+3. They can no longer access the workspace.
+4. They receive an email letting them know they were removed.
 ```
 
-### Leave Workspace
+### Leave a Workspace
 
 ```
-1. Member clicks "Leave" on their own row in the members table
-   OR clicks "Leave workspace" in workspace switcher dropdown
-2. LeaveWorkspaceDialog: "Are you sure you want to leave {workspace}?"
-3. Confirm → DELETE /api/workspaces/[slug]/members/me
-4. Server: deletes member row
-5. Redirect to /post-auth (routes to next workspace or /onboarding if none remain)
+1. A Team Member (or a non-owning Brand Admin) selects Leave on their own row,
+   or chooses to leave from the workspace switcher, and confirms.
+2. They are removed from the workspace and routed to their next workspace,
+   or to onboarding if they have none left.
 ```
+
+The owning Brand Admin cannot leave — they must transfer ownership or delete the workspace first.
 
 ### Transfer Ownership
 
 ```
-1. Owner opens TransferOwnershipDialog
-2. Select new owner from member dropdown (admins and members listed)
-3. Confirm dialog: "Transfer ownership to {name}? You will become an Admin."
-4. POST /api/workspaces/[slug]/members/transfer-ownership
-5. Server (in transaction + advisory lock):
-   → new owner's role set to 'owner'
-   → current owner's role set to 'admin'
-   → workspaces.owner_id updated
-6. Page reloads — current user now sees Admin UI (no delete workspace button)
+1. The owning Brand Admin opens Transfer Ownership and selects another team member.
+2. They confirm, understanding they will remain a Brand Admin but no longer own the workspace.
+3. The selected person becomes the owning Brand Admin; the previous owner stays a Brand Admin.
 ```
 
-### Change Member Role
+### Change a Person's Role
 
 ```
-1. Owner clicks role dropdown on a member row
-2. Selects new role
-3. PATCH /api/workspaces/[slug]/members/[memberId] { role }
-4. Server validates permissions + advisory lock
-5. Role updated inline — dropdown reflects new role
-6. Toast: "{name} is now an {role}"
+1. The owning Brand Admin changes a person's role from their row.
+2. A Team Member can be promoted to Brand Admin, or a Brand Admin returned to Team Member.
+3. The change applies immediately.
 ```
+
+A workspace must always have at least one Brand Admin; the last remaining Brand Admin cannot demote themselves.
 
 ---
 
-## API Reference
+## Behaviour & Edge Cases
 
-| Method | Route | Auth | Description |
-|---|---|---|---|
-| GET | `/api/workspaces/[slug]/members` | Member | List all members |
-| POST | `/api/workspaces/[slug]/members` | Admin+ | Invite by email |
-| PATCH | `/api/workspaces/[slug]/members/[memberId]` | Admin+ | Change role |
-| DELETE | `/api/workspaces/[slug]/members/[memberId]` | Admin+ | Remove member |
-| DELETE | `/api/workspaces/[slug]/members/me` | Any member | Leave workspace |
-| GET | `/api/workspaces/[slug]/invites` | Admin+ | List pending invites |
-| POST | `/api/workspaces/[slug]/invites` | Admin+ | Create shareable invite link |
-| DELETE | `/api/workspaces/[slug]/invites/[inviteId]` | Admin+ | Revoke invite |
-| POST | `/api/workspaces/[slug]/members/transfer-ownership` | Owner | Transfer ownership |
-
----
-
-## Validation Rules
-
-| Field | Rules |
+| Case | Behaviour |
 |---|---|
-| `email` (invite) | Valid email format, not already a member, no active pending invite |
-| `role` (invite) | Must be `'admin'` or `'member'` — cannot invite as `'owner'` |
-| `role` (change) | Must be `'admin'` or `'member'` — cannot set via this endpoint to `'owner'` |
-| Transfer target | Must be an existing member of the workspace |
-
----
-
-## Edge Cases
-
-| Case | Handling |
-|---|---|
-| Invitee is already a member | API returns 409 — "This user is already a member" |
-| Duplicate email invite (active one exists) | API returns 409 — "An invite is already pending for this email" |
-| User clicks invite link after already joining | Accept page detects existing membership → silent redirect to workspace |
-| Invite token is expired | Accept page shows "This invite has expired. Ask the workspace owner to send a new one." |
-| User clicks invite link while signed in as different email | Shows "This invite was sent to {email}. Please sign in with that account." |
-| Admin tries to remove another Admin | API returns 403 — only Owner can remove Admins |
-| Last admin tries to change own role to member | API blocks — workspace must always have at least one admin/owner |
-| Owner tries to leave | API returns 400 — "Workspace owner cannot leave. Transfer ownership first." |
-| Invite link used after being revoked | token not found in DB → accept page shows "Invalid invite link" |
-| Race condition: two users accept invite link simultaneously | `UNIQUE (workspace_id, user_id)` constraint handles it — second insert fails gracefully |
+| Person is already on the team | Inviting them again is rejected with "This user is already a member." |
+| A pending invite already exists for the email | A second invite to the same address is rejected. |
+| Someone opens an invite link after they already joined | They are quietly sent to the workspace — no error. |
+| An email invite has expired | The acceptance page explains the invite expired and to ask a Brand Admin for a new one. |
+| Someone opens an email invite while signed in with a different address | They are told the invite was sent to a specific address and to sign in with that account. |
+| A non-owning Brand Admin tries to remove another Brand Admin | Not allowed — only the owning Brand Admin can remove other Brand Admins. |
+| The last Brand Admin tries to demote themselves | Blocked — the workspace must always keep at least one Brand Admin. |
+| The owning Brand Admin tries to leave | Blocked — they must transfer ownership first. |
+| An invite link is used after being revoked | The acceptance page shows "Invalid invite link." |
+| Two people accept the same link at the same time | Both are handled cleanly; each person ends up with a single membership. |
 
 ---
 
 ## Acceptance Criteria
 
-- [ ] Admin/Owner can invite a user by email with a chosen role (Admin or Member)
-- [ ] Invite email is delivered via SMTP with a working magic link
-- [ ] Invite token expires after 7 days
-- [ ] Expired invite shows an error page (not a blank screen)
-- [ ] Invitee is redirected to sign-in if not authenticated, then back to invite URL after login
-- [ ] Invitee email must match invite email — mismatch shows clear error
-- [ ] Accepted invite creates a `workspace_members` row with correct role
-- [ ] Admin/Owner can generate a shareable invite link
-- [ ] Shareable link is reusable — multiple users can join with it
-- [ ] Shareable link can be revoked, generating a new one
-- [ ] Admin/Owner can change a Member's role to Admin (Owner only)
-- [ ] Admin/Owner can remove a Member; Owner can remove an Admin
-- [ ] Removed member receives an email notification
-- [ ] Removed member is immediately blocked from accessing the workspace
-- [ ] Any non-Owner member can leave the workspace
-- [ ] Owner cannot leave (blocked with clear error)
-- [ ] Owner can transfer ownership to any existing member
-- [ ] After ownership transfer, old owner becomes Admin
-- [ ] `CLEANUP_EXPIRED_INVITES` cron runs at 2am and removes expired invites
-- [ ] Members table shows avatar, name, email, role, joined date
-- [ ] Members table supports search by name/email and filter by role
-
----
-
-## Implementation Notes
-
-- `pg_advisory_xact_lock(hashtext(workspaceId)::bigint)` is used inside `db.transaction()` for all member mutations — prevents race conditions on concurrent role changes or simultaneous removals
-- Invite tokens are **never returned in API responses** — they exist only in the database and in the email link. The GET `/api/workspaces/[slug]/invites` endpoint returns invite metadata but not the token field
-- Shareable invite link URL format: `{NEXT_PUBLIC_APP_URL}/invite/link/{linkToken}`
-- Email invite URL format: `{NEXT_PUBLIC_APP_URL}/invite/{token}`
-- After sign-in redirect: token stored in a short-lived cookie (`invite_token`, httpOnly, 10 min TTL) so the invite flow survives the OAuth/magic-link redirect
-- `workspace_invites.accepted_at` is only set for email invites, not shareable links — this distinction is used by the cleanup job
-- The `transfer-ownership` endpoint uses `POST` not `PATCH` because it's a named action, not a partial update
+- [ ] A Brand Admin can invite someone by email and choose their role (Brand Admin or Team Member).
+- [ ] The invite email is delivered with a working acceptance link.
+- [ ] Email invites expire after 7 days.
+- [ ] An expired invite shows a clear explanation, not a blank screen.
+- [ ] An invited person who is not signed in is sent to sign in, then returned to the invite.
+- [ ] The accepting person's email must match the invited address; a mismatch shows a clear message.
+- [ ] Accepting an invite adds the person to the workspace with the chosen role.
+- [ ] A Brand Admin can generate a shareable invite link.
+- [ ] A shareable link is reusable — multiple people can join with it.
+- [ ] A shareable link can be revoked and regenerated.
+- [ ] The owning Brand Admin can promote a Team Member to Brand Admin.
+- [ ] A Brand Admin can remove a Team Member; the owning Brand Admin can also remove other Brand Admins.
+- [ ] A removed person receives an email notification.
+- [ ] A removed person loses access to the workspace immediately.
+- [ ] Any Team Member or non-owning Brand Admin can leave the workspace.
+- [ ] The owning Brand Admin cannot leave (blocked with a clear message).
+- [ ] The owning Brand Admin can transfer ownership to another team member.
+- [ ] After a transfer, the previous owner remains a Brand Admin.
+- [ ] Expired invites are removed automatically.
+- [ ] The team list shows avatar, name, email, role, and joined date.
+- [ ] The team list supports searching by name/email and filtering by role.
