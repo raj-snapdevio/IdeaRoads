@@ -45,7 +45,7 @@ export function CreateLinkForm({
       return;
     }
 
-    const url = `${appUrl}/join/${result.data.token}`;
+    const url = `${appUrl}/invite/link/${result.data.token}`;
     setCreatedUrl(url);
     setLabel("");
     setRole("member");
@@ -88,8 +88,8 @@ export function CreateLinkForm({
             onChange={(e) => setRole(e.target.value as "member" | "admin")}
             value={role}
           >
-            <option value="member">Member</option>
-            <option value="admin">Admin</option>
+            <option value="member">Team Member</option>
+            <option value="admin">Brand Admin</option>
           </select>
         )}
         <Button disabled={submitting} type="submit">

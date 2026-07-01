@@ -4,7 +4,15 @@
 
 This document holds the technical detail removed from the product spec. Schema is owned by [`../DATABASE.md`](../DATABASE.md) — referenced here, not duplicated.
 
-> **MVP scope note.** Commenting in the MVP **requires a signed-in User** (see [product spec](../../features/07-comments.md) and [PLATFORM.md](../../PLATFORM.md)). Any anonymous / email-based ("guest") commenting described below is **not part of the MVP** — treat it as future-scope design only. The author email/name fields exist in the schema to support that future capability and are unused by the MVP.
+> **MVP scope note.** Commenting **requires a signed-in User** (see [product spec](../../features/07-comments.md) and [PLATFORM.md](../../PLATFORM.md)). Any anonymous / email-based ("guest") commenting described below is **not part of the MVP** — treat it as future-scope design only.
+>
+> **Implemented (Phase 1 — sign-in participation).** Guest commenting has been removed from the code:
+> - `POST /api/posts/[postId]/comments` now returns **401 "Sign in to comment."** when there is no session; it no longer accepts `authorEmail`/`authorName` and no longer runs guest validation.
+> - `createComment` throws if `authorId` is missing — the author is always the signed-in user; `authorEmail`/`authorName` are snapshotted from the session, not supplied by the caller.
+> - `comment-form.tsx` shows a "Sign in to join the conversation" prompt (link to `/login`) to not-signed-in visitors instead of guest name/email inputs.
+> - `GET` listing still returns an `isGuest` flag (now always `false` for new comments); the author email/name columns remain in the schema but are no longer written by the comment-create path, reserved for possible future anonymous participation.
+>
+> **Implemented (Phase 3 — Team Member clean-up).** `deleteComment` (`lib/comments/delete.ts`) now allows **any workspace member** to remove a comment (clean-up, PLATFORM.md §4), not just admins/owners; authors may still remove their own. The DELETE route still enforces workspace membership. Comment **approval / moderation queue / unapproved visibility** (`canModerate`) remains **Brand-Admin-only**.
 
 ---
 

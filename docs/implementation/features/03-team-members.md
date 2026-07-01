@@ -4,6 +4,8 @@
 
 This document captures the technical implementation detail for the Team Members feature: schema, role mapping, service layer, routes, file layout, background jobs, and engineering notes. For **what the feature does** (product behaviour, flows, acceptance criteria), see the product spec linked above.
 
+> **Implemented (Phase 6 — URL alignment).** The shareable-link acceptance route was moved from `/join/[token]` to **`/invite/link/[linkToken]`** (matching the documented URL), so both invite flows now live under `/invite`: `/invite/[token]` (email invite) and `/invite/link/[linkToken]` (shareable link). The link generator (`create-link-form`) and the middleware matcher were updated accordingly; the link route stays auth-gated by middleware (sign-in first, then accept).
+
 ---
 
 ## Schema ↔ Product Role Mapping

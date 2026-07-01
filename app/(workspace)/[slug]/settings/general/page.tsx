@@ -26,12 +26,14 @@ export default async function GeneralSettingsPage({ params }: Props) {
     notFound();
   }
 
+  // Workspace settings are Brand Admin only (PLATFORM.md §7). Team Members are
+  // denied (not-found, consistent with the other settings pages).
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) {
+  if (!member || member.role === WORKSPACE_MEMBER) {
     notFound();
   }
 
-  const canManage = member.role !== WORKSPACE_MEMBER;
+  const canManage = true;
   const isOwner = member.role === WORKSPACE_OWNER;
 
   return (

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { WORKSPACE_MEMBER } from "@/config/platform";
 import { audit } from "@/lib/audit";
 import { getCurrentSession } from "@/lib/authz";
 import {
@@ -31,13 +32,22 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Post not found." }, { status: 404 });
   }
 
+  // A comment's author may delete their own comment even if they are not a
+  // workspace member (a public User who commented). Non-authors must be members.
   const member = await getWorkspaceMember(post.workspaceId, session.user.id);
-  if (!member) {
+  const isAuthor = comment.authorId === session.user.id;
+  if (!member && !isAuthor) {
     return NextResponse.json({ error: "Forbidden." }, { status: 403 });
   }
 
   try {
-    await deleteComment(commentId, session.user.id, member.role);
+    // Non-member authors act with plain (member-level) privileges; deleteComment
+    // still verifies authorship, so they can only remove their own comment.
+    await deleteComment(
+      commentId,
+      session.user.id,
+      member?.role ?? WORKSPACE_MEMBER
+    );
   } catch (err) {
     if (err instanceof CommentDeleteError) {
       return NextResponse.json({ error: err.message }, { status: 403 });

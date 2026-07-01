@@ -22,6 +22,7 @@ import {
   WORKSPACE_ADMIN,
   WORKSPACE_MEMBER,
   WORKSPACE_OWNER,
+  workspaceRoleLabel,
 } from "@/config/platform";
 
 interface Member {
@@ -51,12 +52,6 @@ interface PendingConfirm {
   successMessage: string;
   title: string;
 }
-
-const ROLE_LABELS: Record<string, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  member: "Member",
-};
 
 const ROLE_BADGE: Record<string, string> = {
   owner: "bg-foreground text-background",
@@ -165,7 +160,7 @@ export function MembersTable({
               <span
                 className={`shrink-0 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider ${ROLE_BADGE[member.role]}`}
               >
-                {ROLE_LABELS[member.role]}
+                {workspaceRoleLabel(member.role)}
               </span>
               {showMenu && (
                 <DropdownMenu>
@@ -199,7 +194,7 @@ export function MembersTable({
                               )
                             }
                           >
-                            Promote to admin
+                            Promote to Brand Admin
                           </DropdownMenuItem>
                         )}
                         {member.role === WORKSPACE_ADMIN && (
@@ -215,7 +210,7 @@ export function MembersTable({
                               )
                             }
                           >
-                            Demote to member
+                            Change to Team Member
                           </DropdownMenuItem>
                         )}
                       </>
@@ -226,7 +221,7 @@ export function MembersTable({
                         onClick={() =>
                           setPendingConfirm({
                             title: "Transfer Ownership",
-                            description: `Transfer workspace ownership to ${member.user.name ?? member.user.email}? You will become an admin and lose owner privileges.`,
+                            description: `Transfer workspace ownership to ${member.user.name ?? member.user.email}? You will remain a Brand Admin but lose ownership of this workspace.`,
                             memberId: member.id,
                             confirmLabel: "Transfer",
                             action: () =>

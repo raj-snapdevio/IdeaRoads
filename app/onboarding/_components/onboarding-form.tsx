@@ -30,11 +30,15 @@ import { slugify } from "@/lib/utils";
 
 interface OnboardingFormProps {
   appHost: string;
+  isAdditional?: boolean;
 }
 
 type SlugState = "idle" | "checking" | "available" | "taken" | "invalid";
 
-export function OnboardingForm({ appHost }: OnboardingFormProps) {
+export function OnboardingForm({
+  appHost,
+  isAdditional = false,
+}: OnboardingFormProps) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -221,7 +225,11 @@ export function OnboardingForm({ appHost }: OnboardingFormProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Create your workspace</CardTitle>
+            <CardTitle>
+              {isAdditional
+                ? "Create another workspace"
+                : "Create your workspace"}
+            </CardTitle>
             <CardDescription>
               A workspace is where you collect and manage feedback from your
               users.
@@ -289,7 +297,7 @@ export function OnboardingForm({ appHost }: OnboardingFormProps) {
                   type="text"
                   value={slug}
                 />
-                <div className="min-h-[18px]">{slugFeedback}</div>
+                <div className="min-h-4.5">{slugFeedback}</div>
               </div>
 
               <div className="space-y-1">

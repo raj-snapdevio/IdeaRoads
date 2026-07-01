@@ -76,7 +76,7 @@ export function FeaturesGrid() {
 
         <div className="mt-12 flex justify-center">
           <Button asChild>
-            <Link href="/login">Start Free</Link>
+            <Link href="/signin">Start Free</Link>
           </Button>
         </div>
       </div>

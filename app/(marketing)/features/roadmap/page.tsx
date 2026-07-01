@@ -148,7 +148,7 @@ export default function RoadmapPage() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild size="lg">
-              <Link href="/login">Start Free</Link>
+              <Link href="/signin">Start Free</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link href="/demo">View Demo</Link>
@@ -219,7 +219,7 @@ export default function RoadmapPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button asChild size="lg">
-              <Link href="/login">Start Free</Link>
+              <Link href="/signin">Start Free</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
               <Link href="/features">See All Features →</Link>

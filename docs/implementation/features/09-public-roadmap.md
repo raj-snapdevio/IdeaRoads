@@ -4,6 +4,13 @@
 
 This document holds the technical detail removed from the product spec. Schema is owned by [`../DATABASE.md`](../DATABASE.md) — referenced here, not duplicated.
 
+> **Implemented (Phase 2 — public portal).** The roadmap page now lives in the **public** route group at `app/(public)/[slug]/roadmap/page.tsx` (relocated from `(workspace)`):
+> - Session is optional. When the workspace's roadmap is **private** (`roadmapPublic = false`) and the viewer is not a member, the page returns `notFound()` (it "appears not to exist"). Public roadmaps are readable by anyone.
+> - `listPostsForRoadmap(workspaceId, { isAdmin, userId })` already excludes private/archived boards when `isAdmin` is false; `isAdmin` is true only for a member whose role is not `member`. Roadmap voting reuses the Phase 1 sign-in-required vote button.
+> - Rendered under the shared `components/workspace/portal-header.tsx`.
+
+> **Phase 5 note.** `listPostsForRoadmap` now also excludes merged posts (`isNull(posts.merged_into_id)`). The column mapping keys on the status slugs `planned`/`in_progress`/`completed`, which are immutable (a Brand Admin can rename a status's display name but not its slug), so the roadmap is robust to status renames.
+
 ---
 
 ## Dependencies

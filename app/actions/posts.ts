@@ -1,25 +1,38 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { WORKSPACE_MEMBER } from "@/config/platform";
-import { boards, votes, workspaceMembers, workspaces } from "@/db/schema";
+import {
+  boards,
+  categories,
+  votes,
+  workspaceMembers,
+  workspaces,
+} from "@/db/schema";
 import { audit } from "@/lib/audit";
 import { requireSession } from "@/lib/authz";
+import { getBoardById } from "@/lib/boards/queries";
 import { db } from "@/lib/db";
 import { isBlocked } from "@/lib/moderation/queries";
+import { mergePost } from "@/lib/posts/merge";
+import { movePost } from "@/lib/posts/move";
 import {
   approvePost,
   createPost,
   deletePost,
   generatePostSlug,
   getPost,
+  recordStatusChange,
+  searchPostsForMerge,
   setPinned,
+  updatePost,
   updatePostCategory,
   updatePostStatus,
 } from "@/lib/posts/queries";
 import { enqueueJob } from "@/lib/worker/enqueue";
 import { JOB_NAMES } from "@/lib/worker/job-types";
+import { getWorkspaceStatusBySlug } from "@/lib/workspace-statuses/queries";
 import { getWorkspaceMember } from "@/lib/workspaces/queries";
 
 type ActionResult<T = undefined> =
@@ -39,6 +52,7 @@ const createPostSchema = z.object({
     .string()
     .max(10_000, "Description must be 10,000 characters or fewer.")
     .optional(),
+  categoryId: z.string().min(1).optional(),
 });
 
 export async function createPostAction(input: {
@@ -46,6 +60,7 @@ export async function createPostAction(input: {
   workspaceId: string;
   title: string;
   body?: string;
+  categoryId?: string;
 }): Promise<ActionResult<{ postSlug: string; isPending: boolean }>> {
   const session = await requireSession();
 
@@ -59,12 +74,35 @@ export async function createPostAction(input: {
     };
   }
 
+  // Verify the board belongs to the workspace and check visibility.
+  // Any signed-in User may submit on a public, non-archived board; private or
+  // archived boards remain restricted to workspace members.
+  const [boardRow] = await db
+    .select({
+      workspaceId: boards.workspaceId,
+      isPublic: boards.isPublic,
+      isArchived: boards.isArchived,
+    })
+    .from(boards)
+    .where(eq(boards.id, parsed.data.boardId))
+    .limit(1);
+
+  if (!boardRow || boardRow.workspaceId !== parsed.data.workspaceId) {
+    return { success: false, error: "Board not found." };
+  }
+  if (boardRow.isArchived) {
+    return {
+      success: false,
+      error: "This board is no longer accepting feedback.",
+    };
+  }
+
   const actorMember = await getWorkspaceMember(
     parsed.data.workspaceId,
     session.user.id
   );
-  if (!actorMember) {
-    return { success: false, error: "You are not a member of this workspace." };
+  if (!boardRow.isPublic && !actorMember) {
+    return { success: false, error: "This board is private." };
   }
 
   // Block check
@@ -105,6 +143,29 @@ export async function createPostAction(input: {
     moderationMode !== "manual" &&
     (moderationMode !== "auto" || !isSpam);
 
+  // Validate the optional category belongs to this workspace (cross-tenant safety).
+  let categoryId: string | null = null;
+  if (parsed.data.categoryId) {
+    const [category] = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(
+        and(
+          eq(categories.id, parsed.data.categoryId),
+          eq(categories.workspaceId, parsed.data.workspaceId)
+        )
+      )
+      .limit(1);
+    if (!category) {
+      return {
+        success: false,
+        error: "Invalid category.",
+        field: "categoryId",
+      };
+    }
+    categoryId = category.id;
+  }
+
   const slug = await generatePostSlug(parsed.data.boardId, parsed.data.title);
 
   const post = await createPost({
@@ -113,6 +174,7 @@ export async function createPostAction(input: {
     slug,
     title: parsed.data.title,
     body: parsed.data.body,
+    categoryId,
     authorId: session.user.id,
     authorName: session.user.name ?? null,
     authorEmail: session.user.email,
@@ -179,14 +241,16 @@ export async function updatePostStatusAction(input: {
     return { success: false, error: "Invalid input." };
   }
 
+  // Triage (changing status) is available to any workspace member — Brand Admin
+  // and Team Member alike (PLATFORM.md §4).
   const actorMember = await getWorkspaceMember(
     parsed.data.workspaceId,
     session.user.id
   );
-  if (!actorMember || actorMember.role === WORKSPACE_MEMBER) {
+  if (!actorMember) {
     return {
       success: false,
-      error: "Only admins and owners can update post status.",
+      error: "Only workspace members can update post status.",
     };
   }
 
@@ -198,7 +262,27 @@ export async function updatePostStatusAction(input: {
     return { success: true, data: undefined };
   }
 
+  // A post's status must be one of the workspace's defined statuses.
+  const targetStatus = await getWorkspaceStatusBySlug(
+    parsed.data.workspaceId,
+    parsed.data.status
+  );
+  if (!targetStatus) {
+    return { success: false, error: "That status does not exist." };
+  }
+
   await updatePostStatus(parsed.data.postId, parsed.data.status);
+
+  // Append to the post's status history (who changed it, from → to).
+  recordStatusChange({
+    postId: parsed.data.postId,
+    fromStatus: post.status,
+    toStatus: parsed.data.status,
+    changedBy: session.user.id,
+    changedByName: session.user.name ?? session.user.email,
+  }).catch((err) =>
+    console.error("[posts] failed to record status change", err)
+  );
 
   audit({
     action: "post.status_changed",
@@ -240,14 +324,15 @@ export async function pinPostAction(input: {
 }): Promise<ActionResult<undefined>> {
   const session = await requireSession();
 
+  // Pinning is a triage action available to any workspace member (PLATFORM.md §4).
   const actorMember = await getWorkspaceMember(
     input.workspaceId,
     session.user.id
   );
-  if (!actorMember || actorMember.role === WORKSPACE_MEMBER) {
+  if (!actorMember) {
     return {
       success: false,
-      error: "Only admins and owners can pin posts.",
+      error: "Only workspace members can pin posts.",
     };
   }
 
@@ -282,23 +367,20 @@ export async function deletePostAction(input: {
 }): Promise<ActionResult<undefined>> {
   const session = await requireSession();
 
-  const actorMember = await getWorkspaceMember(
-    input.workspaceId,
-    session.user.id
-  );
-  if (!actorMember) {
-    return { success: false, error: "You are not a member of this workspace." };
-  }
-
   const post = await getPost(input.postId);
   if (!post || post.workspaceId !== input.workspaceId) {
     return { success: false, error: "Post not found." };
   }
 
+  const actorMember = await getWorkspaceMember(
+    input.workspaceId,
+    session.user.id
+  );
   const isAuthor = post.authorId === session.user.id;
-  const isAdminOrOwner = actorMember.role !== WORKSPACE_MEMBER;
 
-  if (!isAuthor && !isAdminOrOwner) {
+  // Any workspace member may remove feedback as clean-up (PLATFORM.md §4);
+  // authors may remove their own feedback.
+  if (!isAuthor && !actorMember) {
     return {
       success: false,
       error: "You don't have permission to delete this post.",
@@ -324,6 +406,80 @@ export async function deletePostAction(input: {
   return { success: true, data: undefined };
 }
 
+// ─── Update Post (edit title / body) ─────────────────────────────────────────
+
+const updatePostSchema = z.object({
+  postId: z.string().min(1),
+  workspaceId: z.string().min(1),
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters.")
+    .max(150, "Title must be 150 characters or fewer."),
+  body: z
+    .string()
+    .max(10_000, "Description must be 10,000 characters or fewer.")
+    .optional(),
+});
+
+export async function updatePostAction(input: {
+  postId: string;
+  workspaceId: string;
+  title: string;
+  body?: string;
+}): Promise<ActionResult<undefined>> {
+  const session = await requireSession();
+
+  const parsed = updatePostSchema.safeParse(input);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return {
+      success: false,
+      error: first?.message ?? "Invalid input.",
+      field: first?.path[0] as string | undefined,
+    };
+  }
+
+  const actorMember = await getWorkspaceMember(
+    parsed.data.workspaceId,
+    session.user.id
+  );
+  if (!actorMember) {
+    return { success: false, error: "You are not a member of this workspace." };
+  }
+
+  const post = await getPost(parsed.data.postId);
+  if (!post || post.workspaceId !== parsed.data.workspaceId) {
+    return { success: false, error: "Post not found." };
+  }
+
+  // The author can edit their own post; admins and owners can edit any post.
+  const isAuthor = post.authorId === session.user.id;
+  const isAdminOrOwner = actorMember.role !== WORKSPACE_MEMBER;
+  if (!isAuthor && !isAdminOrOwner) {
+    return {
+      success: false,
+      error: "You don't have permission to edit this post.",
+    };
+  }
+
+  await updatePost(parsed.data.postId, {
+    title: parsed.data.title,
+    body: parsed.data.body?.trim() ? parsed.data.body : null,
+  });
+
+  audit({
+    action: "post.updated",
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    entityType: "post",
+    entityId: parsed.data.postId,
+    description: `Edited post: ${parsed.data.title}`,
+    metadata: { workspaceId: parsed.data.workspaceId, wasAuthor: isAuthor },
+  });
+
+  return { success: true, data: undefined };
+}
+
 // ─── Update Post Category ─────────────────────────────────────────────────────
 
 export async function updatePostCategoryAction(input: {
@@ -333,14 +489,16 @@ export async function updatePostCategoryAction(input: {
 }): Promise<ActionResult<undefined>> {
   const session = await requireSession();
 
+  // Assigning a category is a triage action available to any workspace member
+  // (PLATFORM.md §4). Defining categories themselves remains Brand-Admin-only.
   const actorMember = await getWorkspaceMember(
     input.workspaceId,
     session.user.id
   );
-  if (!actorMember || actorMember.role === WORKSPACE_MEMBER) {
+  if (!actorMember) {
     return {
       success: false,
-      error: "Only admins and owners can set post categories.",
+      error: "Only workspace members can set post categories.",
     };
   }
 
@@ -414,6 +572,145 @@ export async function approvePostAction(input: {
   );
 
   return { success: true, data: undefined };
+}
+
+// ─── Move Post ────────────────────────────────────────────────────────────────
+
+export async function movePostAction(input: {
+  postId: string;
+  workspaceId: string;
+  targetBoardId: string;
+}): Promise<ActionResult<{ slug: string; boardSlug: string }>> {
+  const session = await requireSession();
+
+  // Moving is a triage action available to any workspace member (PLATFORM.md §4).
+  const actorMember = await getWorkspaceMember(
+    input.workspaceId,
+    session.user.id
+  );
+  if (!actorMember) {
+    return {
+      success: false,
+      error: "Only workspace members can move feedback.",
+    };
+  }
+
+  const post = await getPost(input.postId);
+  if (!post || post.workspaceId !== input.workspaceId) {
+    return { success: false, error: "Post not found." };
+  }
+
+  const target = await getBoardById(input.targetBoardId);
+  if (!target || target.workspaceId !== input.workspaceId) {
+    return { success: false, error: "Destination board not found." };
+  }
+  if (target.id === post.boardId) {
+    return { success: false, error: "This post is already on that board." };
+  }
+
+  const { slug } = await movePost(input.postId, target.id);
+
+  audit({
+    action: "post.moved",
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    entityType: "post",
+    entityId: input.postId,
+    description: `Moved post: ${post.title}`,
+    metadata: {
+      workspaceId: input.workspaceId,
+      fromBoardId: post.boardId,
+      toBoardId: target.id,
+    },
+  });
+
+  return { success: true, data: { slug, boardSlug: target.slug } };
+}
+
+// ─── Merge Post ───────────────────────────────────────────────────────────────
+
+export async function mergePostAction(input: {
+  sourceId: string;
+  targetId: string;
+  workspaceId: string;
+}): Promise<ActionResult<undefined>> {
+  const session = await requireSession();
+
+  // Merging is a triage action available to any workspace member (PLATFORM.md §4).
+  const actorMember = await getWorkspaceMember(
+    input.workspaceId,
+    session.user.id
+  );
+  if (!actorMember) {
+    return {
+      success: false,
+      error: "Only workspace members can merge feedback.",
+    };
+  }
+
+  if (input.sourceId === input.targetId) {
+    return { success: false, error: "A post can't be merged into itself." };
+  }
+
+  const source = await getPost(input.sourceId);
+  if (!source || source.workspaceId !== input.workspaceId) {
+    return { success: false, error: "Post not found." };
+  }
+  if (source.mergedIntoId) {
+    return { success: false, error: "This post is already merged." };
+  }
+
+  const target = await getPost(input.targetId);
+  if (!target || target.workspaceId !== input.workspaceId) {
+    return { success: false, error: "The post to merge into was not found." };
+  }
+  if (target.mergedIntoId) {
+    return {
+      success: false,
+      error: "The post you're merging into is itself merged.",
+    };
+  }
+
+  await mergePost(input.sourceId, input.targetId);
+
+  audit({
+    action: "post.merged",
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    entityType: "post",
+    entityId: input.sourceId,
+    description: `Merged "${source.title}" into "${target.title}"`,
+    metadata: { workspaceId: input.workspaceId, targetId: input.targetId },
+  });
+
+  return { success: true, data: undefined };
+}
+
+// ─── Merge Target Search ────────────────────────────────────────────────────
+
+export async function searchMergeTargetsAction(input: {
+  workspaceId: string;
+  query: string;
+  excludePostId: string;
+}): Promise<
+  ActionResult<{ posts: { id: string; title: string; upvotes: number }[] }>
+> {
+  const session = await requireSession();
+
+  const actorMember = await getWorkspaceMember(
+    input.workspaceId,
+    session.user.id
+  );
+  if (!actorMember) {
+    return { success: false, error: "Forbidden." };
+  }
+
+  const results = await searchPostsForMerge(
+    input.workspaceId,
+    input.query,
+    input.excludePostId
+  );
+  return { success: true, data: { posts: results } };
 }
 
 // ─── Internal Helpers ─────────────────────────────────────────────────────────

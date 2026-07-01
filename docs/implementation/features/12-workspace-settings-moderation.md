@@ -4,6 +4,8 @@ This document captures the technical detail removed from the product specificati
 
 Role note: in the product model these are all **Brand Admin** actions. Internally the workspace role is stored as `owner` or `admin`, both of which map to Brand Admin (`requireRole(['owner', 'admin'])`). `member` maps to Team Member.
 
+> **Implemented (Phase 3 — settings are Brand-Admin-only).** All workspace settings pages now return not-found for Team Members. The previously-leaky pages (`settings/general`, `settings/members`, `settings/members/invites`, `settings/categories`, `settings/statuses`) were tightened from `if (!member)` to `if (!member || member.role === WORKSPACE_MEMBER)` — matching `moderation`, `webhooks`, `api-keys`, and `audit-log`, which already did this. The workspace sidebar now shows the workspace-config settings links only when `isAdminOrOwner`; personal settings (Notifications, Account) stay visible to all members. Moderation **configuration** (approval mode, spam keywords, blocked users) remains Brand-Admin-only; item-level clean-up (deleting posts/comments) is a Team Member capability performed from the board/post views (see Features 05 & 07).
+
 ---
 
 ## Dependencies

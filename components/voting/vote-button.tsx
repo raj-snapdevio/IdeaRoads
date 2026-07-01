@@ -1,9 +1,9 @@
 "use client";
 
 import { ChevronUp } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import GuestVoteDialog from "./guest-vote-dialog";
 
 interface VoteButtonProps {
   initialCount: number;
@@ -22,10 +22,10 @@ export default function VoteButton({
   isLocked = false,
   isArchived = false,
 }: VoteButtonProps) {
+  const router = useRouter();
   const [count, setCount] = useState(initialCount);
   const [hasVoted, setHasVoted] = useState(initialHasVoted);
   const [isPending, setIsPending] = useState(false);
-  const [showGuestDialog, setShowGuestDialog] = useState(false);
 
   const disabled = isLocked || isArchived || isPending;
   const tooltip = isLocked
@@ -40,7 +40,9 @@ export default function VoteButton({
     }
 
     if (!isSignedIn) {
-      setShowGuestDialog(true);
+      // Voting requires sign-in — send the visitor to sign in, then back here.
+      const next = encodeURIComponent(window.location.pathname);
+      router.push(`/signin?next=${next}`);
       return;
     }
 
@@ -80,42 +82,26 @@ export default function VoteButton({
   }
 
   return (
-    <>
-      <button
-        aria-label={hasVoted ? "Remove vote" : "Vote for this post"}
-        aria-pressed={hasVoted}
-        className={`flex flex-col items-center gap-1 border px-4 py-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-          disabled && !isPending
-            ? "cursor-not-allowed opacity-50 border-border text-muted-foreground"
-            : hasVoted
-              ? "border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 cursor-pointer"
-              : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground cursor-pointer"
-        } ${isPending ? "opacity-70" : ""}`}
-        disabled={disabled}
-        onClick={handleClick}
-        title={tooltip}
-      >
-        <ChevronUp className="size-4" />
-        <span className="text-sm font-semibold tabular-nums">{count}</span>
-        <span className="text-[10px] uppercase tracking-wide">
-          {count === 1 ? "vote" : "votes"}
-        </span>
-      </button>
-
-      {showGuestDialog && (
-        <GuestVoteDialog
-          onClose={() => setShowGuestDialog(false)}
-          onRemoved={(voteCount) => {
-            setHasVoted(false);
-            setCount(voteCount);
-          }}
-          onVoted={(voteCount) => {
-            setHasVoted(true);
-            setCount(voteCount);
-          }}
-          postId={postId}
-        />
-      )}
-    </>
+    <button
+      aria-label={hasVoted ? "Remove vote" : "Vote for this post"}
+      aria-pressed={hasVoted}
+      className={`flex flex-col items-center gap-1 border px-4 py-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        disabled && !isPending
+          ? "cursor-not-allowed opacity-50 border-border text-muted-foreground"
+          : hasVoted
+            ? "border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 cursor-pointer"
+            : "border-border text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground cursor-pointer"
+      } ${isPending ? "opacity-70" : ""}`}
+      disabled={disabled}
+      onClick={handleClick}
+      title={tooltip}
+      type="button"
+    >
+      <ChevronUp className="size-4" />
+      <span className="text-sm font-semibold tabular-nums">{count}</span>
+      <span className="text-2xs uppercase tracking-wide">
+        {count === 1 ? "vote" : "votes"}
+      </span>
+    </button>
   );
 }

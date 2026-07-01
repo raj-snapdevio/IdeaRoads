@@ -27,13 +27,14 @@ export default async function StatusesPage({ params }: Props) {
     notFound();
   }
 
+  // Workspace settings are Brand Admin only (PLATFORM.md §7).
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) {
+  if (!member || member.role === WORKSPACE_MEMBER) {
     notFound();
   }
 
   const statuses = await getWorkspaceStatuses(workspace.id);
-  const canManage = member.role !== WORKSPACE_MEMBER;
+  const canManage = true;
 
   return (
     <StatusList

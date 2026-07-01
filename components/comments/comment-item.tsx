@@ -45,8 +45,7 @@ export default function CommentItem({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const displayName =
-    comment.authorName ?? (comment.isGuest ? "Anonymous" : "User");
+  const displayName = comment.authorName ?? "User";
   const initials = getInitials(comment.authorName);
 
   const canDelete = canModerate || (!!currentUserId && !!comment.authorName);
@@ -101,11 +100,6 @@ export default function CommentItem({
             <span className="text-xs font-medium text-foreground">
               {displayName}
             </span>
-            {comment.isGuest && (
-              <span className="text-2xs uppercase tracking-wide text-muted-foreground/60 border border-border px-1">
-                Guest
-              </span>
-            )}
             {isPending && (
               <span className="text-2xs uppercase tracking-wide text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-700 px-1">
                 Pending

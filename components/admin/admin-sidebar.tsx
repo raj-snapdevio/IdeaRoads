@@ -123,7 +123,7 @@ export function AdminSidebar({
               className="flex cursor-pointer items-center justify-center text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               onClick={async () => {
                 await signOut();
-                router.push("/login");
+                router.push("/signin");
               }}
               title="Sign out"
               type="button"

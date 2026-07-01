@@ -6,9 +6,14 @@ import { enqueueEmail } from "@/lib/email";
 import { CommentReplyEmail } from "@/lib/email/components/comment-reply";
 import { NewCommentEmail } from "@/lib/email/components/new-comment";
 import { renderEmailTemplate } from "@/lib/email/renderer";
+import { buildUnsubscribeUrl } from "@/lib/email/unsubscribe";
 import { env } from "@/lib/env";
 import { isBlocked } from "@/lib/moderation/queries";
 import { createNotification } from "@/lib/notifications/create";
+import { isEmailNotificationEnabled } from "@/lib/notifications/queries";
+import { dispatchWebhookEvent } from "@/lib/webhooks/dispatch";
+import { WEBHOOK_EVENTS } from "@/lib/webhooks/events";
+import { commentPreviewText } from "./preview";
 
 export class CommentBlockedError extends Error {
   constructor(message: string) {
@@ -38,6 +43,11 @@ export async function createComment(
 ) {
   const { body, parentId, authorId, authorEmail, authorName, authorAvatar } =
     input;
+
+  // Commenting requires a signed-in User — there is no anonymous/guest commenting.
+  if (!authorId) {
+    throw new CommentBlockedError("You must be signed in to comment.");
+  }
 
   // Pre-flight: fetch post
   const post = await db
@@ -154,6 +164,12 @@ export async function createComment(
       post,
       workspace?.commentModeration ?? false
     ).catch((err) => console.error("[comments] notification error", err));
+
+    dispatchWebhookEvent(workspaceId, WEBHOOK_EVENTS.COMMENT_CREATED, {
+      id: comment.id,
+      postId,
+      parentId: comment.parentId,
+    });
   }
 
   return comment;
@@ -203,7 +219,7 @@ export async function sendCommentNotifications(
     .then((r) => r[0] ?? null);
 
   const commenterName = comment.authorName ?? comment.authorEmail ?? "Someone";
-  const bodyPreview = comment.body.slice(0, 300);
+  const bodyPreview = commentPreviewText(comment.body, 300);
   const postUrl = board
     ? `${appUrl}/${workspace.slug}/b/${board.slug}/p/${post.slug ?? post.id}`
     : `${appUrl}/${workspace.slug}`;
@@ -254,25 +270,35 @@ export async function sendCommentNotifications(
       return;
     }
 
-    try {
-      const html = await renderEmailTemplate(
-        CommentReplyEmail({
-          parentAuthorName: recipientName,
-          postTitle: post.title,
-          postUrl,
-          replierName: commenterName,
-          replyBody: bodyPreview,
-          workspaceName: workspace.name,
-        })
-      );
+    // Honour the recipient's email-notification preference / unsubscribe choice.
+    const emailEnabled = recipientUserId
+      ? await isEmailNotificationEnabled(recipientUserId, "emailNewComment")
+      : true;
 
-      await enqueueEmail({
-        to: recipientEmail,
-        subject: `${commenterName} replied to your comment on ${post.title}`,
-        html,
-      });
-    } catch (err) {
-      console.error("[comments] failed to enqueue comment-reply email", err);
+    if (emailEnabled) {
+      try {
+        const html = await renderEmailTemplate(
+          CommentReplyEmail({
+            parentAuthorName: recipientName,
+            postTitle: post.title,
+            postUrl,
+            replierName: commenterName,
+            replyBody: bodyPreview,
+            workspaceName: workspace.name,
+            unsubscribeUrl: recipientUserId
+              ? buildUnsubscribeUrl(recipientUserId)
+              : null,
+          })
+        );
+
+        await enqueueEmail({
+          to: recipientEmail,
+          subject: `${commenterName} replied to your comment on ${post.title}`,
+          html,
+        });
+      } catch (err) {
+        console.error("[comments] failed to enqueue comment-reply email", err);
+      }
     }
 
     // In-app notification for parent comment author
@@ -302,25 +328,34 @@ export async function sendCommentNotifications(
       .limit(1)
       .then((r) => r[0] ?? null);
 
-    try {
-      const html = await renderEmailTemplate(
-        NewCommentEmail({
-          postAuthorName: postAuthorUser?.name ?? post.authorName ?? "there",
-          postTitle: post.title,
-          postUrl,
-          commenterName,
-          commentBody: bodyPreview,
-          workspaceName: workspace.name,
-        })
-      );
+    // Honour the post author's email-notification preference / unsubscribe choice.
+    const emailEnabled = await isEmailNotificationEnabled(
+      post.authorId,
+      "emailNewComment"
+    );
 
-      await enqueueEmail({
-        to: post.authorEmail,
-        subject: `${commenterName} commented on your post — ${post.title}`,
-        html,
-      });
-    } catch (err) {
-      console.error("[comments] failed to enqueue new-comment email", err);
+    if (emailEnabled) {
+      try {
+        const html = await renderEmailTemplate(
+          NewCommentEmail({
+            postAuthorName: postAuthorUser?.name ?? post.authorName ?? "there",
+            postTitle: post.title,
+            postUrl,
+            commenterName,
+            commentBody: bodyPreview,
+            workspaceName: workspace.name,
+            unsubscribeUrl: buildUnsubscribeUrl(post.authorId),
+          })
+        );
+
+        await enqueueEmail({
+          to: post.authorEmail,
+          subject: `${commenterName} commented on your post — ${post.title}`,
+          html,
+        });
+      } catch (err) {
+        console.error("[comments] failed to enqueue new-comment email", err);
+      }
     }
 
     // In-app notification for post author

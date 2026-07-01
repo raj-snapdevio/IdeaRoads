@@ -43,7 +43,11 @@ export const auth = betterAuth({
     }),
     magicLink({
       sendMagicLink: async ({ email, url }) => {
-        console.log(`[magic-link] recipient=${email} url=${url}`);
+        // Never log recipient emails or sign-in URLs in production (PII + a live
+        // credential). The dev log is a convenience for local sign-in without SMTP.
+        if (env.NODE_ENV !== "production") {
+          console.log(`[magic-link] recipient=${email} url=${url}`);
+        }
 
         const { html, text } = await magicLinkTemplate({
           email,

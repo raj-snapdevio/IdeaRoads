@@ -4,16 +4,14 @@ import { db } from "@/lib/db";
 
 export async function removeVote(
   postId: string,
-  voter: { userId?: string; userEmail?: string }
+  voter: { userId: string }
 ): Promise<void> {
-  const { userId, userEmail } = voter;
-  if (!userId && !userEmail) {
+  const { userId } = voter;
+  if (!userId) {
     return;
   }
 
-  const condition = userId
-    ? and(eq(votes.postId, postId), eq(votes.userId, userId))
-    : and(eq(votes.postId, postId), eq(votes.userEmail, userEmail!));
+  const condition = and(eq(votes.postId, postId), eq(votes.userId, userId));
 
   await db.transaction(async (tx) => {
     const [deleted] = await tx

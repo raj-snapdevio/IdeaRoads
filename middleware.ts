@@ -7,9 +7,9 @@ export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get(SESSION_COOKIE);
 
   if (!sessionCookie?.value) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", request.nextUrl.pathname);
-    return NextResponse.redirect(loginUrl);
+    const signinUrl = new URL("/signin", request.url);
+    signinUrl.searchParams.set("next", request.nextUrl.pathname);
+    return NextResponse.redirect(signinUrl);
   }
 
   return NextResponse.next();
@@ -21,6 +21,6 @@ export const config = {
     "/account/:path*",
     "/onboarding/:path*",
     "/post-auth/:path*",
-    "/join/:path*",
+    "/invite/link/:path*",
   ],
 };

@@ -31,12 +31,13 @@ export default async function InvitesPage({ params }: Props) {
     notFound();
   }
 
+  // Workspace settings are Brand Admin only (PLATFORM.md §7).
   const actorMember = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!actorMember) {
+  if (!actorMember || actorMember.role === WORKSPACE_MEMBER) {
     notFound();
   }
 
-  const canManage = actorMember.role !== WORKSPACE_MEMBER;
+  const canManage = true;
   const canManageAdmin = actorMember.role === WORKSPACE_OWNER;
 
   const [pendingInvites, activeLinks] = await Promise.all([

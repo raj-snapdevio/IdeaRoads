@@ -9,13 +9,29 @@ import { LiveDemo } from "@/components/marketing/live-demo";
 import { Nav } from "@/components/marketing/nav";
 import { ProblemFraming } from "@/components/marketing/problem-framing";
 import { ProductTour } from "@/components/marketing/product-tour";
-import { PRODUCT_NAME } from "@/config/platform";
+import { LOGO_PATH, PRODUCT_NAME } from "@/config/platform";
 import { getCurrentSession } from "@/lib/authz";
 
+const TITLE = `${PRODUCT_NAME} — Collect feedback, ship faster, close the loop`;
+const DESCRIPTION =
+  "Customer feedback boards, voting, public roadmap, and changelog for product teams. Notify every voter automatically when you ship.";
+
 export const metadata: Metadata = {
-  title: `${PRODUCT_NAME} — Collect feedback, ship faster, close the loop`,
-  description:
-    "Customer feedback boards, voting, public roadmap, and changelog for product teams. Notify every voter automatically when you ship.",
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    siteName: PRODUCT_NAME,
+    type: "website",
+    images: [{ url: LOGO_PATH }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [LOGO_PATH],
+  },
 };
 
 export default async function HomePage() {

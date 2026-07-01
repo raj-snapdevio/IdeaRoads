@@ -7,6 +7,7 @@ import {
   createComment,
   listComments,
 } from "@/lib/comments";
+import { isPostAccessible } from "@/lib/posts/access";
 import { getPost } from "@/lib/posts/queries";
 import { getWorkspaceMember } from "@/lib/workspaces/queries";
 
@@ -20,6 +21,11 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   const post = await getPost(postId);
   if (!post) {
+    return NextResponse.json({ error: "Post not found." }, { status: 404 });
+  }
+
+  // Comments on private-board posts are visible only to workspace members.
+  if (!(await isPostAccessible(post, session?.user.id ?? null))) {
     return NextResponse.json({ error: "Post not found." }, { status: 404 });
   }
 
@@ -68,11 +74,14 @@ export async function POST(req: NextRequest, { params }: Params) {
   const { postId } = await params;
   const session = await getCurrentSession();
 
+  // Commenting requires a signed-in User — there is no anonymous/guest commenting.
+  if (!session) {
+    return NextResponse.json({ error: "Sign in to comment." }, { status: 401 });
+  }
+
   let body: {
     body?: string;
     parentId?: string;
-    authorEmail?: string;
-    authorName?: string;
   } = {};
 
   try {
@@ -90,37 +99,13 @@ export async function POST(req: NextRequest, { params }: Params) {
     );
   }
 
-  // Guest validation
-  if (!session) {
-    if (!body.authorEmail) {
-      return NextResponse.json(
-        { error: "Email is required to comment as a guest." },
-        { status: 422 }
-      );
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(body.authorEmail) || body.authorEmail.length > 255) {
-      return NextResponse.json(
-        { error: "Please enter a valid email address." },
-        { status: 422 }
-      );
-    }
-    if (!body.authorName || body.authorName.trim().length < 1) {
-      return NextResponse.json(
-        { error: "Name is required to comment as a guest." },
-        { status: 422 }
-      );
-    }
-    if (body.authorName.trim().length > 100) {
-      return NextResponse.json(
-        { error: "Name must be 100 characters or fewer." },
-        { status: 422 }
-      );
-    }
-  }
-
   const post = await getPost(postId);
   if (!post) {
+    return NextResponse.json({ error: "Post not found." }, { status: 404 });
+  }
+
+  // Private-board posts accept comments only from workspace members.
+  if (!(await isPostAccessible(post, session.user.id))) {
     return NextResponse.json({ error: "Post not found." }, { status: 404 });
   }
 
@@ -130,11 +115,9 @@ export async function POST(req: NextRequest, { params }: Params) {
       {
         body: rawBody,
         parentId: body.parentId ?? null,
-        authorId: session?.user.id ?? null,
-        authorEmail: session ? session.user.email : (body.authorEmail ?? null),
-        authorName: session
-          ? (session.user.name ?? null)
-          : (body.authorName?.trim() ?? null),
+        authorId: session.user.id,
+        authorEmail: session.user.email,
+        authorName: session.user.name ?? null,
         authorAvatar: null,
       },
       post.workspaceId
@@ -150,7 +133,7 @@ export async function POST(req: NextRequest, { params }: Params) {
         isDeleted: false,
         authorName: comment.authorName,
         authorAvatar: comment.authorAvatar,
-        isGuest: !session,
+        isGuest: false,
         createdAt: comment.createdAt,
       },
       { status: 201 }

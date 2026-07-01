@@ -119,6 +119,20 @@ export async function upsertNotificationPreferences(
   return row!;
 }
 
+// Opt-out model: a missing preferences row (or column) means the email is
+// enabled. Used by notification dispatch to honour per-user unsubscribe choices.
+export async function isEmailNotificationEnabled(
+  userId: string,
+  field: "emailStatusChange" | "emailNewComment" | "emailChangelog"
+): Promise<boolean> {
+  const [row] = await db
+    .select({ value: notificationPreferences[field] })
+    .from(notificationPreferences)
+    .where(eq(notificationPreferences.userId, userId))
+    .limit(1);
+  return row?.value !== false;
+}
+
 // ─── Cleanup ──────────────────────────────────────────────────────────────────
 
 export async function pruneOldNotifications(

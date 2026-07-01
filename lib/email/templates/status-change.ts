@@ -21,6 +21,7 @@ export function statusChangeEmailTemplate({
   fromStatus,
   toStatus,
   workspaceName,
+  unsubscribeUrl,
 }: {
   recipientName: string;
   recipientEmail: string;
@@ -29,10 +30,17 @@ export function statusChangeEmailTemplate({
   fromStatus: string;
   toStatus: string;
   workspaceName: string;
+  unsubscribeUrl?: string | null;
 }) {
   const fromLabel = formatStatus(fromStatus);
   const toLabel = formatStatus(toStatus);
   const subject = `Status update: "${postTitle}" is now ${toLabel}`;
+  const unsubscribeHtml = unsubscribeUrl
+    ? ` <a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>.`
+    : "";
+  const unsubscribeText = unsubscribeUrl
+    ? `\n\nUnsubscribe: ${unsubscribeUrl}`
+    : "";
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -71,7 +79,7 @@ export function statusChangeEmailTemplate({
         <a href="${postUrl}" style="display:inline-block;padding:10px 20px;background:#111827;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;">View post →</a>
       </td></tr>
       <tr><td style="padding:24px 40px;border-top:1px solid #f3f4f6;">
-        <p style="margin:0;font-size:12px;color:#9ca3af;">You're receiving this because you voted on a post in <strong>${workspaceName}</strong>. Sent by ${PRODUCT_NAME}.</p>
+        <p style="margin:0;font-size:12px;color:#9ca3af;">You're receiving this because you voted on a post in <strong>${workspaceName}</strong>. Sent by ${PRODUCT_NAME}.${unsubscribeHtml}</p>
       </td></tr>
     </table>
   </td></tr>
@@ -87,7 +95,7 @@ The status of "${postTitle}" in ${workspaceName} has been updated from ${fromLab
 
 View the post: ${postUrl}
 
-You're receiving this because you voted on this post.`;
+You're receiving this because you voted on this post.${unsubscribeText}`;
 
   return { subject, html, text };
 }

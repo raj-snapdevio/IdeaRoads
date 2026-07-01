@@ -126,7 +126,7 @@ export function ChangelogAdminCard({
         <div className="flex items-center gap-2 shrink-0">
           <Link
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/${workspaceSlug}/changelog/${entry.id}/edit`}
+            href={`/${workspaceSlug}/settings/changelog/${entry.id}/edit`}
           >
             <Edit className="size-3" />
             Edit

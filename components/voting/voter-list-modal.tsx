@@ -130,11 +130,6 @@ export default function VoterListModal({
                       <span className="text-sm text-foreground truncate">
                         {voter.name ?? voter.email ?? "Unknown"}
                       </span>
-                      {voter.isGuest && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
-                          Guest
-                        </span>
-                      )}
                     </div>
                     {voter.name && voter.email && (
                       <p className="text-xs text-muted-foreground truncate">

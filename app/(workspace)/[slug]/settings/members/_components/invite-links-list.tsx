@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { revokeInviteLinkAction } from "@/app/actions/members";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { workspaceRoleLabel } from "@/config/platform";
 
 interface InviteLink {
   createdAt: Date;
@@ -24,12 +25,6 @@ interface InviteLinksListProps {
   links: InviteLink[];
   workspaceId: string;
 }
-
-const ROLE_LABELS: Record<string, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  member: "Member",
-};
 
 export function InviteLinksList({
   links,
@@ -83,7 +78,7 @@ export function InviteLinksList({
                     {link.label ?? "Invite link"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {ROLE_LABELS[link.role]}
+                    {workspaceRoleLabel(link.role)}
                     {link.maxUses === null
                       ? ` · ${link.useCount} uses`
                       : ` · ${link.useCount}/${link.maxUses} uses`}

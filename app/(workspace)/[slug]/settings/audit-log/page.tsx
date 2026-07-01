@@ -15,6 +15,7 @@ interface Props {
     page?: string;
     action?: string;
     entityType?: string;
+    actor?: string;
   }>;
 }
 
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function AuditLogPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { page: pageStr, action, entityType } = await searchParams;
+  const { page: pageStr, action, entityType, actor } = await searchParams;
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
@@ -46,12 +47,14 @@ export default async function AuditLogPage({ params, searchParams }: Props) {
     limit,
     action: action || undefined,
     entityType: entityType || undefined,
+    actorEmail: actor || undefined,
   });
 
   return (
     <div className="px-8 py-6">
       <AuditLogTable
         filterAction={action}
+        filterActor={actor}
         filterEntityType={entityType}
         hasMore={hasMore}
         limit={limit}

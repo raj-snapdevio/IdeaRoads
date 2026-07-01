@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { boards, categories, posts, votes } from "@/db/schema";
 import { db } from "@/lib/db";
 
@@ -42,6 +42,8 @@ export async function listPostsForRoadmap(
   const conditions = [
     eq(posts.workspaceId, workspaceId),
     inArray(posts.status, [...ROADMAP_STATUSES]),
+    // Merged posts leave active lists, including the roadmap.
+    isNull(posts.mergedIntoId),
   ];
 
   // Public view excludes private and archived boards

@@ -4,6 +4,8 @@
 
 This file captures the technical detail removed from the product spec: API endpoints, service layer, rate limiting, session handling, and engineering notes. For the auth library and environment configuration see [../TECH-STACK.md](../TECH-STACK.md). For the full database schema see [../DATABASE.md](../DATABASE.md).
 
+> **Implemented (Phase 6 — URL alignment).** The sign-in route is now `/signin` (`app/(auth)/login` → `app/(auth)/signin`), matching the documented URL. `/signup` exists as a route that `redirect()`s to `/signin` (sign-up and sign-in are the same passwordless flow). All redirects/links — `requireSession`, `middleware.ts`, marketing CTAs, invite pages, the portal sign-in prompts — now point at `/signin`.
+
 ---
 
 ## Dependencies

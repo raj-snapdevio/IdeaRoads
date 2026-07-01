@@ -4,6 +4,10 @@
 
 This document holds the technical detail removed from the product spec. Schema is owned by [`../DATABASE.md`](../DATABASE.md) — referenced here, not duplicated.
 
+> **Implemented (Phase 5 — status integrity).** `updatePostStatusAction` validates the target status against the workspace's defined statuses (`getWorkspaceStatusBySlug`) — arbitrary free-text statuses are rejected. Status **slugs are immutable** (`updateWorkspaceStatus` only changes name/color/order), so the roadmap's slug-based mapping (`planned`/`in_progress`/`completed`) is robust to renames — renaming a status changes only its display name. Every status change is now appended to `post_status_changes` (see [Feature 05 impl](05-feedback-posts.md)).
+
+> **Implemented (Phase 3 — triage vs structure).** Applying the taxonomy to a post is now a **member-level** action: assigning a category (`updatePostCategoryAction`) and changing a post's status (`updatePostStatusAction`) require only workspace membership (Brand Admin or Team Member), per PLATFORM.md §4. **Defining** the taxonomy — creating/editing/deleting categories and statuses (`createCategoryAction`, `updateCategoryAction`, `deleteCategoryAction`, `reorderCategoriesAction`, and the status CRUD actions) — **remains Brand-Admin-only**, and the `/{slug}/settings/categories` and `/{slug}/settings/statuses` pages now return not-found for Team Members.
+
 ---
 
 ## Dependencies

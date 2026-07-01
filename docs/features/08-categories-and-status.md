@@ -59,7 +59,7 @@ Every piece of feedback moves through a defined set of workflow states. IdeaRoad
 
 **Status drives the roadmap.** Three statuses map to the public [Roadmap](09-public-roadmap.md) columns: **Planned**, **In Progress**, and **Completed**. Feedback that is Open, Under Review, or Closed does not appear on the public roadmap.
 
-**Status history.** Each status change is recorded as a permanent, append-only history: what it changed from and to, who changed it, when, and an optional note. The status-history timeline is shown on the feedback detail page to workspace members only; it is hidden from the public.
+**Status history.** Each status change is recorded as a permanent, append-only history: what it changed from and to, who changed it, when, and an optional note. The status-history timeline is shown on the feedback detail page to **everyone** viewing the post (each transition and its date). The **actor** — who made each change — is shown only to the team (Brand Admins and Team Members); the public sees the transitions and dates without the actor's name.
 
 **Notifications.** When the status of a piece of feedback changes, everyone who voted on it is notified so they can follow its progress. Setting a status to the value it already has is treated as no change — no history entry, no notifications. Feedback with no voters generates no notifications.
 
@@ -164,7 +164,7 @@ On any board, category and status are available as filters. They can be combined
 - [ ] Setting a status to its current value records no history and sends no notifications
 - [ ] Everyone who voted is notified when a status changes
 - [ ] No notifications are sent when a post has no voters
-- [ ] The status-history timeline is shown on feedback detail to workspace members only
+- [ ] The status-history timeline is shown on feedback detail to everyone; the actor (who changed the status) is shown only to the team (Brand Admins and Team Members)
 - [ ] Boards can be filtered by status
 - [ ] Planned, In Progress, and Completed feedback appears on the public [Roadmap](09-public-roadmap.md)
 

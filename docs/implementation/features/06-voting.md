@@ -4,7 +4,13 @@
 
 This document holds the technical detail removed from the product spec. Schema is owned by [`../DATABASE.md`](../DATABASE.md) — referenced here, not duplicated.
 
-> **MVP scope note.** Voting in the MVP **requires a signed-in User** (see [product spec](../../features/06-voting.md) and [PLATFORM.md](../../PLATFORM.md)). Any anonymous / email-based ("guest") voting, CAPTCHA, and per-IP rate-limiting described below is **not part of the MVP** — treat it as future-scope design only. The email-bearing vote fields exist in the schema to support that future capability and are unused by the MVP.
+> **MVP scope note.** Voting **requires a signed-in User** (see [product spec](../../features/06-voting.md) and [PLATFORM.md](../../PLATFORM.md)). Any anonymous / email-based ("guest") voting, CAPTCHA, and per-IP rate-limiting described below is **not part of the MVP** — treat it as future-scope design only.
+>
+> **Implemented (Phase 1 — sign-in participation).** Guest voting has been removed from the code:
+> - `POST`/`DELETE /api/posts/[postId]/vote` now return **401 "Sign in to vote."** when there is no session; they no longer accept an `email`/`name` body or an `?email=` query param.
+> - `castVote` and `removeVote` take `{ userId }` only — the email-based vote paths have been removed.
+> - `vote-button.tsx` routes a not-signed-in visitor to `/login?next=…` instead of opening a guest dialog; the guest vote dialog component has been deleted.
+> - The read helpers in `lib/voting/list.ts` (`listVoters`, `hasUserVoted`, `getVotedPostIds`) retain backward-compatible signatures; the email-bearing `votes` columns remain in the schema but are no longer written, reserved for possible future anonymous participation. The "Abuse Protection" and email-dedup material below is therefore **future-scope design**, not current behaviour.
 
 ---
 

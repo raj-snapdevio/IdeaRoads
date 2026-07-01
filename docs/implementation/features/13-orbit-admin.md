@@ -4,6 +4,10 @@
 
 This file captures the technical detail removed from the product spec: access control, seeding, impersonation, plan enforcement, feature flags, API endpoints, components, and engineering notes. For the full database schema see [../DATABASE.md](../DATABASE.md).
 
+> **Implemented (Phase 6 — access hardening).**
+> - **Orbit is now invisible (M1):** `requireAdmin()` (`lib/authz.ts`) returns `notFound()` for a signed-in user who is not an Orbit Admin, instead of redirecting to `/post-auth` — the area's existence is never revealed. Signed-out users are still sent to `/signin` (by `requireSession` and the middleware), with `?next=/orbit` so they return after authenticating.
+> - **Suspension applies to everyone (L1):** the Orbit-Admin bypass was removed from the workspace and public `[slug]` layouts. A suspended workspace shows the unavailable notice to all visitors, including Orbit Admins — Orbit Admins govern suspended workspaces from `/orbit`, not from the live workspace.
+
 > **Terminology note.** In product prose the internal-staff role is **Orbit Admin**. Internally the implementation stores and references this concept as `superadmin` (the `superadmins` table, `requireSuperadmin()`, `grantSuperadmin()`, etc.). The two terms are interchangeable below; `superadmin` is an implementation detail only.
 
 ---

@@ -70,59 +70,57 @@ export default async function PublicChangelogEntryPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Public nav */}
-      <header className="border-b border-border bg-background sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <Link
-              className="text-sm font-semibold text-foreground hover:text-foreground/80 transition-colors"
-              href={`/${slug}`}
-            >
-              {workspace.name}
-            </Link>
-            <nav className="hidden sm:flex items-center gap-1">
-              {workspace.roadmapPublic && (
-                <Link
-                  className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                  href={`/${slug}/roadmap`}
-                >
-                  Roadmap
-                </Link>
-              )}
+      {/* Public nav — visitors only; members get the workspace sidebar */}
+      {!member && (
+        <header className="border-b border-border bg-background sticky top-0 z-10">
+          <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-6">
               <Link
-                className="px-3 py-1.5 text-sm font-medium text-foreground border-b-2 border-foreground"
-                href={`/${slug}/changelog`}
-              >
-                Changelog
-              </Link>
-            </nav>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link
-              aria-label="RSS feed"
-              className="text-muted-foreground hover:text-foreground transition-colors"
-              href={`/${slug}/changelog/feed.xml`}
-            >
-              <Rss className="size-4" />
-            </Link>
-            {isSignedIn ? (
-              <Link
-                className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                className="text-sm font-semibold text-foreground hover:text-foreground/80 transition-colors"
                 href={`/${slug}`}
               >
-                Dashboard
+                {workspace.name}
               </Link>
-            ) : (
+              <nav className="hidden sm:flex items-center gap-1">
+                {workspace.roadmapPublic && (
+                  <Link
+                    className="px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    href={`/${slug}/roadmap`}
+                  >
+                    Roadmap
+                  </Link>
+                )}
+                {/* Changelog index link hidden until a public changelog index
+                  exists (deferred — see Phase E). */}
+              </nav>
+            </div>
+            <div className="flex items-center gap-3">
               <Link
-                className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
-                href="/login"
+                aria-label="RSS feed"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                href={`/${slug}/changelog/feed.xml`}
               >
-                Sign in
+                <Rss className="size-4" />
               </Link>
-            )}
+              {isSignedIn ? (
+                <Link
+                  className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  href={`/${slug}`}
+                >
+                  Dashboard
+                </Link>
+              ) : (
+                <Link
+                  className="px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  href="/signin"
+                >
+                  Sign in
+                </Link>
+              )}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Content */}
       <div className="max-w-3xl mx-auto px-6 pt-10 pb-20">

@@ -17,27 +17,29 @@
 | `verification` | Better Auth managed (magic link tokens) |
 | `workspaces` | Workspace records with moderation settings |
 | `workspace_members` | User ↔ workspace with role |
-| `workspace_invites` | Email invites and shareable invite links |
+| `workspace_invites` | Email invitations to a workspace |
+| `workspace_invite_links` | Shareable, reusable invite links |
 | `boards` | Feedback boards (workspace-scoped) |
 | `categories` | Post categories (workspace-scoped, with color) |
+| `workspace_statuses` | Customisable per-workspace post statuses |
 | `posts` | Feedback posts with denormalised counters |
-| `post_status_changes` | Append-only status change audit trail |
-| `votes` | User and guest votes on posts |
+| `votes` | User votes on posts |
 | `comments` | Threaded comments with soft delete |
+| `comment_reactions` | Emoji reactions on comments |
 | `changelog_entries` | Changelog entries (Markdown, draft/published) |
 | `changelog_posts` | Junction table — changelog entry ↔ posts |
 | `notifications` | In-app notifications for signed-in users |
+| `notification_preferences` | Per-user email / in-app notification opt-outs |
 | `blocked_users` | Users blocked from a workspace |
 | `audit_logs` | Admin action history (workspace + platform level) |
 | `email_outbox` | Durable email queue — written first, ensures zero email loss on crash |
+| `email_events` | Inbound provider delivery/bounce webhook events |
+| `job_logs` | Background-job execution logs |
 | `outbound_webhook_endpoints` | Customer-registered HTTPS endpoints for workspace events |
 | `outbound_webhook_deliveries` | Per-attempt delivery log with status + response (30-day retention) |
 | `api_keys` | Workspace-scoped REST API keys (SHA-256 hashed, never stored raw) |
-| `superadmins` | Platform Orbit Admin access list |
 | `feature_flags` | Platform-wide boolean feature toggles |
 | `platform_settings` | Singleton operator config (signup, limits, maintenance mode) |
-| `plans` | Plan tiers — operator-editable from Orbit, controls workspace limits |
-| `workspace_plan_assignments` | Per-workspace custom plan override set by Orbit Admin |
 
 ---
 
@@ -62,8 +64,12 @@ workspace_members   id, workspace_id, user_id,
                     role (owner|admin|member), joined_at
                     UNIQUE(workspace_id, user_id)
 
-workspace_invites   id, workspace_id, invited_by, email, role,
-                    token, is_invite_link, expires_at, accepted_at, created_at
+workspace_invites   id, workspace_id, invited_by_id, email, role,
+                    token, expires_at, accepted_at, revoked_at, revoked_by_id, created_at
+
+workspace_invite_links  id, workspace_id, created_by_id, role, token, label,
+                        max_uses, use_count, expires_at, is_active,
+                        created_at, updated_at
 
 -- Boards
 boards              id, slug, name, description, workspace_id,
@@ -76,16 +82,18 @@ categories          id, slug, name, color, workspace_id, created_at, updated_at
                     UNIQUE(workspace_id, slug)
                     UNIQUE(workspace_id, name)
 
+-- Post statuses (customisable per workspace)
+workspace_statuses  id, workspace_id, name, slug, color, display_order,
+                    is_default, is_archived, created_at, updated_at
+                    UNIQUE(workspace_id, slug)
+
 -- Posts
 posts               id, slug, title, description, status (pgEnum),
                     vote_count, comment_count,
                     board_id, workspace_id,
                     author_id, author_email, author_name,
                     category_id, is_pinned, is_locked, is_approved,
-                    merged_into_id, created_at, updated_at
-
-post_status_changes id, post_id, from_status, to_status,
-                    changed_by, note, created_at
+                    created_at, updated_at
 
 -- Votes
 votes               id, post_id, workspace_id,
@@ -99,6 +107,8 @@ comments            id, post_id, parent_id, body,
                     author_id, author_email, author_name, author_avatar,
                     is_deleted, is_approved, created_at, updated_at
 
+comment_reactions   id, comment_id, user_id, emoji, created_at
+
 -- Changelog
 changelog_entries   id, workspace_id, title, body,
                     label (new_feature|improvement|bug_fix|security|deprecation),
@@ -111,6 +121,11 @@ changelog_posts     changelog_entry_id, post_id   -- composite PK
 notifications       id, user_id, workspace_id, type, title, body,
                     link, is_read, created_at
 
+notification_preferences  user_id (PK), email_status_change, email_new_comment,
+                          email_changelog, in_app_status_change,
+                          in_app_new_comment, in_app_changelog, updated_at
+                          -- Opt-out model: a missing row means all notifications enabled
+
 -- Email
 email_outbox        id, to_email, subject, html_body,
                     status (queued|sending|sent|failed),
@@ -118,6 +133,10 @@ email_outbox        id, to_email, subject, html_body,
                     -- Durable queue: insert row first, then enqueue SEND_EMAIL job
                     -- Worker atomically transitions: queued → sending → sent|failed
                     -- Survives app crashes between enqueue and send
+
+email_events        id, provider_event_id, event_type, provider_email_id,
+                    recipient, payload (jsonb), occurred_at, received_at
+                    -- Inbound delivery/bounce/complaint webhooks from the email provider
 
 -- Moderation
 blocked_users       id, workspace_id, user_id, user_email, user_name,
@@ -148,13 +167,18 @@ api_keys            id, workspace_id, user_id, name,
                     last_used_at, is_enabled, created_at
 
 -- Orbit Admin
-superadmins         id, user_id UNIQUE, created_at
-
+-- There is no `superadmins` table. The Orbit Admin product role is backed by
+-- the `user.role` column (value `admin`); a normal end user has `user.role = user`.
 feature_flags       id, key UNIQUE, is_enabled, description, created_at, updated_at
 
 platform_settings   id (always 1, singleton),
                     signup_enabled, max_workspaces_per_user,
                     maintenance_mode, updated_at
+
+-- Background jobs
+job_logs            id, job_id, job_name, entity_type, entity_id, sequence,
+                    level (info|warn|error), message, stdout, stderr,
+                    started_at, finished_at, duration_ms, created_at
 ```
 
 ---
@@ -169,4 +193,4 @@ The `workspace_members.role` column stores `owner | admin | member`. These are *
 | `admin` | Brand Admin |
 | `member` | Team Member |
 
-The `superadmins` table backs the **Orbit Admin** product role. Public end users (**User**) have a `user` row but never a `workspace_members` row.
+The **Orbit Admin** product role is backed by the `user.role` column (value `admin`) — there is no separate `superadmins` table. Public end users (**User**) have a `user` row (with `role = user`) but never a `workspace_members` row.

@@ -93,7 +93,7 @@ export function LiveDemo() {
 
             <div className="mt-8">
               <Button asChild size="lg">
-                <Link href="/login">Start Free</Link>
+                <Link href="/signin">Start Free</Link>
               </Button>
             </div>
           </div>

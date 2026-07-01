@@ -3,8 +3,10 @@ import {
   Body,
   Container,
   Head,
+  Hr,
   Html,
   Img,
+  Link,
   Preview,
   Section,
   Text,
@@ -66,11 +68,15 @@ export function EmailLayout({
   logoUrl,
   preview,
   productName = PRODUCT_NAME,
+  unsubscribeUrl,
 }: {
   children: ReactNode;
   logoUrl?: string | null;
   preview: string;
   productName?: string;
+  // When provided (notification emails only), renders a one-click unsubscribe
+  // link in the footer. Transactional emails (magic link, invites) omit it.
+  unsubscribeUrl?: string | null;
 }) {
   return (
     <Html>
@@ -88,6 +94,18 @@ export function EmailLayout({
             )}
           </Section>
           {children}
+          {unsubscribeUrl ? (
+            <>
+              <Hr style={{ borderColor: "#ded8cc", margin: "28px 0 16px" }} />
+              <Text style={{ ...emailStyles.fallbackLink, margin: 0 }}>
+                Don't want these notifications?{" "}
+                <Link href={unsubscribeUrl} style={emailStyles.link}>
+                  Unsubscribe
+                </Link>
+                .
+              </Text>
+            </>
+          ) : null}
         </Container>
       </Body>
     </Html>

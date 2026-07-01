@@ -10,6 +10,7 @@ export function NewCommentEmail({
   commentBody,
   workspaceName,
   productName = PRODUCT_NAME,
+  unsubscribeUrl,
 }: {
   postAuthorName: string;
   postTitle: string;
@@ -18,11 +19,13 @@ export function NewCommentEmail({
   commentBody: string;
   workspaceName: string;
   productName?: string;
+  unsubscribeUrl?: string | null;
 }) {
   return (
     <EmailLayout
       preview={`${commenterName} commented on your post — ${postTitle}`}
       productName={productName}
+      unsubscribeUrl={unsubscribeUrl}
     >
       <Text style={emailStyles.heading}>New comment on your post</Text>
       <Text style={emailStyles.paragraph}>Hi {postAuthorName},</Text>

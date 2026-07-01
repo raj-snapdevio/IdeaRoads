@@ -1,5 +1,9 @@
 import { Button, Link, Section, Text } from "react-email";
-import { INVITE_EXPIRY_DAYS, PRODUCT_NAME } from "@/config/platform";
+import {
+  INVITE_EXPIRY_DAYS,
+  PRODUCT_NAME,
+  workspaceRoleLabel,
+} from "@/config/platform";
 import { EmailLayout, emailStyles } from "@/lib/email/components/layout";
 
 export function InviteEmail({
@@ -27,7 +31,8 @@ export function InviteEmail({
         <strong style={{ color: "#171717" }}>{inviterName}</strong> has invited
         you to join{" "}
         <strong style={{ color: "#171717" }}>{workspaceName}</strong> as a{" "}
-        <strong style={{ color: "#171717" }}>{role}</strong>.
+        <strong style={{ color: "#171717" }}>{workspaceRoleLabel(role)}</strong>
+        .
       </Text>
       <Section style={{ margin: "24px 0" }}>
         <Button href={inviteUrl} style={emailStyles.button}>

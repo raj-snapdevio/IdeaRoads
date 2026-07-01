@@ -55,7 +55,7 @@ export function NotificationBell({
       <span className="relative shrink-0">
         <Bell className="size-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center bg-destructive text-white text-[10px] font-bold leading-none px-0.5">
+          <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center bg-destructive text-white text-2xs font-bold leading-none px-0.5">
             {displayCount}
           </span>
         )}

@@ -3,7 +3,6 @@
 import {
   Bell,
   CircleDot,
-  Key,
   LayoutGrid,
   LogOut,
   Map as MapIcon,
@@ -14,11 +13,12 @@ import {
   Sliders,
   Tag,
   User,
-  Webhook,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { WorkspaceSwitcher } from "@/components/workspace/workspace-switcher";
 
 interface Board {
   id: string;
@@ -26,22 +26,31 @@ interface Board {
   slug: string;
 }
 
+interface WorkspaceOption {
+  name: string;
+  slug: string;
+}
+
 interface WorkspaceSidebarProps {
   boards: Board[];
   email: string;
+  initialUnreadCount?: number;
   isAdminOrOwner: boolean;
   isOrbitAdmin: boolean;
   workspaceName: string;
   workspaceSlug: string;
+  workspaces: WorkspaceOption[];
 }
 
 export function WorkspaceSidebar({
   boards,
   email,
+  initialUnreadCount = 0,
   isAdminOrOwner,
   isOrbitAdmin,
   workspaceName,
   workspaceSlug,
+  workspaces,
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
 
@@ -56,26 +65,25 @@ export function WorkspaceSidebar({
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-      {/* Workspace header */}
-      <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-4">
-        <div className="flex size-7 shrink-0 items-center justify-center bg-primary text-primary-foreground">
-          <span className="text-xs font-black">
-            {workspaceName.charAt(0).toUpperCase()}
-          </span>
-        </div>
-        <Link
-          className="cursor-pointer truncate text-sm font-semibold text-sidebar-foreground transition-colors duration-150 hover:text-sidebar-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          href={`/${workspaceSlug}`}
-          title={workspaceName}
-        >
-          {workspaceName}
-        </Link>
-      </div>
+      {/* Workspace switcher */}
+      <WorkspaceSwitcher
+        currentName={workspaceName}
+        currentSlug={workspaceSlug}
+        workspaces={workspaces}
+      />
 
       {/* Navigation */}
       <nav className="flex flex-1 flex-col overflow-y-auto p-2">
-        {/* Feedback */}
+        {/* Notifications inbox */}
         <div className="space-y-0.5">
+          <NotificationBell
+            initialCount={initialUnreadCount}
+            workspaceSlug={workspaceSlug}
+          />
+        </div>
+
+        {/* Feedback */}
+        <div className="mt-4 space-y-0.5">
           <p className="px-2 pb-1 pt-2 text-2xs font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
             Feedback
           </p>
@@ -104,8 +112,8 @@ export function WorkspaceSidebar({
             <span className="truncate">Roadmap</span>
           </Link>
           <Link
-            className={link(`/${workspaceSlug}/changelog`)}
-            href={`/${workspaceSlug}/changelog`}
+            className={link(`/${workspaceSlug}/settings/changelog`)}
+            href={`/${workspaceSlug}/settings/changelog`}
           >
             <Megaphone className="size-4 shrink-0" />
             <span className="truncate">Changelog</span>
@@ -117,43 +125,43 @@ export function WorkspaceSidebar({
           <p className="px-2 pb-1 pt-1.5 text-2xs font-semibold uppercase tracking-eyebrow text-sidebar-foreground/40">
             Settings
           </p>
-          <Link
-            className={link(`/${workspaceSlug}/settings/general`)}
-            href={`/${workspaceSlug}/settings/general`}
-          >
-            <Sliders className="size-4 shrink-0" />
-            <span className="truncate">General</span>
-          </Link>
-          <Link
-            className={link(`/${workspaceSlug}/settings/members`)}
-            href={`/${workspaceSlug}/settings/members`}
-          >
-            <Settings className="size-4 shrink-0" />
-            <span className="truncate">Members</span>
-          </Link>
-          <Link
-            className={link(`/${workspaceSlug}/settings/categories`)}
-            href={`/${workspaceSlug}/settings/categories`}
-          >
-            <Tag className="size-4 shrink-0" />
-            <span className="truncate">Categories</span>
-          </Link>
-          <Link
-            className={link(`/${workspaceSlug}/settings/statuses`)}
-            href={`/${workspaceSlug}/settings/statuses`}
-          >
-            <CircleDot className="size-4 shrink-0" />
-            <span className="truncate">Statuses</span>
-          </Link>
-          <Link
-            className={link(`/${workspaceSlug}/settings/notifications`)}
-            href={`/${workspaceSlug}/settings/notifications`}
-          >
-            <Bell className="size-4 shrink-0" />
-            <span className="truncate">Notifications</span>
-          </Link>
           {isAdminOrOwner && (
             <>
+              <Link
+                className={link(`/${workspaceSlug}/settings/general`)}
+                href={`/${workspaceSlug}/settings/general`}
+              >
+                <Sliders className="size-4 shrink-0" />
+                <span className="truncate">General</span>
+              </Link>
+              <Link
+                className={link(`/${workspaceSlug}/settings/boards`)}
+                href={`/${workspaceSlug}/settings/boards`}
+              >
+                <LayoutGrid className="size-4 shrink-0" />
+                <span className="truncate">Boards</span>
+              </Link>
+              <Link
+                className={link(`/${workspaceSlug}/settings/members`)}
+                href={`/${workspaceSlug}/settings/members`}
+              >
+                <Settings className="size-4 shrink-0" />
+                <span className="truncate">Members</span>
+              </Link>
+              <Link
+                className={link(`/${workspaceSlug}/settings/categories`)}
+                href={`/${workspaceSlug}/settings/categories`}
+              >
+                <Tag className="size-4 shrink-0" />
+                <span className="truncate">Categories</span>
+              </Link>
+              <Link
+                className={link(`/${workspaceSlug}/settings/statuses`)}
+                href={`/${workspaceSlug}/settings/statuses`}
+              >
+                <CircleDot className="size-4 shrink-0" />
+                <span className="truncate">Statuses</span>
+              </Link>
               <Link
                 className={link(`/${workspaceSlug}/settings/moderation`)}
                 href={`/${workspaceSlug}/settings/moderation`}
@@ -161,20 +169,9 @@ export function WorkspaceSidebar({
                 <Shield className="size-4 shrink-0" />
                 <span className="truncate">Moderation</span>
               </Link>
-              <Link
-                className={link(`/${workspaceSlug}/settings/webhooks`)}
-                href={`/${workspaceSlug}/settings/webhooks`}
-              >
-                <Webhook className="size-4 shrink-0" />
-                <span className="truncate">Webhooks</span>
-              </Link>
-              <Link
-                className={link(`/${workspaceSlug}/settings/api-keys`)}
-                href={`/${workspaceSlug}/settings/api-keys`}
-              >
-                <Key className="size-4 shrink-0" />
-                <span className="truncate">API Keys</span>
-              </Link>
+              {/* Webhooks and API Keys settings are hidden until outbound
+                  webhook delivery and API-key authentication are implemented
+                  (deferred — see Phase E). */}
               <Link
                 className={link(`/${workspaceSlug}/settings/audit-log`)}
                 href={`/${workspaceSlug}/settings/audit-log`}
@@ -184,6 +181,13 @@ export function WorkspaceSidebar({
               </Link>
             </>
           )}
+          <Link
+            className={link(`/${workspaceSlug}/settings/notifications`)}
+            href={`/${workspaceSlug}/settings/notifications`}
+          >
+            <Bell className="size-4 shrink-0" />
+            <span className="truncate">Notification Preferences</span>
+          </Link>
           <Link
             className={link(`/${workspaceSlug}/settings/account`)}
             href={`/${workspaceSlug}/settings/account`}

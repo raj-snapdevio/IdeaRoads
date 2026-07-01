@@ -2,7 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { NavFeaturesDropdown } from "@/components/marketing/nav-features-dropdown";
 import { Button } from "@/components/ui/button";
-import { LOGO_PATH, PRODUCT_NAME } from "@/config/platform";
+import {
+  DOCS_URL,
+  GITHUB_REPO_URL,
+  LOGO_PATH,
+  PRODUCT_NAME,
+} from "@/config/platform";
 
 export function Nav() {
   return (
@@ -34,6 +39,24 @@ export function Nav() {
           >
             Demo
           </Link>
+
+          <a
+            className="rounded-none px-3 py-2 text-xs font-semibold uppercase tracking-ui text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
+            href={DOCS_URL}
+            rel="noreferrer"
+            target="_blank"
+          >
+            Docs
+          </a>
+
+          <a
+            className="rounded-none px-3 py-2 text-xs font-semibold uppercase tracking-ui text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
+            href={GITHUB_REPO_URL}
+            rel="noreferrer"
+            target="_blank"
+          >
+            GitHub
+          </a>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -43,10 +66,10 @@ export function Nav() {
             size="sm"
             variant="ghost"
           >
-            <Link href="/login">Sign In</Link>
+            <Link href="/signin">Sign In</Link>
           </Button>
           <Button asChild size="sm">
-            <Link href="/login">Start Free</Link>
+            <Link href="/signin">Start Free</Link>
           </Button>
         </div>
       </div>

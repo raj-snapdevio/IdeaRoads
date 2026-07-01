@@ -72,7 +72,7 @@ export function QuickStart() {
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <Button asChild size="lg" variant="secondary">
-                <Link href="/login">Get Started Free</Link>
+                <Link href="/signin">Get Started Free</Link>
               </Button>
               <Link
                 className="text-sm text-primary-foreground/60 transition-colors duration-150 hover:text-primary-foreground"

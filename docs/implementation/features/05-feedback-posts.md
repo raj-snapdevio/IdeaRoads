@@ -4,6 +4,27 @@
 
 This document holds the technical detail removed from the product spec. Schema is owned by [`../DATABASE.md`](../DATABASE.md) — referenced here, not duplicated.
 
+> **Implemented (Phase 2 — public portal).** The board list and post-detail pages now live in the **public** route group at `app/(public)/[slug]/b/[boardSlug]/page.tsx` and `.../p/[postSlug]/page.tsx` (relocated from `(workspace)`), so they are reachable **without an account**:
+> - Session is optional (`getCurrentSession`); workspace membership is looked up only when signed in. Admin affordances (status select, pin, delete, voter list) render only for members whose role is not `member` — the *authorization* of those actions is unchanged (still enforced server-side; Team Member empowerment is Phase 3).
+> - **Visibility:** private or archived boards, and unapproved (pending) posts, return `notFound()` for non-members. Public boards and approved posts are readable by anyone.
+> - **Vote/comment** reuse the Phase 1 sign-in-required components (`isSignedIn` is derived from the optional session).
+> - **Submission (M2):** `createPostAction` now allows **any signed-in User** to submit on a public, non-archived board — it checks board visibility instead of requiring workspace membership. Private/archived boards remain member-only. The `/{slug}/b/{board}/new` page redirects anonymous visitors to `/login?next=…`.
+> - Pages render under the shared `components/workspace/portal-header.tsx` (the public chrome) instead of the workspace sidebar.
+
+> **Implemented (Phase 3 — Team Member triage).** Feedback-handling actions are now available to **any workspace member** (Brand Admin and Team Member), per PLATFORM.md §4 — the role-restriction was removed from these server actions in `app/actions/posts.ts`:
+> - `updatePostStatusAction`, `pinPostAction`, `updatePostCategoryAction` (and the duplicate in `app/actions/categories.ts`) now require only workspace membership, not `role !== member`.
+> - `deletePostAction` allows any workspace member to remove feedback (clean-up) and the author to remove their own (the author check also covers a non-member customer deleting their own post).
+> - `approvePostAction` (moderation queue) **remains Brand-Admin-only** — approving pending feedback is a moderation function, not triage.
+> - Post-detail UI: status select, pin, delete, and the voter list now render for any member; the comment **moderation queue / unapproved visibility** (`canModerate`) stays Brand-Admin-only.
+
+> **Implemented (Phase 5 — feedback operations completeness).**
+> - **Move** (`movePostAction` → `lib/posts/move.ts`): changes a post's board (same workspace, different board); the slug is preserved unless it collides in the destination, then a fresh slug is generated. Available to any workspace member.
+> - **Merge** (`mergePostAction` → `lib/posts/merge.ts`): transfers the source's votes onto the target (de-duplicating voters who already voted on the target), recomputes both vote counts, and sets `posts.merged_into_id` + `is_locked` on the source. Comments stay on the source, which remains viewable with a "Merged into …" notice. `searchMergeTargetsAction` backs the target picker. Merged posts are excluded from board lists and the roadmap (`isNull(merged_into_id)`); voting is blocked by the existing `is_locked` pre-flight.
+> - **Status history** (M3): new `post_status_changes` table; `updatePostStatusAction` records each transition (from/to + actor) via `recordStatusChange`, and the post-detail page renders a `listStatusHistory` timeline (actor name shown to members only).
+> - **Status validation** (L4): `updatePostStatusAction` now rejects a status that isn't one of the workspace's defined statuses (`getWorkspaceStatusBySlug`).
+> - **Schema:** `post_status_changes` and `posts.merged_into_id` were added to the Drizzle schema. The repo's migration snapshot is stale (recent tables were applied via `pnpm db:push`), so these are applied the same way — **run `pnpm db:push`** rather than generating a migration (a generated migration produces a spurious full-schema diff).
+> - UI components: `_components/move-post-button.tsx` (board dropdown) and `_components/merge-post-button.tsx` (search + confirm).
+
 ---
 
 ## Dependencies

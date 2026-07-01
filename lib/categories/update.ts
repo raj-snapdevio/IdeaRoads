@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { categories } from "@/db/schema";
 import { db } from "@/lib/db";
 
@@ -31,7 +31,12 @@ export async function reorderCategories(
       await tx
         .update(categories)
         .set({ displayOrder: i, updatedAt: new Date() })
-        .where(eq(categories.id, orderedIds[i]!));
+        .where(
+          and(
+            eq(categories.id, orderedIds[i]!),
+            eq(categories.workspaceId, workspaceId)
+          )
+        );
     }
   });
 }

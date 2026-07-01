@@ -1,5 +1,5 @@
 import { eq, sql } from "drizzle-orm";
-import { WORKSPACE_MEMBER } from "@/config/platform";
+import { DELETED_COMMENT_BODY } from "@/config/platform";
 import { comments, posts } from "@/db/schema";
 import { db } from "@/lib/db";
 
@@ -26,18 +26,32 @@ export async function deleteComment(
     throw new CommentDeleteError("Comment not found.");
   }
 
-  const isAdminOrOwner = requesterRole !== WORKSPACE_MEMBER;
+  // Any workspace member may remove a comment as clean-up (PLATFORM.md §4);
+  // authors may always remove their own. Workspace membership is verified by the
+  // caller (the DELETE route), so a non-empty role here means a workspace member.
+  const isWorkspaceMember = requesterRole.length > 0;
   const isAuthor = comment.authorId === requesterId;
 
-  if (!isAdminOrOwner && !isAuthor) {
+  if (!isWorkspaceMember && !isAuthor) {
     throw new CommentDeleteError(
       "You don't have permission to delete this comment."
     );
   }
 
   await db.transaction(async (tx) => {
-    // Hard delete — cascade removes child replies and reactions
-    await tx.delete(comments).where(eq(comments.id, commentId));
+    // Soft delete — keep the row (and its replies) as a "[deleted]" tombstone so
+    // the thread structure is preserved (Feature 07). Author fields are cleared.
+    await tx
+      .update(comments)
+      .set({
+        isDeleted: true,
+        body: DELETED_COMMENT_BODY,
+        authorName: null,
+        authorEmail: null,
+        authorAvatar: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(comments.id, commentId));
 
     // Decrement comment_count only if it was approved and not already deleted
     if (comment.isApproved && !comment.isDeleted) {

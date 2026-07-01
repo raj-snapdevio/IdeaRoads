@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { revokeInviteAction } from "@/app/actions/members";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { workspaceRoleLabel } from "@/config/platform";
 
 interface PendingInvite {
   createdAt: Date;
@@ -22,12 +23,6 @@ interface PendingInvitesListProps {
   invites: PendingInvite[];
   workspaceId: string;
 }
-
-const ROLE_LABELS: Record<string, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  member: "Member",
-};
 
 function formatExpiry(date: Date): string {
   const diff = Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -98,7 +93,7 @@ export function PendingInvitesList({
                       {invite.email}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {ROLE_LABELS[invite.role]} ·{" "}
+                      {workspaceRoleLabel(invite.role)} ·{" "}
                       {formatExpiry(invite.expiresAt)}
                     </p>
                   </div>

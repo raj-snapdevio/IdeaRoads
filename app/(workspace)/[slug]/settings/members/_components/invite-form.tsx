@@ -54,7 +54,7 @@ export function InviteForm({ workspaceId, canInviteAdmin }: InviteFormProps) {
   return (
     <div>
       <h2 className="mb-4 text-sm font-semibold uppercase tracking-eyebrow text-muted-foreground">
-        Invite a member
+        Invite a Team Member
       </h2>
       <form className="space-y-4" onSubmit={onSubmit}>
         {generalError && (
@@ -91,8 +91,8 @@ export function InviteForm({ workspaceId, canInviteAdmin }: InviteFormProps) {
               onChange={(e) => setRole(e.target.value as "member" | "admin")}
               value={role}
             >
-              <option value="member">Member</option>
-              <option value="admin">Admin</option>
+              <option value="member">Team Member</option>
+              <option value="admin">Brand Admin</option>
             </select>
           )}
           <Button disabled={submitting || !email.trim()} type="submit">

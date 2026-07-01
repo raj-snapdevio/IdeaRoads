@@ -118,7 +118,7 @@ export function Comparison() {
 
         <div className="mt-8 flex justify-center">
           <Button asChild size="lg">
-            <Link href="/login">Start Free</Link>
+            <Link href="/signin">Start Free</Link>
           </Button>
         </div>
       </div>

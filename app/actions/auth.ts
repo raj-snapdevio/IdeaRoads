@@ -27,5 +27,5 @@ export async function logoutAction() {
     });
   }
 
-  redirect("/login");
+  redirect("/signin");
 }

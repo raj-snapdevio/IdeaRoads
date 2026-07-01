@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { commentPreviewText } from "@/lib/comments/preview";
 import type { CommentData, ReplyData } from "./types";
 
 type PendingComment = (CommentData | ReplyData) & { replies?: ReplyData[] };
@@ -92,7 +93,7 @@ function PendingCommentRow({
             </span>
           </div>
           <p className="mt-1 text-sm text-foreground leading-relaxed whitespace-pre-wrap wrap-break-word">
-            {comment.body}
+            {commentPreviewText(comment.body, 5000)}
           </p>
         </div>
         <div className="shrink-0 flex items-start gap-2 pt-0.5">

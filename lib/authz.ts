@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ADMIN_ROLE } from "@/config/platform";
 import { user } from "@/db/schema";
 import { auth } from "@/lib/auth";
@@ -13,7 +13,7 @@ export async function getCurrentSession() {
 export async function requireSession() {
   const session = await getCurrentSession();
   if (!session) {
-    redirect("/login");
+    redirect("/signin");
   }
   return session;
 }
@@ -31,8 +31,12 @@ export async function requireAdmin() {
     .where(eq(user.id, session.user.id))
     .limit(1);
 
+  // Orbit Admin is invisible to non-Orbit-Admins: a signed-in user who isn't an
+  // Orbit Admin gets a standard not-found page rather than a redirect, so the
+  // area's existence is never revealed (PLATFORM.md §9, Feature 13). Signed-out
+  // users are sent to sign-in earlier by requireSession / middleware.
   if (!freshUser || freshUser.banned || freshUser.role !== ADMIN_ROLE) {
-    redirect("/post-auth");
+    notFound();
   }
 
   return {

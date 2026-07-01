@@ -14,6 +14,16 @@ export const WORKSPACE_OWNER = "owner" as const;
 export const WORKSPACE_ADMIN = "admin" as const;
 export const WORKSPACE_MEMBER = "member" as const;
 
+// Product-facing role labels (PLATFORM.md §2/§11). "Owner/Admin/Member" are
+// deprecated as product roles: owner and admin are both the single "Brand Admin"
+// role (ownership is a property, not a role); member is a "Team Member".
+export const BRAND_ADMIN_LABEL = "Brand Admin";
+export const TEAM_MEMBER_LABEL = "Team Member";
+
+export function workspaceRoleLabel(role: string): string {
+  return role === WORKSPACE_MEMBER ? TEAM_MEMBER_LABEL : BRAND_ADMIN_LABEL;
+}
+
 // Workspace limits
 export const MAX_WORKSPACES_PER_USER = 10;
 export const MAX_BOARDS_PER_WORKSPACE = 10;
@@ -28,6 +38,9 @@ export const DEFAULT_BOARD_NAME = "Feature Requests";
 export const DEFAULT_BOARD_SLUG = "feature-requests";
 export const DEFAULT_BOARD_DESCRIPTION =
   "Share and vote on the features you want to see built.";
+
+// Board slugs reserved to avoid collision with a board's sub-routes (e.g. /b/{slug}/new)
+export const RESERVED_BOARD_SLUGS: readonly string[] = ["new"];
 
 // Slugs that cannot be used as workspace slugs (conflict with app routes)
 export const RESERVED_SLUGS: readonly string[] = [

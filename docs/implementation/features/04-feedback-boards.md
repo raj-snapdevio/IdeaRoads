@@ -4,6 +4,14 @@
 
 This document holds the technical detail removed from the product spec. Schema is owned by [`../DATABASE.md`](../DATABASE.md) — referenced here, not duplicated.
 
+> **Phase 2 status (public portal).** A board's public-facing page lives in the **public** route group (`app/(public)/[slug]/b/[boardSlug]/`). A board with `isPublic = true` is readable by anyone; private boards are members-only (`notFound()` otherwise).
+
+> **Implemented (Phase 4 — board management).** Brand-Admin board lifecycle is now built:
+> - **Service layer:** `lib/boards/create.ts` (`createBoard`, `generateBoardSlug`, `validateBoardSlug`, `slugifyBoard`), `lib/boards/update.ts` (`updateBoard`, `reorderBoards` — workspace-scoped), `lib/boards/delete.ts` (`deleteBoard` — relies on the `posts → votes/comments` cascade), and `lib/boards/queries.ts` (`listBoardsForWorkspace` with post counts, `getBoardById`, `countActiveBoards`).
+> - **Server actions:** `app/actions/boards.ts` — `createBoardAction`, `updateBoardAction`, `setBoardArchivedAction`, `deleteBoardAction`, `reorderBoardsAction`. All are **Brand-Admin-only** (`requireBoardManager` denies Team Members). The active-board limit (`MAX_BOARDS_PER_WORKSPACE`) is enforced on create and on unarchive; the **last active board cannot be deleted** (archived boards always can); slugs are validated against `RESERVED_BOARD_SLUGS` and per-workspace uniqueness.
+> - **UI:** `components/boards/board-list.tsx` + `app/(workspace)/[slug]/settings/boards/` (create/edit form with name, slug, description, visibility; reorder via up/down; archive/unarchive; delete with type-the-name confirmation). A **Boards** link was added to the Brand-Admin settings nav.
+> - **Archived behaviour:** the workspace sidebar query now filters `isArchived = false`; an archived board stays **publicly readable** (read-only) with a "no longer accepting feedback" notice and the New-post action hidden (reconciling the Phase 2 gate, which had `notFound()`d archived boards).
+
 ---
 
 ## Dependencies

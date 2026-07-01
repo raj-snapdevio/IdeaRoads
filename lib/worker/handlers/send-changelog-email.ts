@@ -5,8 +5,10 @@ import { truncateMarkdownToText } from "@/lib/changelog/markdown";
 import { db } from "@/lib/db";
 import { enqueueEmail } from "@/lib/email/index";
 import { changelogEmailTemplate } from "@/lib/email/templates/changelog";
+import { buildUnsubscribeUrl } from "@/lib/email/unsubscribe";
 import { env } from "@/lib/env";
 import { createNotification } from "@/lib/notifications/create";
+import { isEmailNotificationEnabled } from "@/lib/notifications/queries";
 import type { SendChangelogEmailPayload } from "@/lib/worker/job-types";
 
 export async function handleSendChangelogEmail(
@@ -56,18 +58,27 @@ async function processSendChangelogEmail(job: Job<SendChangelogEmailPayload>) {
 
   const bodyPreview = truncateMarkdownToText(entry.body, 300);
 
-  const { subject, html, text } = changelogEmailTemplate({
-    voterName,
-    voterEmail,
-    entryTitle,
-    entryLabel,
-    entryId,
-    workspaceSlug: workspace.slug,
-    workspaceName: workspace.name,
-    bodyPreview,
-  });
+  // Honour the voter's email-notification preference / unsubscribe choice
+  // (opt-out model: no row = enabled). Guests with no account always receive it.
+  const emailEnabled = voterUserId
+    ? await isEmailNotificationEnabled(voterUserId, "emailChangelog")
+    : true;
 
-  await enqueueEmail({ to: voterEmail, subject, html, text });
+  if (emailEnabled) {
+    const { subject, html, text } = changelogEmailTemplate({
+      voterName,
+      voterEmail,
+      entryTitle,
+      entryLabel,
+      entryId,
+      workspaceSlug: workspace.slug,
+      workspaceName: workspace.name,
+      bodyPreview,
+      unsubscribeUrl: voterUserId ? buildUnsubscribeUrl(voterUserId) : null,
+    });
+
+    await enqueueEmail({ to: voterEmail, subject, html, text });
+  }
 
   // In-app notification for signed-in voters
   if (voterUserId) {

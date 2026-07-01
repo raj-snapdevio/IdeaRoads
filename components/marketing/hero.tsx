@@ -19,7 +19,7 @@ export function Hero() {
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link href="/login">Start Free</Link>
+                <Link href="/signin">Start Free</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
                 <Link href="#how-it-works">View Demo</Link>

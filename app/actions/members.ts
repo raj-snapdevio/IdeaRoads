@@ -13,6 +13,9 @@ import { user } from "@/db/schema/auth";
 import { audit } from "@/lib/audit";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
+import { enqueueEmail } from "@/lib/email";
+import { MemberRemovedEmail } from "@/lib/email/components/member-removed";
+import { renderEmailTemplate } from "@/lib/email/renderer";
 import {
   createInviteLink,
   getInviteLinkById,
@@ -340,6 +343,12 @@ export async function createInviteLinkAction(input: {
       error: "You don't have permission to create invite links.",
     };
   }
+  if (actorMember.role === WORKSPACE_ADMIN && parsed.data.role === "admin") {
+    return {
+      success: false,
+      error: "Admins can only create member invite links, not admin links.",
+    };
+  }
 
   const expiresAt = parsed.data.expiresInDays
     ? new Date(Date.now() + parsed.data.expiresInDays * 864e5)
@@ -401,6 +410,12 @@ export async function revokeInviteLinkAction(input: {
   if (!link.isActive) {
     return { success: true, data: undefined };
   }
+  if (actorMember.role === WORKSPACE_ADMIN && link.role === "admin") {
+    return {
+      success: false,
+      error: "Admins cannot revoke admin-level invite links.",
+    };
+  }
 
   await revokeInviteLink(input.linkId);
 
@@ -460,6 +475,18 @@ export async function removeMemberAction(input: {
     return { success: false, error: "Admins cannot remove other admins." };
   }
 
+  // Look up the removed member's email + workspace name for the notification.
+  const [removedUser] = await db
+    .select({ email: user.email })
+    .from(user)
+    .where(eq(user.id, target.userId))
+    .limit(1);
+  const [ws] = await db
+    .select({ name: workspaces.name })
+    .from(workspaces)
+    .where(eq(workspaces.id, input.workspaceId))
+    .limit(1);
+
   await removeMember(input.memberId);
 
   audit({
@@ -471,6 +498,22 @@ export async function removeMemberAction(input: {
     description: `${session.user.email} removed a member`,
     metadata: { removedMemberId: input.memberId, removedRole: target.role },
   });
+
+  // Notify the removed person (Feature 03).
+  if (removedUser?.email && ws?.name) {
+    try {
+      const html = await renderEmailTemplate(
+        MemberRemovedEmail({ workspaceName: ws.name })
+      );
+      await enqueueEmail({
+        to: removedUser.email,
+        subject: `You've been removed from ${ws.name}`,
+        html,
+      });
+    } catch (err) {
+      console.error("[members] failed to enqueue removal email", err);
+    }
+  }
 
   return { success: true, data: undefined };
 }

@@ -362,7 +362,7 @@ export function WebhookEndpointsSection({
                           {ep.url}
                         </p>
                         <span
-                          className={`shrink-0 inline-block px-1.5 py-0.5 text-[10px] font-medium rounded-sm ${
+                          className={`shrink-0 inline-block px-1.5 py-0.5 text-2xs font-medium rounded-sm ${
                             ep.isEnabled
                               ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                               : "bg-muted text-muted-foreground"

@@ -1,8 +1,11 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { WORKSPACE_MEMBER } from "@/config/platform";
+import { user, workspaces } from "@/db/schema";
 import { requireSession } from "@/lib/authz";
+import { db } from "@/lib/db";
 import { blockUser, unblockUser } from "@/lib/moderation/block";
 import { getWorkspaceMember } from "@/lib/workspaces/queries";
 
@@ -44,6 +47,35 @@ export async function blockUserAction(input: {
       success: false,
       error: "Only admins and owners can block users.",
     };
+  }
+
+  // A Brand Admin cannot block themselves or the workspace owner (Feature 12).
+  const targetEmail = parsed.data.email.trim().toLowerCase();
+  if (targetEmail === session.user.email.trim().toLowerCase()) {
+    return {
+      success: false,
+      error: "You can't block yourself.",
+      field: "email",
+    };
+  }
+  const [workspace] = await db
+    .select({ ownerId: workspaces.ownerId })
+    .from(workspaces)
+    .where(eq(workspaces.id, parsed.data.workspaceId))
+    .limit(1);
+  if (workspace?.ownerId) {
+    const [owner] = await db
+      .select({ email: user.email })
+      .from(user)
+      .where(eq(user.id, workspace.ownerId))
+      .limit(1);
+    if (owner && owner.email.trim().toLowerCase() === targetEmail) {
+      return {
+        success: false,
+        error: "You can't block the workspace owner.",
+        field: "email",
+      };
+    }
   }
 
   const row = await blockUser(parsed.data.workspaceId, session.user.id, {

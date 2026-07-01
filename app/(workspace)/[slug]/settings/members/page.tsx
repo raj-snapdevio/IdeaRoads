@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { WORKSPACE_MEMBER } from "@/config/platform";
 import { requireSession } from "@/lib/authz";
 import { listMembers } from "@/lib/workspaces/members";
 import {
@@ -26,8 +27,9 @@ export default async function MembersPage({ params }: Props) {
     notFound();
   }
 
+  // Workspace settings are Brand Admin only (PLATFORM.md §7).
   const actorMember = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!actorMember) {
+  if (!actorMember || actorMember.role === WORKSPACE_MEMBER) {
     notFound();
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useState } from "react";
 import type { ReplyData } from "./types";
 
@@ -24,8 +25,6 @@ export default function CommentReplyForm({
   const [html, setHtml] = useState("");
   const [text, setText] = useState("");
   const [editorKey, setEditorKey] = useState(0);
-  const [guestName, setGuestName] = useState("");
-  const [guestEmail, setGuestEmail] = useState("");
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingMessage, setPendingMessage] = useState<string | null>(null);
@@ -63,10 +62,6 @@ export default function CommentReplyForm({
         body: JSON.stringify({
           body: html,
           parentId,
-          ...(!isSignedIn && {
-            authorEmail: guestEmail,
-            authorName: guestName,
-          }),
         }),
       });
 
@@ -102,41 +97,29 @@ export default function CommentReplyForm({
     }
   }
 
+  if (!isSignedIn) {
+    return (
+      <p className="mt-3 ml-10 text-sm text-muted-foreground py-2">
+        <Link
+          className="font-medium text-primary hover:underline"
+          href="/signin"
+        >
+          Sign in
+        </Link>{" "}
+        to reply.{" "}
+        <button
+          className="text-muted-foreground hover:text-foreground transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onClick={onCancel}
+          type="button"
+        >
+          Cancel
+        </button>
+      </p>
+    );
+  }
+
   return (
     <form className="mt-3 ml-10 space-y-2" onSubmit={handleSubmit}>
-      {!isSignedIn && (
-        <div className="grid grid-cols-2 gap-2">
-          <div>
-            <label className="block text-xs font-medium text-foreground mb-1">
-              Name <span className="text-destructive">*</span>
-            </label>
-            <input
-              className="w-full border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              maxLength={100}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Your name"
-              required
-              type="text"
-              value={guestName}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-foreground mb-1">
-              Email <span className="text-destructive">*</span>
-            </label>
-            <input
-              className="w-full border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              maxLength={255}
-              onChange={(e) => setGuestEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              type="email"
-              value={guestEmail}
-            />
-          </div>
-        </div>
-      )}
-
       <QuillEditor
         disabled={isPending}
         key={editorKey}

@@ -51,7 +51,12 @@ export async function reorderWorkspaceStatuses(
       await tx
         .update(workspaceStatuses)
         .set({ displayOrder: i, updatedAt: new Date() })
-        .where(eq(workspaceStatuses.id, orderedIds[i]!));
+        .where(
+          and(
+            eq(workspaceStatuses.id, orderedIds[i]!),
+            eq(workspaceStatuses.workspaceId, workspaceId)
+          )
+        );
     }
   });
 }

@@ -10,6 +10,7 @@ export function CommentReplyEmail({
   replyBody,
   workspaceName,
   productName = PRODUCT_NAME,
+  unsubscribeUrl,
 }: {
   parentAuthorName: string;
   postTitle: string;
@@ -18,11 +19,13 @@ export function CommentReplyEmail({
   replyBody: string;
   workspaceName: string;
   productName?: string;
+  unsubscribeUrl?: string | null;
 }) {
   return (
     <EmailLayout
       preview={`${replierName} replied to your comment on ${postTitle}`}
       productName={productName}
+      unsubscribeUrl={unsubscribeUrl}
     >
       <Text style={emailStyles.heading}>New reply to your comment</Text>
       <Text style={emailStyles.paragraph}>Hi {parentAuthorName},</Text>

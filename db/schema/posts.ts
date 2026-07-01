@@ -1,5 +1,6 @@
 import { createId } from "@paralleldrive/cuid2";
 import {
+  type AnyPgColumn,
   boolean,
   index,
   integer,
@@ -42,6 +43,12 @@ export const posts = pgTable(
     isPinned: boolean("is_pinned").notNull().default(false),
     isLocked: boolean("is_locked").notNull().default(false),
     isApproved: boolean("is_approved").notNull().default(true),
+    // Set when this post has been merged into another; the merged post is locked
+    // and hidden from active lists (it points to its target).
+    mergedIntoId: text("merged_into_id").references(
+      (): AnyPgColumn => posts.id,
+      { onDelete: "set null" }
+    ),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

@@ -20,11 +20,11 @@ export class VoteNotFoundError extends Error {
 export async function castVote(
   postId: string,
   workspaceId: string,
-  voter: { userId?: string; userEmail?: string; userName?: string }
+  voter: { userId: string }
 ) {
-  const { userId, userEmail, userName } = voter;
-  if (!userId && !userEmail) {
-    throw new Error("userId or userEmail is required.");
+  const { userId } = voter;
+  if (!userId) {
+    throw new Error("userId is required.");
   }
 
   // Pre-flight checks
@@ -59,52 +59,11 @@ export async function castVote(
     throw new VoteBlockedError("This board is archived.");
   }
 
-  if (userId) {
-    // Check if already voted by userId
-    const existing = await db
-      .select({ id: votes.id })
-      .from(votes)
-      .where(and(eq(votes.postId, postId), eq(votes.userId, userId)))
-      .limit(1)
-      .then((r) => r[0] ?? null);
-
-    if (existing) {
-      return existing;
-    }
-
-    // De-duplicate: if user has a guest vote with same email, remove it first
-    // We need to look up the user's email for this. Skip this for now — handled at a higher level.
-
-    return await db.transaction(async (tx) => {
-      const [vote] = await tx
-        .insert(votes)
-        .values({
-          id: createId(),
-          postId,
-          workspaceId,
-          userId,
-          userEmail: null,
-          userName: null,
-        })
-        .onConflictDoNothing()
-        .returning({ id: votes.id });
-
-      if (vote) {
-        await tx
-          .update(posts)
-          .set({ upvotes: sql`${posts.upvotes} + 1` })
-          .where(eq(posts.id, postId));
-      }
-
-      return vote ?? existing;
-    });
-  }
-
-  // Guest path (email-based)
+  // Check if already voted by userId
   const existing = await db
     .select({ id: votes.id })
     .from(votes)
-    .where(and(eq(votes.postId, postId), eq(votes.userEmail, userEmail!)))
+    .where(and(eq(votes.postId, postId), eq(votes.userId, userId)))
     .limit(1)
     .then((r) => r[0] ?? null);
 
@@ -119,9 +78,9 @@ export async function castVote(
         id: createId(),
         postId,
         workspaceId,
-        userId: null,
-        userEmail: userEmail!,
-        userName: userName ?? null,
+        userId,
+        userEmail: null,
+        userName: null,
       })
       .onConflictDoNothing()
       .returning({ id: votes.id });

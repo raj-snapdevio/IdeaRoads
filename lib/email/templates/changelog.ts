@@ -11,6 +11,7 @@ export function changelogEmailTemplate({
   workspaceSlug,
   workspaceName,
   bodyPreview,
+  unsubscribeUrl,
 }: {
   voterName: string;
   voterEmail: string;
@@ -20,10 +21,17 @@ export function changelogEmailTemplate({
   workspaceSlug: string;
   workspaceName: string;
   bodyPreview: string;
+  unsubscribeUrl?: string | null;
 }) {
   const labelInfo = getLabelInfo(entryLabel);
   const entryUrl = `${env.NEXT_PUBLIC_APP_URL}/${workspaceSlug}/changelog/${entryId}`;
   const subject = `[${workspaceName}] ${labelInfo.label}: ${entryTitle}`;
+  const unsubscribeHtml = unsubscribeUrl
+    ? ` <a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>.`
+    : "";
+  const unsubscribeText = unsubscribeUrl
+    ? `\n\nUnsubscribe: ${unsubscribeUrl}`
+    : "";
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -49,7 +57,7 @@ export function changelogEmailTemplate({
         <a href="${entryUrl}" style="display:inline-block;padding:10px 20px;background:#111827;color:#ffffff;text-decoration:none;font-size:14px;font-weight:600;">Read the full update →</a>
       </td></tr>
       <tr><td style="padding:24px 40px;border-top:1px solid #f3f4f6;">
-        <p style="margin:0;font-size:12px;color:#9ca3af;">You're receiving this because you voted on a post in <strong>${workspaceName}</strong>. Sent by ${PRODUCT_NAME}.</p>
+        <p style="margin:0;font-size:12px;color:#9ca3af;">You're receiving this because you voted on a post in <strong>${workspaceName}</strong>. Sent by ${PRODUCT_NAME}.${unsubscribeHtml}</p>
       </td></tr>
     </table>
   </td></tr>
@@ -63,7 +71,7 @@ A feature you voted for has shipped!
 
 ${bodyPreview ? `${bodyPreview}\n\n` : ""}Read the full update: ${entryUrl}
 
-You're receiving this because you voted on a post in ${workspaceName}.`;
+You're receiving this because you voted on a post in ${workspaceName}.${unsubscribeText}`;
 
   return { subject, html, text };
 }

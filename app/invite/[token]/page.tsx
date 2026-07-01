@@ -50,7 +50,7 @@ export default async function InvitePage({ params }: Props) {
     return (
       <InviteLayout>
         <InviteStateCard
-          body="This invitation has been revoked by a workspace admin."
+          body="This invitation has been revoked by a Brand Admin."
           heading="Invitation revoked"
         />
       </InviteLayout>
@@ -61,7 +61,7 @@ export default async function InvitePage({ params }: Props) {
     return (
       <InviteLayout>
         <InviteStateCard
-          body="This invitation has expired. Ask a workspace admin to send a new one."
+          body="This invitation has expired. Ask a Brand Admin to send a new one."
           heading="Invitation expired"
         />
       </InviteLayout>
@@ -90,7 +90,7 @@ export default async function InvitePage({ params }: Props) {
         <div className="mt-6">
           <Link
             className="flex w-full items-center justify-center bg-foreground px-4 py-2.5 text-sm font-semibold text-background hover:bg-foreground/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={`/login?next=/invite/${token}`}
+            href={`/signin?next=/invite/${token}`}
           >
             Sign in to accept
           </Link>
@@ -108,7 +108,7 @@ export default async function InvitePage({ params }: Props) {
         <InviteStateCard
           body={`This invitation was sent to ${maskEmail(invite.email)}. You're signed in as ${session.user.email}.`}
           heading="Wrong account"
-          link={{ href: "/login", label: "Sign in with a different account" }}
+          link={{ href: "/signin", label: "Sign in with a different account" }}
         />
       </InviteLayout>
     );

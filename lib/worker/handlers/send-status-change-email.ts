@@ -4,6 +4,7 @@ import { notificationPreferences } from "@/db/schema/notifications";
 import { db } from "@/lib/db";
 import { enqueueEmail } from "@/lib/email/index";
 import { statusChangeEmailTemplate } from "@/lib/email/templates/status-change";
+import { buildUnsubscribeUrl } from "@/lib/email/unsubscribe";
 import { env } from "@/lib/env";
 import { createNotification } from "@/lib/notifications/create";
 import type { SendStatusChangeEmailPayload } from "@/lib/worker/job-types";
@@ -65,6 +66,7 @@ async function processSendStatusChangeEmail(
         fromStatus,
         toStatus,
         workspaceName,
+        unsubscribeUrl: voterUserId ? buildUnsubscribeUrl(voterUserId) : null,
       });
 
       await enqueueEmail({ to: voterEmail, subject, html, text });
