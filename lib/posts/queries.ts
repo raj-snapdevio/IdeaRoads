@@ -50,7 +50,7 @@ export async function generatePostSlug(
 export async function listBoardPosts(
   boardId: string,
   opts: {
-    sort?: "newest" | "top";
+    sort?: "newest" | "top" | "trending";
     status?: string;
     categoryId?: string;
     search?: string;
@@ -100,6 +100,20 @@ export async function listBoardPosts(
     conditions.push(inArray(posts.id, votedPostIds));
   }
 
+  // Trending = most votes in the last 7 days (a correlated count), tie-broken
+  // by all-time upvotes. Pinned posts always sort first.
+  const recentVotes = sql`(
+    select count(*) from ${votes}
+    where ${votes.postId} = ${posts.id}
+      and ${votes.createdAt} > now() - interval '7 days'
+  )`;
+  const orderByCols =
+    sort === "top"
+      ? [desc(posts.isPinned), desc(posts.upvotes)]
+      : sort === "trending"
+        ? [desc(posts.isPinned), desc(recentVotes), desc(posts.upvotes)]
+        : [desc(posts.isPinned), desc(posts.createdAt)];
+
   if (userId) {
     // LEFT JOIN to get hasVoted per post
     const userVoteAlias = db
@@ -127,10 +141,7 @@ export async function listBoardPosts(
       .from(posts)
       .leftJoin(userVoteAlias, eq(posts.id, userVoteAlias.postId))
       .where(and(...conditions))
-      .orderBy(
-        desc(posts.isPinned),
-        sort === "top" ? desc(posts.upvotes) : desc(posts.createdAt)
-      );
+      .orderBy(...orderByCols);
   }
 
   return db
@@ -151,10 +162,7 @@ export async function listBoardPosts(
     })
     .from(posts)
     .where(and(...conditions))
-    .orderBy(
-      desc(posts.isPinned),
-      sort === "top" ? desc(posts.upvotes) : desc(posts.createdAt)
-    );
+    .orderBy(...orderByCols);
 }
 
 export async function getPostBySlug(boardId: string, slug: string) {

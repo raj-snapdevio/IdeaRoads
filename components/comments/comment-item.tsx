@@ -44,6 +44,7 @@ export default function CommentItem({
 }: CommentItemProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   const displayName = comment.authorName ?? "User";
   const initials = getInitials(comment.authorName);
@@ -82,11 +83,13 @@ export default function CommentItem({
         <div
           className={`shrink-0 flex items-center justify-center bg-muted text-muted-foreground text-xs font-semibold ${depth === 1 ? "size-6" : "size-7"}`}
         >
-          {comment.authorAvatar ? (
+          {comment.authorAvatar && !avatarFailed ? (
             // eslint-disable-next-line @next/next/no-img-element
+            // biome-ignore lint/a11y/noNoninteractiveElementInteractions: onError is an image-load fallback, not a user interaction
             <img
               alt={displayName}
               className={`object-cover ${depth === 1 ? "size-6" : "size-7"}`}
+              onError={() => setAvatarFailed(true)}
               src={comment.authorAvatar}
             />
           ) : (

@@ -157,9 +157,9 @@ export default function BoardFilters({
 
       {/* Search bar */}
       <div className="relative border-b border-border">
-        <Search className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+        <Search className="pointer-events-none absolute left-8 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
         <input
-          className="w-full bg-transparent py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+          className="w-full bg-transparent py-2.5 pl-14 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
           defaultValue={activeSearch}
           onChange={handleSearch}
           placeholder="Search posts…"

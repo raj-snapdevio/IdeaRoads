@@ -71,14 +71,10 @@ export default function StatusSelect({
   return (
     <div className="relative inline-flex items-center">
       <select
-        className="appearance-none pl-6 pr-7 py-1 text-xs font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+        className="appearance-none bg-muted pl-2.5 pr-7 py-1 text-xs font-medium text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         disabled={isPending}
         onChange={handleChange}
-        style={{
-          backgroundColor: `${displayColor}18`,
-          color: displayColor,
-          borderRadius: 2,
-        }}
+        style={{ borderRadius: 2 }}
         value={currentStatus}
       >
         {activeStatuses.map((s) => (
@@ -87,14 +83,7 @@ export default function StatusSelect({
           </option>
         ))}
       </select>
-      <span
-        className="pointer-events-none absolute left-2 inline-block w-1.5 h-1.5 rounded-full"
-        style={{ backgroundColor: displayColor }}
-      />
-      <ChevronDown
-        className="pointer-events-none absolute right-1.5 size-3 opacity-60"
-        style={{ color: displayColor }}
-      />
+      <ChevronDown className="pointer-events-none absolute right-1.5 size-3 text-muted-foreground opacity-60" />
     </div>
   );
 }
