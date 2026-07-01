@@ -1,4 +1,5 @@
 import { and, count, desc, eq, ilike, sql } from "drizzle-orm";
+import { cache } from "react";
 import { changelogEntries, changelogPosts, posts } from "@/db/schema";
 import { db } from "@/lib/db";
 
@@ -90,35 +91,39 @@ export async function listChangelogEntries(
   };
 }
 
-export async function getChangelogEntryById(
-  entryId: string,
-  workspaceId: string
-): Promise<ChangelogEntryWithPosts | null> {
-  const [entry] = await db
-    .select()
-    .from(changelogEntries)
-    .where(
-      and(
-        eq(changelogEntries.id, entryId),
-        eq(changelogEntries.workspaceId, workspaceId)
+// cache(): changelog entry pages resolve the entry in both generateMetadata and
+// the page body; dedupe to one query per render.
+export const getChangelogEntryById = cache(
+  async (
+    entryId: string,
+    workspaceId: string
+  ): Promise<ChangelogEntryWithPosts | null> => {
+    const [entry] = await db
+      .select()
+      .from(changelogEntries)
+      .where(
+        and(
+          eq(changelogEntries.id, entryId),
+          eq(changelogEntries.workspaceId, workspaceId)
+        )
       )
-    )
-    .limit(1);
+      .limit(1);
 
-  if (!entry) {
-    return null;
+    if (!entry) {
+      return null;
+    }
+
+    const linkedPosts = await getLinkedPosts(entryId);
+
+    const linkedCount = linkedPosts.length;
+
+    return {
+      ...entry,
+      linkedPostCount: linkedCount,
+      linkedPosts,
+    };
   }
-
-  const linkedPosts = await getLinkedPosts(entryId);
-
-  const linkedCount = linkedPosts.length;
-
-  return {
-    ...entry,
-    linkedPostCount: linkedCount,
-    linkedPosts,
-  };
-}
+);
 
 export async function getLinkedPosts(entryId: string): Promise<LinkedPost[]> {
   const { boards } = await import("@/db/schema/boards");

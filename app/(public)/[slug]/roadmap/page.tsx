@@ -60,14 +60,16 @@ export default async function RoadmapPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <PortalHeader
-        active="roadmap"
-        changelogPublic={workspace.changelogPublic}
-        isSignedIn={isSignedIn}
-        roadmapPublic={workspace.roadmapPublic}
-        slug={slug}
-        workspaceName={workspace.name}
-      />
+      {!isMember && (
+        <PortalHeader
+          active="roadmap"
+          changelogPublic={workspace.changelogPublic}
+          isSignedIn={isSignedIn}
+          roadmapPublic={workspace.roadmapPublic}
+          slug={slug}
+          workspaceName={workspace.name}
+        />
+      )}
 
       <div className="max-w-5xl mx-auto flex flex-col">
         <div className="border-b border-border px-8 py-6">

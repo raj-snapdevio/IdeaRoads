@@ -7,13 +7,23 @@ export const metadata = {
   title: "Create your workspace",
 };
 
-export default async function OnboardingPage() {
-  const session = await requireSession();
+interface OnboardingPageProps {
+  searchParams: Promise<{ new?: string }>;
+}
 
-  // Redirect if the user already has a workspace
-  const existing = await getFirstUserWorkspace(session.user.id);
-  if (existing) {
-    redirect(`/${existing.slug}`);
+export default async function OnboardingPage({
+  searchParams,
+}: OnboardingPageProps) {
+  const session = await requireSession();
+  const { new: isNew } = await searchParams;
+
+  // Redirect if the user already has a workspace — unless they explicitly asked
+  // to create another one (via the workspace switcher's "Create workspace").
+  if (!isNew) {
+    const existing = await getFirstUserWorkspace(session.user.id);
+    if (existing) {
+      redirect(`/${existing.slug}`);
+    }
   }
 
   const appUrl = new URL(
@@ -21,5 +31,5 @@ export default async function OnboardingPage() {
   );
   const appHost = appUrl.hostname + (appUrl.port ? `:${appUrl.port}` : "");
 
-  return <OnboardingForm appHost={appHost} />;
+  return <OnboardingForm appHost={appHost} isAdditional={!!isNew} />;
 }

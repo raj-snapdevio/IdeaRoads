@@ -3,7 +3,6 @@ import { ArrowLeft, GitMerge } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CategoryChip } from "@/components/categories/category-chip";
 import CommentSection from "@/components/comments/comment-section";
 import VoteButton from "@/components/voting/vote-button";
 import { PortalHeader } from "@/components/workspace/portal-header";
@@ -14,7 +13,7 @@ import {
   getBoardBySlug,
   listBoardsForWorkspace,
 } from "@/lib/boards/queries";
-import { getCategoryById } from "@/lib/categories/queries";
+import { getActiveCategoriesForWorkspace } from "@/lib/categories/queries";
 import { getPost, getPostBySlug, listStatusHistory } from "@/lib/posts/queries";
 import { hasUserVoted } from "@/lib/voting";
 import { getActiveWorkspaceStatuses } from "@/lib/workspace-statuses/queries";
@@ -22,7 +21,9 @@ import {
   getWorkspaceBySlug,
   getWorkspaceMember,
 } from "@/lib/workspaces/queries";
+import CategorySelect from "./_components/category-select";
 import DeletePostButton from "./_components/delete-post-button";
+import EditPostButton from "./_components/edit-post-button";
 import MergePostButton from "./_components/merge-post-button";
 import MovePostButton from "./_components/move-post-button";
 import PinButton from "./_components/pin-button";
@@ -87,11 +88,11 @@ export default async function PostDetailPage({ params }: Props) {
   const isAdminOrOwner = !!member && member.role !== WORKSPACE_MEMBER;
   const isAuthor = !!session && post.authorId === session.user.id;
 
-  const [votedByUser, workspaceStatuses, postCategory, statusHistory] =
+  const [votedByUser, workspaceStatuses, categories, statusHistory] =
     await Promise.all([
       session ? hasUserVoted(post.id, { userId: session.user.id }) : false,
       getActiveWorkspaceStatuses(workspace.id),
-      post.categoryId ? getCategoryById(post.categoryId) : null,
+      getActiveCategoriesForWorkspace(workspace.id),
       listStatusHistory(post.id),
     ]);
 
@@ -120,13 +121,15 @@ export default async function PostDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <PortalHeader
-        changelogPublic={workspace.changelogPublic}
-        isSignedIn={isSignedIn}
-        roadmapPublic={workspace.roadmapPublic}
-        slug={slug}
-        workspaceName={workspace.name}
-      />
+      {!isMember && (
+        <PortalHeader
+          changelogPublic={workspace.changelogPublic}
+          isSignedIn={isSignedIn}
+          roadmapPublic={workspace.roadmapPublic}
+          slug={slug}
+          workspaceName={workspace.name}
+        />
+      )}
 
       <div className="max-w-5xl mx-auto flex flex-col">
         {/* Back nav */}
@@ -155,13 +158,13 @@ export default async function PostDetailPage({ params }: Props) {
                   workspaceId={workspace.id}
                   workspaceStatuses={workspaceStatuses}
                 />
-                {postCategory && (
-                  <CategoryChip
-                    color={postCategory.color}
-                    name={postCategory.name}
-                    size="xs"
-                  />
-                )}
+                <CategorySelect
+                  canEdit={isMember}
+                  categories={categories}
+                  currentCategoryId={post.categoryId}
+                  postId={post.id}
+                  workspaceId={workspace.id}
+                />
                 <span className="text-xs text-muted-foreground">
                   by {post.authorName ?? post.authorEmail}
                 </span>
@@ -242,6 +245,14 @@ export default async function PostDetailPage({ params }: Props) {
                     workspaceId={workspace.id}
                   />
                 </>
+              )}
+              {(isAuthor || isAdminOrOwner) && (
+                <EditPostButton
+                  initialBody={post.body}
+                  initialTitle={post.title}
+                  postId={post.id}
+                  workspaceId={workspace.id}
+                />
               )}
               <DeletePostButton
                 boardHref={boardHref}

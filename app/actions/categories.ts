@@ -8,7 +8,7 @@ import { createCategory } from "@/lib/categories/create";
 import { deleteCategory } from "@/lib/categories/delete";
 import { getCategoryById } from "@/lib/categories/queries";
 import { reorderCategories, updateCategory } from "@/lib/categories/update";
-import { updatePostCategory } from "@/lib/posts/queries";
+import { getPost, updatePostCategory } from "@/lib/posts/queries";
 import { getWorkspaceMember } from "@/lib/workspaces/queries";
 
 type ActionResult<T = undefined> =
@@ -234,6 +234,11 @@ export async function updatePostCategoryAction(input: {
       success: false,
       error: "Only workspace members can set post categories.",
     };
+  }
+
+  const post = await getPost(input.postId);
+  if (!post || post.workspaceId !== input.workspaceId) {
+    return { success: false, error: "Post not found." };
   }
 
   await updatePostCategory(input.postId, input.categoryId);

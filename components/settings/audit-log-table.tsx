@@ -5,6 +5,7 @@ import type { AuditLogRow } from "@/lib/audit/queries";
 
 interface Props {
   filterAction?: string;
+  filterActor?: string;
   filterEntityType?: string;
   hasMore: boolean;
   limit: number;
@@ -46,6 +47,7 @@ export function AuditLogTable({
   hasMore,
   workspaceSlug,
   filterAction,
+  filterActor,
   filterEntityType,
 }: Props) {
   const fmt = new Intl.DateTimeFormat("en", {
@@ -58,6 +60,7 @@ export function AuditLogTable({
       ? buildUrl(workspaceSlug, {
           page: page - 1,
           action: filterAction,
+          actor: filterActor,
           entityType: filterEntityType,
         })
       : null;
@@ -66,6 +69,7 @@ export function AuditLogTable({
     ? buildUrl(workspaceSlug, {
         page: page + 1,
         action: filterAction,
+        actor: filterActor,
         entityType: filterEntityType,
       })
     : null;
@@ -80,6 +84,7 @@ export function AuditLogTable({
             const val = e.target.value;
             window.location.href = buildUrl(workspaceSlug, {
               action: filterAction,
+              actor: filterActor,
               entityType: val || undefined,
               page: 1,
             });
@@ -94,7 +99,28 @@ export function AuditLogTable({
           ))}
         </select>
 
-        {(filterAction || filterEntityType) && (
+        <form
+          action={`/${workspaceSlug}/settings/audit-log`}
+          className="flex gap-2"
+          method="get"
+        >
+          {filterAction && (
+            <input name="action" type="hidden" value={filterAction} />
+          )}
+          {filterEntityType && (
+            <input name="entityType" type="hidden" value={filterEntityType} />
+          )}
+          <input
+            aria-label="Filter by actor email"
+            className="h-8 border border-border bg-background px-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            defaultValue={filterActor ?? ""}
+            name="actor"
+            placeholder="Filter by actor email…"
+            type="search"
+          />
+        </form>
+
+        {(filterAction || filterActor || filterEntityType) && (
           <Link
             className="h-8 inline-flex items-center px-3 border border-border text-sm text-muted-foreground hover:text-foreground transition-colors"
             href={`/${workspaceSlug}/settings/audit-log`}

@@ -28,10 +28,14 @@ export default async function WorkspaceChangelogPage({ params }: Props) {
   const session = await requireSession();
 
   const workspace = await getWorkspaceBySlug(slug);
-  if (!workspace) notFound();
+  if (!workspace) {
+    notFound();
+  }
 
   const member = await getWorkspaceMember(workspace.id, session.user.id);
-  if (!member) notFound();
+  if (!member) {
+    notFound();
+  }
 
   const isAdmin = member.role !== WORKSPACE_MEMBER;
 
@@ -61,7 +65,7 @@ export default async function WorkspaceChangelogPage({ params }: Props) {
           {isAdmin && (
             <Link
               className="flex shrink-0 items-center gap-1.5 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              href={`/${slug}/changelog/new`}
+              href={`/${slug}/settings/changelog/new`}
             >
               <Plus className="size-4" />
               New entry
@@ -103,7 +107,7 @@ export default async function WorkspaceChangelogPage({ params }: Props) {
             {isAdmin && (
               <Link
                 className="mt-4 px-4 py-2 text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-                href={`/${slug}/changelog/new`}
+                href={`/${slug}/settings/changelog/new`}
               >
                 Create your first entry
               </Link>

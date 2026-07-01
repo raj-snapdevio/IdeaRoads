@@ -157,7 +157,7 @@ export function ChangelogEditor({
           return;
         }
         toast.success("Draft saved");
-        router.push(`/${workspaceSlug}/changelog`);
+        router.push(`/${workspaceSlug}/settings/changelog`);
       } else {
         const result = await createChangelogEntryAction({
           workspaceId,
@@ -171,7 +171,7 @@ export function ChangelogEditor({
           return;
         }
         toast.success("Draft saved");
-        router.push(`/${workspaceSlug}/changelog`);
+        router.push(`/${workspaceSlug}/settings/changelog`);
       }
     });
   }
@@ -226,7 +226,7 @@ export function ChangelogEditor({
       }
 
       toast.success("Entry published");
-      router.push(`/${workspaceSlug}/changelog`);
+      router.push(`/${workspaceSlug}/settings/changelog`);
     });
   }
 
@@ -251,7 +251,7 @@ export function ChangelogEditor({
         return;
       }
       toast.success("Entry updated");
-      router.push(`/${workspaceSlug}/changelog`);
+      router.push(`/${workspaceSlug}/settings/changelog`);
     });
   }
 

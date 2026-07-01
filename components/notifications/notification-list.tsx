@@ -66,6 +66,32 @@ export function NotificationList({
 
   const unreadCount = items.filter((n) => !n.isRead).length;
 
+  // Group notifications by recency (Today / This week / Earlier). Items arrive
+  // already sorted newest-first, so each group preserves that order.
+  const now = new Date();
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  ).getTime();
+  const startOfWeek = startOfToday - 6 * 24 * 60 * 60 * 1000;
+  const groups: { label: string; items: NotificationRow[] }[] = [
+    { label: "Today", items: [] },
+    { label: "This week", items: [] },
+    { label: "Earlier", items: [] },
+  ];
+  for (const n of items) {
+    const t = new Date(n.createdAt).getTime();
+    if (t >= startOfToday) {
+      groups[0].items.push(n);
+    } else if (t >= startOfWeek) {
+      groups[1].items.push(n);
+    } else {
+      groups[2].items.push(n);
+    }
+  }
+  const visibleGroups = groups.filter((g) => g.items.length > 0);
+
   return (
     <div>
       {/* Header */}
@@ -102,12 +128,19 @@ export function NotificationList({
         <NotificationEmptyState />
       ) : (
         <div>
-          {items.map((notification) => (
-            <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onRead={handleRead}
-            />
+          {visibleGroups.map((group) => (
+            <div key={group.label}>
+              <p className="px-5 pt-4 pb-1.5 text-2xs font-semibold uppercase tracking-eyebrow text-muted-foreground/60">
+                {group.label}
+              </p>
+              {group.items.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  onRead={handleRead}
+                />
+              ))}
+            </div>
           ))}
 
           {hasMore && (

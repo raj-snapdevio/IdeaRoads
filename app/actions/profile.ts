@@ -10,6 +10,7 @@ import {
   session as sessionTable,
   user,
   votes,
+  workspaces,
 } from "@/db/schema";
 import { audit } from "@/lib/audit";
 import { requireSession } from "@/lib/authz";
@@ -184,6 +185,21 @@ export async function deleteAccountAction(
 
   if (confirmEmail !== freshUser.email.toLowerCase()) {
     return { error: "Type your email address to confirm deletion." };
+  }
+
+  // Deleting the account would set owned workspaces' owner_id to NULL and remove
+  // the owner's membership, leaving those workspaces orphaned. Require ownership
+  // to be transferred (or the workspace deleted) first.
+  const ownedWorkspaces = await db
+    .select({ id: workspaces.id })
+    .from(workspaces)
+    .where(eq(workspaces.ownerId, freshUser.id));
+
+  if (ownedWorkspaces.length > 0) {
+    return {
+      error:
+        "You still own one or more workspaces. Transfer ownership (or delete those workspaces) before deleting your account.",
+    };
   }
 
   await audit({

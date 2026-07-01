@@ -3,10 +3,13 @@
 import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { WORKSPACE_MEMBER, WORKSPACE_OWNER } from "@/config/platform";
-import { workspaces } from "@/db/schema";
+import { user, workspaceMembers, workspaces } from "@/db/schema";
 import { audit } from "@/lib/audit";
 import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
+import { enqueueEmail } from "@/lib/email";
+import { WorkspaceDeletedEmail } from "@/lib/email/components/workspace-deleted";
+import { renderEmailTemplate } from "@/lib/email/renderer";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -236,8 +239,21 @@ export async function deleteWorkspaceAction(input: {
     };
   }
 
+  // Collect member emails BEFORE deleting (the CASCADE removes membership rows).
+  const recipients = await db
+    .select({ email: user.email })
+    .from(workspaceMembers)
+    .innerJoin(user, eq(workspaceMembers.userId, user.id))
+    .where(eq(workspaceMembers.workspaceId, input.workspaceId));
+
   // Hard delete — CASCADE removes all child data
   await db.delete(workspaces).where(eq(workspaces.id, input.workspaceId));
+
+  // Notify every former member that the workspace was deleted (Feature 02).
+  await sendWorkspaceDeletedEmails(
+    recipients.map((r) => r.email),
+    workspace.name
+  );
 
   // Audit log is fire-and-forget (workspace is gone, but log is global)
   audit({
@@ -253,6 +269,30 @@ export async function deleteWorkspaceAction(input: {
   });
 
   return { success: true, data: undefined };
+}
+
+async function sendWorkspaceDeletedEmails(
+  emails: string[],
+  workspaceName: string
+): Promise<void> {
+  if (emails.length === 0) {
+    return;
+  }
+  try {
+    // Content is identical for every recipient — render once, enqueue per email.
+    const html = await renderEmailTemplate(
+      WorkspaceDeletedEmail({ workspaceName })
+    );
+    const subject = `The workspace "${workspaceName}" has been deleted`;
+    for (const email of new Set(emails)) {
+      await enqueueEmail({ to: email, subject, html });
+    }
+  } catch (err) {
+    console.error(
+      "[workspace-settings] failed to enqueue deletion emails",
+      err
+    );
+  }
 }
 
 // ─── Update Moderation Settings ───────────────────────────────────────────────

@@ -1,9 +1,15 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { WORKSPACE_MEMBER } from "@/config/platform";
-import { boards, votes, workspaceMembers, workspaces } from "@/db/schema";
+import {
+  boards,
+  categories,
+  votes,
+  workspaceMembers,
+  workspaces,
+} from "@/db/schema";
 import { audit } from "@/lib/audit";
 import { requireSession } from "@/lib/authz";
 import { getBoardById } from "@/lib/boards/queries";
@@ -20,6 +26,7 @@ import {
   recordStatusChange,
   searchPostsForMerge,
   setPinned,
+  updatePost,
   updatePostCategory,
   updatePostStatus,
 } from "@/lib/posts/queries";
@@ -45,6 +52,7 @@ const createPostSchema = z.object({
     .string()
     .max(10_000, "Description must be 10,000 characters or fewer.")
     .optional(),
+  categoryId: z.string().min(1).optional(),
 });
 
 export async function createPostAction(input: {
@@ -52,6 +60,7 @@ export async function createPostAction(input: {
   workspaceId: string;
   title: string;
   body?: string;
+  categoryId?: string;
 }): Promise<ActionResult<{ postSlug: string; isPending: boolean }>> {
   const session = await requireSession();
 
@@ -134,6 +143,29 @@ export async function createPostAction(input: {
     moderationMode !== "manual" &&
     (moderationMode !== "auto" || !isSpam);
 
+  // Validate the optional category belongs to this workspace (cross-tenant safety).
+  let categoryId: string | null = null;
+  if (parsed.data.categoryId) {
+    const [category] = await db
+      .select({ id: categories.id })
+      .from(categories)
+      .where(
+        and(
+          eq(categories.id, parsed.data.categoryId),
+          eq(categories.workspaceId, parsed.data.workspaceId)
+        )
+      )
+      .limit(1);
+    if (!category) {
+      return {
+        success: false,
+        error: "Invalid category.",
+        field: "categoryId",
+      };
+    }
+    categoryId = category.id;
+  }
+
   const slug = await generatePostSlug(parsed.data.boardId, parsed.data.title);
 
   const post = await createPost({
@@ -142,6 +174,7 @@ export async function createPostAction(input: {
     slug,
     title: parsed.data.title,
     body: parsed.data.body,
+    categoryId,
     authorId: session.user.id,
     authorName: session.user.name ?? null,
     authorEmail: session.user.email,
@@ -368,6 +401,80 @@ export async function deletePostAction(input: {
       title: post.title,
       wasAuthor: isAuthor,
     },
+  });
+
+  return { success: true, data: undefined };
+}
+
+// ─── Update Post (edit title / body) ─────────────────────────────────────────
+
+const updatePostSchema = z.object({
+  postId: z.string().min(1),
+  workspaceId: z.string().min(1),
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters.")
+    .max(150, "Title must be 150 characters or fewer."),
+  body: z
+    .string()
+    .max(10_000, "Description must be 10,000 characters or fewer.")
+    .optional(),
+});
+
+export async function updatePostAction(input: {
+  postId: string;
+  workspaceId: string;
+  title: string;
+  body?: string;
+}): Promise<ActionResult<undefined>> {
+  const session = await requireSession();
+
+  const parsed = updatePostSchema.safeParse(input);
+  if (!parsed.success) {
+    const first = parsed.error.issues[0];
+    return {
+      success: false,
+      error: first?.message ?? "Invalid input.",
+      field: first?.path[0] as string | undefined,
+    };
+  }
+
+  const actorMember = await getWorkspaceMember(
+    parsed.data.workspaceId,
+    session.user.id
+  );
+  if (!actorMember) {
+    return { success: false, error: "You are not a member of this workspace." };
+  }
+
+  const post = await getPost(parsed.data.postId);
+  if (!post || post.workspaceId !== parsed.data.workspaceId) {
+    return { success: false, error: "Post not found." };
+  }
+
+  // The author can edit their own post; admins and owners can edit any post.
+  const isAuthor = post.authorId === session.user.id;
+  const isAdminOrOwner = actorMember.role !== WORKSPACE_MEMBER;
+  if (!isAuthor && !isAdminOrOwner) {
+    return {
+      success: false,
+      error: "You don't have permission to edit this post.",
+    };
+  }
+
+  await updatePost(parsed.data.postId, {
+    title: parsed.data.title,
+    body: parsed.data.body?.trim() ? parsed.data.body : null,
+  });
+
+  audit({
+    action: "post.updated",
+    actorId: session.user.id,
+    actorEmail: session.user.email,
+    entityType: "post",
+    entityId: parsed.data.postId,
+    description: `Edited post: ${parsed.data.title}`,
+    metadata: { workspaceId: parsed.data.workspaceId, wasAuthor: isAuthor },
   });
 
   return { success: true, data: undefined };

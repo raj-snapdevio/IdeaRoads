@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ilike } from "drizzle-orm";
 import { auditLogs } from "@/db/schema";
 import { db } from "@/lib/db";
 
@@ -10,16 +10,27 @@ export async function listAuditLogs(
     page?: number;
     limit?: number;
     actorId?: string;
+    actorEmail?: string;
     entityType?: string;
     action?: string;
   } = {}
 ): Promise<{ logs: AuditLogRow[]; total: number; hasMore: boolean }> {
-  const { page = 1, limit = 50, actorId, entityType, action } = opts;
+  const {
+    page = 1,
+    limit = 50,
+    actorId,
+    actorEmail,
+    entityType,
+    action,
+  } = opts;
   const offset = (page - 1) * limit;
 
   const conditions = [eq(auditLogs.workspaceId, workspaceId)];
   if (actorId) {
     conditions.push(eq(auditLogs.actorId, actorId));
+  }
+  if (actorEmail) {
+    conditions.push(ilike(auditLogs.actorEmail, `%${actorEmail}%`));
   }
   if (entityType) {
     conditions.push(eq(auditLogs.entityType, entityType));

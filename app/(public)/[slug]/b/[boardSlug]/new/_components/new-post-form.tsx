@@ -6,10 +6,17 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { createPostAction } from "@/app/actions/posts";
 
+interface Category {
+  color: string;
+  id: string;
+  name: string;
+}
+
 interface Props {
   boardId: string;
   boardName: string;
   boardSlug: string;
+  categories: Category[];
   workspaceId: string;
   workspaceSlug: string;
 }
@@ -20,11 +27,13 @@ export default function NewPostForm({
   workspaceSlug,
   boardSlug,
   boardName,
+  categories,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [categoryId, setCategoryId] = useState("");
   const [titleError, setTitleError] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
@@ -47,6 +56,7 @@ export default function NewPostForm({
         workspaceId,
         title: title.trim(),
         body: body.trim() || undefined,
+        categoryId: categoryId || undefined,
       });
 
       if (!result.success) {
@@ -144,6 +154,35 @@ export default function NewPostForm({
               {bodyRemaining.toLocaleString()} characters remaining
             </p>
           </div>
+
+          {/* Category (optional) */}
+          {categories.length > 0 && (
+            <div>
+              <label
+                className="block text-sm font-medium text-foreground mb-1.5"
+                htmlFor="post-category"
+              >
+                Category{" "}
+                <span className="text-muted-foreground font-normal text-xs">
+                  (optional)
+                </span>
+              </label>
+              <select
+                className="w-full px-3 py-2.5 text-sm bg-background border border-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                disabled={isPending}
+                id="post-category"
+                onChange={(e) => setCategoryId(e.target.value)}
+                value={categoryId}
+              >
+                <option value="">No category</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {generalError && (
             <p className="text-sm text-destructive">{generalError}</p>

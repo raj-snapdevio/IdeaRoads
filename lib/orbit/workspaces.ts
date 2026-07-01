@@ -9,6 +9,9 @@ import {
 } from "@/db/schema";
 import { audit } from "@/lib/audit";
 import { db } from "@/lib/db";
+import { enqueueEmail } from "@/lib/email";
+import { WorkspaceDeletedEmail } from "@/lib/email/components/workspace-deleted";
+import { renderEmailTemplate } from "@/lib/email/renderer";
 
 export interface OrbitWorkspaceRow {
   createdAt: Date;
@@ -247,7 +250,27 @@ export async function deleteOrbitWorkspace(
     throw new Error("Workspace not found");
   }
 
+  // Collect member emails BEFORE deleting (the CASCADE removes membership rows).
+  const recipients = await db
+    .select({ email: user.email })
+    .from(workspaceMembers)
+    .innerJoin(user, eq(workspaceMembers.userId, user.id))
+    .where(eq(workspaceMembers.workspaceId, workspaceId));
+
   await db.delete(workspaces).where(eq(workspaces.id, workspaceId));
+
+  // Notify every former member that the workspace was deleted (Feature 02).
+  try {
+    const html = await renderEmailTemplate(
+      WorkspaceDeletedEmail({ workspaceName: ws.name })
+    );
+    const subject = `The workspace "${ws.name}" has been deleted`;
+    for (const email of new Set(recipients.map((r) => r.email))) {
+      await enqueueEmail({ to: email, subject, html });
+    }
+  } catch (err) {
+    console.error("[orbit] failed to enqueue deletion emails", err);
+  }
 
   await audit({
     action: "workspace.deleted_by_superadmin",

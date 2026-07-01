@@ -35,7 +35,7 @@ export default async function NewChangelogEntryPage({ params }: Props) {
       <div className="border-b border-border px-8 py-4 flex items-center gap-3">
         <Link
           className="flex cursor-pointer items-center justify-center text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          href={`/${slug}/changelog`}
+          href={`/${slug}/settings/changelog`}
           title="Back to Changelog"
         >
           <ArrowLeft className="size-4" />

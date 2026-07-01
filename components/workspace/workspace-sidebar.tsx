@@ -18,9 +18,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { WorkspaceSwitcher } from "@/components/workspace/workspace-switcher";
 
 interface Board {
   id: string;
+  name: string;
+  slug: string;
+}
+
+interface WorkspaceOption {
   name: string;
   slug: string;
 }
@@ -33,6 +39,7 @@ interface WorkspaceSidebarProps {
   isOrbitAdmin: boolean;
   workspaceName: string;
   workspaceSlug: string;
+  workspaces: WorkspaceOption[];
 }
 
 export function WorkspaceSidebar({
@@ -43,6 +50,7 @@ export function WorkspaceSidebar({
   isOrbitAdmin,
   workspaceName,
   workspaceSlug,
+  workspaces,
 }: WorkspaceSidebarProps) {
   const pathname = usePathname();
 
@@ -57,21 +65,12 @@ export function WorkspaceSidebar({
 
   return (
     <aside className="flex w-56 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-      {/* Workspace header */}
-      <div className="flex h-14 items-center gap-2.5 border-b border-sidebar-border px-4">
-        <div className="flex size-7 shrink-0 items-center justify-center bg-primary text-primary-foreground">
-          <span className="text-xs font-black">
-            {workspaceName.charAt(0).toUpperCase()}
-          </span>
-        </div>
-        <Link
-          className="cursor-pointer truncate text-sm font-semibold text-sidebar-foreground transition-colors duration-150 hover:text-sidebar-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          href={`/${workspaceSlug}`}
-          title={workspaceName}
-        >
-          {workspaceName}
-        </Link>
-      </div>
+      {/* Workspace switcher */}
+      <WorkspaceSwitcher
+        currentName={workspaceName}
+        currentSlug={workspaceSlug}
+        workspaces={workspaces}
+      />
 
       {/* Navigation */}
       <nav className="flex flex-1 flex-col overflow-y-auto p-2">
@@ -113,8 +112,8 @@ export function WorkspaceSidebar({
             <span className="truncate">Roadmap</span>
           </Link>
           <Link
-            className={link(`/${workspaceSlug}/changelog`)}
-            href={`/${workspaceSlug}/changelog`}
+            className={link(`/${workspaceSlug}/settings/changelog`)}
+            href={`/${workspaceSlug}/settings/changelog`}
           >
             <Megaphone className="size-4 shrink-0" />
             <span className="truncate">Changelog</span>

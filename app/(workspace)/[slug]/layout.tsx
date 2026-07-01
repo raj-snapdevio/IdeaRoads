@@ -8,6 +8,7 @@ import { requireSession } from "@/lib/authz";
 import { db } from "@/lib/db";
 import { getUnreadCount } from "@/lib/notifications/queries";
 import {
+  getUserWorkspaces,
   getWorkspaceBySlug,
   getWorkspaceMember,
 } from "@/lib/workspaces/queries";
@@ -54,6 +55,7 @@ export default async function WorkspaceLayout({
 
   const isAdminOrOwner = member.role !== WORKSPACE_MEMBER;
   const email = session.user.email;
+  const userWorkspaces = await getUserWorkspaces(session.user.id);
   const unreadCount = await getUnreadCount(session.user.id);
 
   return (
@@ -66,6 +68,7 @@ export default async function WorkspaceLayout({
         isOrbitAdmin={isOrbitAdmin}
         workspaceName={workspace.name}
         workspaceSlug={workspace.slug}
+        workspaces={userWorkspaces}
       />
 
       {/* Main content */}

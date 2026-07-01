@@ -159,6 +159,9 @@ export function BlockedUsersSection({ workspaceId, blockedUsers }: Props) {
                   {new Intl.DateTimeFormat("en", {
                     dateStyle: "medium",
                   }).format(new Date(bu.createdAt))}
+                  {bu.blockedBy?.email
+                    ? ` by ${bu.blockedBy.name ?? bu.blockedBy.email}`
+                    : ""}
                 </p>
               </div>
               <button

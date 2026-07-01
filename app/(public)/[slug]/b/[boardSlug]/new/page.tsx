@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { PortalHeader } from "@/components/workspace/portal-header";
 import { getCurrentSession } from "@/lib/authz";
 import { getBoardBySlug } from "@/lib/boards/queries";
+import { getActiveCategoriesForWorkspace } from "@/lib/categories/queries";
 import {
   getWorkspaceBySlug,
   getWorkspaceMember,
@@ -52,20 +53,25 @@ export default async function NewPostPage({ params }: Props) {
     notFound();
   }
 
+  const categories = await getActiveCategoriesForWorkspace(workspace.id);
+
   return (
     <div className="min-h-screen bg-background">
-      <PortalHeader
-        changelogPublic={workspace.changelogPublic}
-        isSignedIn={true}
-        roadmapPublic={workspace.roadmapPublic}
-        slug={slug}
-        workspaceName={workspace.name}
-      />
+      {!member && (
+        <PortalHeader
+          changelogPublic={workspace.changelogPublic}
+          isSignedIn={true}
+          roadmapPublic={workspace.roadmapPublic}
+          slug={slug}
+          workspaceName={workspace.name}
+        />
+      )}
       <div className="max-w-5xl mx-auto">
         <NewPostForm
           boardId={board.id}
           boardName={board.name}
           boardSlug={boardSlug}
+          categories={categories}
           workspaceId={workspace.id}
           workspaceSlug={slug}
         />

@@ -215,6 +215,7 @@ export async function createPost(input: {
   slug: string;
   title: string;
   body?: string | null;
+  categoryId?: string | null;
   authorId: string;
   authorName: string | null;
   authorEmail: string;
@@ -228,6 +229,7 @@ export async function createPost(input: {
       slug: input.slug,
       title: input.title.trim(),
       body: input.body ?? null,
+      categoryId: input.categoryId ?? null,
       authorId: input.authorId,
       authorName: input.authorName,
       authorEmail: input.authorEmail,
@@ -239,6 +241,20 @@ export async function createPost(input: {
       isApproved: posts.isApproved,
     });
   return post!;
+}
+
+export async function updatePost(
+  postId: string,
+  input: { title: string; body: string | null }
+) {
+  await db
+    .update(posts)
+    .set({
+      title: input.title.trim(),
+      body: input.body,
+      updatedAt: new Date(),
+    })
+    .where(eq(posts.id, postId));
 }
 
 export async function approvePost(postId: string): Promise<void> {

@@ -11,6 +11,9 @@ import { env } from "@/lib/env";
 import { isBlocked } from "@/lib/moderation/queries";
 import { createNotification } from "@/lib/notifications/create";
 import { isEmailNotificationEnabled } from "@/lib/notifications/queries";
+import { dispatchWebhookEvent } from "@/lib/webhooks/dispatch";
+import { WEBHOOK_EVENTS } from "@/lib/webhooks/events";
+import { commentPreviewText } from "./preview";
 
 export class CommentBlockedError extends Error {
   constructor(message: string) {
@@ -161,6 +164,12 @@ export async function createComment(
       post,
       workspace?.commentModeration ?? false
     ).catch((err) => console.error("[comments] notification error", err));
+
+    dispatchWebhookEvent(workspaceId, WEBHOOK_EVENTS.COMMENT_CREATED, {
+      id: comment.id,
+      postId,
+      parentId: comment.parentId,
+    });
   }
 
   return comment;
@@ -210,7 +219,7 @@ export async function sendCommentNotifications(
     .then((r) => r[0] ?? null);
 
   const commenterName = comment.authorName ?? comment.authorEmail ?? "Someone";
-  const bodyPreview = comment.body.slice(0, 300);
+  const bodyPreview = commentPreviewText(comment.body, 300);
   const postUrl = board
     ? `${appUrl}/${workspace.slug}/b/${board.slug}/p/${post.slug ?? post.id}`
     : `${appUrl}/${workspace.slug}`;

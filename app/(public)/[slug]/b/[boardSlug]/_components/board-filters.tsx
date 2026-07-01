@@ -20,7 +20,7 @@ interface Category {
 interface BoardFiltersProps {
   activeCategoryId: string;
   activeSearch: string;
-  activeSort: "newest" | "top";
+  activeSort: "newest" | "top" | "trending";
   activeStatus: string;
   categories: Category[];
   myVotesActive: boolean;
@@ -30,6 +30,7 @@ interface BoardFiltersProps {
 
 const SORT_TABS = [
   { label: "Newest", value: "newest" },
+  { label: "Trending", value: "trending" },
   { label: "Most Voted", value: "top" },
 ] as const;
 

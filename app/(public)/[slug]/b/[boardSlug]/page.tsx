@@ -99,13 +99,15 @@ export default async function BoardPage({ params, searchParams }: Props) {
 
   return (
     <div className="min-h-screen bg-background">
-      <PortalHeader
-        changelogPublic={workspace.changelogPublic}
-        isSignedIn={isSignedIn}
-        roadmapPublic={workspace.roadmapPublic}
-        slug={slug}
-        workspaceName={workspace.name}
-      />
+      {!isMember && (
+        <PortalHeader
+          changelogPublic={workspace.changelogPublic}
+          isSignedIn={isSignedIn}
+          roadmapPublic={workspace.roadmapPublic}
+          slug={slug}
+          workspaceName={workspace.name}
+        />
+      )}
 
       <div className="max-w-5xl mx-auto flex flex-col">
         {/* Page header */}
