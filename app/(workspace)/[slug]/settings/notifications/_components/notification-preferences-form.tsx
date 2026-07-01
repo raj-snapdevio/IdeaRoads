@@ -47,8 +47,8 @@ function PreferenceRow({
           </span>
           <button
             aria-checked={emailEnabled}
-            className={`relative inline-flex h-5 w-9 items-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${
-              emailEnabled ? "bg-primary" : "bg-muted-foreground/30"
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed ${
+              emailEnabled ? "bg-primary" : "bg-muted"
             }`}
             disabled={disabled}
             onClick={() => onEmailChange(!emailEnabled)}
@@ -56,8 +56,8 @@ function PreferenceRow({
             type="button"
           >
             <span
-              className={`inline-block size-3.5 bg-white transition-transform ${
-                emailEnabled ? "translate-x-4" : "translate-x-0.5"
+              className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                emailEnabled ? "translate-x-4" : "translate-x-0"
               }`}
             />
           </button>
@@ -68,8 +68,8 @@ function PreferenceRow({
           </span>
           <button
             aria-checked={inAppEnabled}
-            className={`relative inline-flex h-5 w-9 items-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 ${
-              inAppEnabled ? "bg-primary" : "bg-muted-foreground/30"
+            className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:cursor-not-allowed ${
+              inAppEnabled ? "bg-primary" : "bg-muted"
             }`}
             disabled={disabled}
             onClick={() => onInAppChange(!inAppEnabled)}
@@ -77,8 +77,8 @@ function PreferenceRow({
             type="button"
           >
             <span
-              className={`inline-block size-3.5 bg-white transition-transform ${
-                inAppEnabled ? "translate-x-4" : "translate-x-0.5"
+              className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                inAppEnabled ? "translate-x-4" : "translate-x-0"
               }`}
             />
           </button>

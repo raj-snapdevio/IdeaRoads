@@ -68,7 +68,8 @@ export default async function BoardPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  const validSort = sort === "top" ? "top" : "newest";
+  const validSort =
+    sort === "top" ? "top" : sort === "trending" ? "trending" : "newest";
   const validStatus = status ?? "";
   const validCategoryId = category ?? "";
   const searchQuery = q ?? "";

@@ -8,11 +8,11 @@ import {
   Map as MapIcon,
   Megaphone,
   ScrollText,
-  Settings,
   Shield,
   Sliders,
   Tag,
   User,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -145,7 +145,7 @@ export function WorkspaceSidebar({
                 className={link(`/${workspaceSlug}/settings/members`)}
                 href={`/${workspaceSlug}/settings/members`}
               >
-                <Settings className="size-4 shrink-0" />
+                <Users className="size-4 shrink-0" />
                 <span className="truncate">Members</span>
               </Link>
               <Link

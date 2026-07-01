@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { changelogEntries, changelogPosts, votes } from "@/db/schema";
+import { changelogEntries, changelogPosts, user, votes } from "@/db/schema";
 import { db } from "@/lib/db";
 import { dispatchWebhookEvent } from "@/lib/webhooks/dispatch";
 import { WEBHOOK_EVENTS } from "@/lib/webhooks/events";
@@ -57,24 +57,29 @@ export async function publishChangelogEntry(
     let notificationsSent = 0;
 
     for (const { postId } of linkedPostIds) {
+      // Signed-in voters don't store a denormalised email/name on their vote
+      // (see castVote) — resolve it from their account so they still get notified.
       const voters = await db
         .select({
           userEmail: votes.userEmail,
           userId: votes.userId,
           userName: votes.userName,
+          accountEmail: user.email,
+          accountName: user.name,
         })
         .from(votes)
+        .leftJoin(user, eq(votes.userId, user.id))
         .where(eq(votes.postId, postId));
 
       for (const voter of voters) {
-        const email = voter.userEmail;
+        const email = voter.userEmail ?? voter.accountEmail;
         if (!email) {
           continue;
         }
 
         await enqueueJob(JOB_NAMES.SEND_CHANGELOG_EMAIL, {
           voterEmail: email,
-          voterName: voter.userName ?? email.split("@")[0],
+          voterName: voter.userName ?? voter.accountName ?? email.split("@")[0],
           voterUserId: voter.userId ?? null,
           entryId,
           entryTitle: entry.title,

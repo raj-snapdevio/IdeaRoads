@@ -59,7 +59,13 @@ export function AccountIdentityForms({
             </p>
           </div>
           <form action={nameAction} className="flex-1 min-w-0 space-y-3">
-            <Input defaultValue={name} id="name" maxLength={100} name="name" />
+            <Input
+              defaultValue={name}
+              id="name"
+              maxLength={100}
+              name="name"
+              placeholder="Enter your profile name..."
+            />
             <ActionMessage state={nameState} />
             <Button disabled={namePending} size="sm" type="submit">
               {namePending ? "Saving…" : "Save name"}
@@ -84,6 +90,7 @@ export function AccountIdentityForms({
               name="email"
               required
               type="email"
+              placeholder="Enter your email address..."
             />
             <ActionMessage state={emailState} />
             <Button disabled={emailPending} size="sm" type="submit">

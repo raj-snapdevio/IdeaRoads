@@ -6,6 +6,7 @@ import { WORKSPACE_MEMBER } from "@/config/platform";
 import {
   boards,
   categories,
+  user,
   votes,
   workspaceMembers,
   workspaces,
@@ -741,17 +742,22 @@ async function enqueueStatusChangeEmails(input: {
     return;
   }
 
+  // Signed-in voters don't store a denormalised email/name on their vote (see
+  // castVote) — resolve it from their account so they still get notified.
   const voters = await db
     .select({
       userId: votes.userId,
       userEmail: votes.userEmail,
       userName: votes.userName,
+      accountEmail: user.email,
+      accountName: user.name,
     })
     .from(votes)
+    .leftJoin(user, eq(votes.userId, user.id))
     .where(eq(votes.postId, input.postId));
 
   for (const voter of voters) {
-    const email = voter.userEmail;
+    const email = voter.userEmail ?? voter.accountEmail;
     if (!email) {
       continue;
     }
@@ -767,7 +773,7 @@ async function enqueueStatusChangeEmails(input: {
       fromStatus: input.fromStatus,
       toStatus: input.toStatus,
       voterEmail: email,
-      voterName: voter.userName ?? email.split("@")[0],
+      voterName: voter.userName ?? voter.accountName ?? email.split("@")[0],
       voterUserId: voter.userId ?? null,
       changedById: input.changedById,
     });
